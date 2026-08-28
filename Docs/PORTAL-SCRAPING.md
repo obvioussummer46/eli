@@ -3,8 +3,29 @@
 The portal is not an API. This file lists every piece of HTML the app depends
 on, so that a break is a five-minute fix rather than an investigation.
 
-To capture a fresh sample: open the page in Safari on a Mac while logged in,
-Develop → Show Page Source, save it, and run the parser against it.
+## Capturing a sample safely
+
+Never hand anyone portal credentials to "have a look" — not a developer, not an
+assistant. What a parser fix needs is the *markup*, not access, and the two are
+easy to separate.
+
+`Tools/dump-structure.user.js` does the separating. Install it alongside the
+restyle userscript, open the page you want (Mein Unterricht, Stundenplan, …) and
+tap the blue **⬇︎ Struktur** button; the result is copied to the clipboard and
+saved as `<seite>-struktur.html`.
+
+| | |
+|---|---|
+| **Kept** | tags, nesting, `class`, `id`, `data-*`, `style`, `rowspan`/`colspan`, numbers, dates, times, `offen`/`erledigt`, portal action names (`a=sus_homeworkDone`) |
+| **Masked** | every other text — letters become `x`/`X`, length and punctuation survive, so `Vokabeln lernen` becomes `Xxxxxxxx xxxxxx` |
+| **Removed** | `<script>`, `<style>`, `title`/`alt`/`value`/`placeholder`/`aria-*`, `on*` handlers, attachment filenames, and `sid`/`token`/`auth` in every URL |
+
+That is enough to fix any selector in this document and reveals no names, marks,
+messages or session. It doubles as a test fixture. Read it over once before
+sending it anywhere — automated redaction is a good default, not a guarantee.
+
+If you would rather do it by hand: Safari on a Mac → Develop → Show Page Source,
+save, then delete anything personal yourself.
 
 ## `meinunterricht.php` → `MeinUnterrichtParser`
 

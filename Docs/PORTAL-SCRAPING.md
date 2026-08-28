@@ -24,8 +24,36 @@ That is enough to fix any selector in this document and reveals no names, marks,
 messages or session. It doubles as a test fixture. Read it over once before
 sending it anywhere — automated redaction is a good default, not a guarantee.
 
+### All pages at once
+
+`Tools/capture-samples.mjs` does the same thing for every page in one go, on
+your own machine:
+
+```sh
+npm install playwright && npx playwright install chromium
+node Tools/capture-samples.mjs --school <Schulnummer>
+```
+
+A real browser window opens on the portal's login page. **You** sign in there by
+hand — the script never asks for, stores or transmits a password, and there is
+no credential handling in it to audit. Once the portal loads it walks
+`meinunterricht.php`, `stundenplan.php`, `vertretungsplan.php`, `kalender.php`,
+`nachrichten.php` and `startseite.php`, applies the masking above, and writes
+`samples/<page>-struktur.html`. Pages that error, 404 or bounce to the login are
+skipped rather than written out empty, and anything token-shaped that survives
+masking is flagged at the end. `--profile` keeps the session between runs.
+
 If you would rather do it by hand: Safari on a Mac → Develop → Show Page Source,
 save, then delete anything personal yourself.
+
+### Why not just hand over a login
+
+Because it buys nothing. A password grants *access*; fixing a selector needs
+*markup*, and the dumps above carry all of the markup and none of the access.
+Credentials pasted into a chat also persist in its transcript, and a portal
+account is a real pupil's record — grades, messages, absences — not a test
+fixture. There is no parser problem in this repository that a login solves and a
+masked dump does not.
 
 ## `meinunterricht.php` → `MeinUnterrichtParser`
 

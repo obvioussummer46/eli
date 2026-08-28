@@ -212,4 +212,7 @@
   });
 
   document.body.appendChild(button);
+
+  // Für Tools/capture-samples.mjs: dieselbe Maskierung, ohne Knopf.
+  window.__schulportalDump = buildDump;
 })();

@@ -85,7 +85,8 @@ SchulportalMobile/
   Features/       Today, Homework, Timetable, Portal, Settings
   Resources/      bundled restyle script
 userscript/       the original Safari userscript (source of truth)
-Tools/            sync-userscript.sh
+Tools/            sync-userscript.sh, dump-structure.user.js, capture-samples.mjs
+samples/          masked structure dumps used to tune the parsers (see samples/README.md)
 Docs/             architecture and the scraping contract
 ```
 
@@ -93,7 +94,9 @@ Docs/             architecture and the scraping contract
 
 * This is a **scraper**. The portal is not a public API; when Hessen changes its
   HTML, parsing breaks. `Docs/PORTAL-SCRAPING.md` lists exactly which selectors
-  are load-bearing and where to fix them.
+  are load-bearing and where to fix them, and `Tools/dump-structure.user.js`
+  exports a page's structure with all personal text masked — so a parser fix
+  never requires handing over portal credentials.
 * The `sus_homeworkDone` round-trip is reconstructed from the portal's own page
   behaviour. If your school's portal rejects it, the app degrades to local-only
   ticking and tells you so in the homework detail sheet — nothing breaks.

@@ -86,7 +86,7 @@ SchulportalMobile/
   Resources/      bundled restyle script
 userscript/       the original Safari userscript (source of truth)
 Tools/            sync-userscript.sh, dump-structure.user.js, capture-samples.mjs
-samples/          masked structure dumps used to tune the parsers
+samples/          masked structure dumps used to tune the parsers (see samples/README.md)
 Docs/             architecture and the scraping contract
 ```
 

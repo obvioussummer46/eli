@@ -30,9 +30,13 @@ sending it anywhere — automated redaction is a good default, not a guarantee.
 your own machine:
 
 ```sh
-npm install playwright && npx playwright install chromium
-node Tools/capture-samples.mjs --school <Schulnummer>
+npm install && npx playwright install chromium
+npm run capture -- --school <Schulnummer>
 ```
+
+(Identical on macOS and Linux. `samples/README.md` has the step-by-step version
+for someone who has not used a terminal before, plus the no-terminal route via
+the Safari userscript button.)
 
 A real browser window opens on the portal's login page. **You** sign in there by
 hand — the script never asks for, stores or transmits a password, and there is

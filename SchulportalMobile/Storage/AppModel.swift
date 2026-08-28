@@ -199,7 +199,12 @@ final class AppModel {
 
     private func pushDoneFlag(for homework: Homework, done: Bool) async {
         do {
-            try await service.setHomeworkDone(homework, done: done)
+            let outcome = try await service.setHomeworkDone(homework, done: done)
+            if outcome == .localOnly {
+                logger.notice("Das Portal kennt kein Zurücknehmen — der Haken bleibt lokal.")
+            }
+            // `.localOnly` counts as settled: there is nothing left to send, so
+            // the entry must not sit in the retry queue.
             if var override = snapshot.doneOverrides[homework.id], override.isDone == done {
                 override.syncedToPortal = true
                 snapshot.doneOverrides[homework.id] = override

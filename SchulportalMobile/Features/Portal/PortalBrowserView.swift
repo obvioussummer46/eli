@@ -20,7 +20,11 @@ struct PortalBrowserView: View {
         .init(title: "Nachrichten", icon: "envelope", url: SPHEndpoints.nachrichten),
         .init(title: "Vertretungsplan", icon: "arrow.left.arrow.right", url: SPHEndpoints.vertretungsplan),
         .init(title: "Kalender", icon: "calendar", url: SPHEndpoints.kalender),
-        .init(title: "Mein Unterricht", icon: "book", url: SPHEndpoints.meinUnterricht)
+        .init(title: "Mein Unterricht", icon: "book", url: SPHEndpoints.meinUnterricht),
+        .init(title: "Lerngruppen", icon: "person.3", url: SPHEndpoints.lerngruppen),
+        .init(title: "Dateispeicher", icon: "folder", url: SPHEndpoints.dateispeicher),
+        .init(title: "Dateiverteilung", icon: "tray.and.arrow.down", url: SPHEndpoints.dateiverteilung),
+        .init(title: "Videokonferenz", icon: "video", url: SPHEndpoints.videokonferenz)
     ]
 
     var body: some View {

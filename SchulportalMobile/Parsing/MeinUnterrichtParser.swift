@@ -128,15 +128,31 @@ enum MeinUnterrichtParser {
                         portalBookID: bookID)
     }
 
-    /// The portal renders the state as a label reading "offen" or "erledigt";
-    /// the class (`label-warning` / `label-success`) says the same thing.
+    /// The portal ships *both* labels on every entry and switches between them
+    /// with the `hidden` class — `.done` ("erledigt") carries `hidden` while the
+    /// homework is still open, and `.undone` (the "als erledigt markieren"
+    /// button) is the one on screen. Its own `sus_start.js` does exactly this:
+    /// on a successful tick it calls `.done` `removeClass('hidden')` and fades
+    /// `.undone` out.
+    ///
+    /// The label *text* therefore says nothing: `.done` reads "erledigt" either
+    /// way, and no label ever reads "offen".
     private static func doneState(in container: Element) -> Bool {
-        guard let label = container.firstMatch(".done") ?? container.firstMatch(".label") else { return false }
-        let text = HTMLText.inline(label).lowercased()
-        if text.contains("erledigt") { return true }
-        if text.contains("offen") { return false }
-        let classes = (try? label.className())?.lowercased() ?? ""
-        return classes.contains("label-success")
+        if let done = container.firstMatch(".done") {
+            return !hasClass(done, "hidden")
+        }
+        if let undone = container.firstMatch(".undone") {
+            return hasClass(undone, "hidden")
+        }
+        return false
+    }
+
+    /// Whole-token class test. Substring matching is not safe here: the portal
+    /// also uses `hidden-print`, which would otherwise read as `hidden`.
+    private static func hasClass(_ element: Element, _ name: String) -> Bool {
+        guard let classes = try? element.className() else { return false }
+        return classes.split(whereSeparator: \.isWhitespace)
+            .contains { $0.caseInsensitiveCompare(name) == .orderedSame }
     }
 
     private static func parseAttachments(in row: Element) -> [Attachment] {

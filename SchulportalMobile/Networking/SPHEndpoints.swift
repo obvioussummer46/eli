@@ -14,6 +14,10 @@ enum SPHEndpoints {
     static let vertretungsplan = base.appendingPathComponent("vertretungsplan.php")
     static let kalender = base.appendingPathComponent("kalender.php")
     static let nachrichten = base.appendingPathComponent("nachrichten.php")
+    static let lerngruppen = base.appendingPathComponent("lerngruppen.php")
+    static let dateispeicher = base.appendingPathComponent("dateispeicher.php")
+    static let dateiverteilung = base.appendingPathComponent("dateiverteilung.php")
+    static let videokonferenz = base.appendingPathComponent("videokonferenz.php")
     static let logout = URL(string: "https://start.schulportal.hessen.de/index.php?logout=all")!
 
     /// Login page. Passing the school id preselects the school so the user only

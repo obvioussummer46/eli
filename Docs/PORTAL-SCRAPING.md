@@ -75,16 +75,31 @@ Each lesson entry is a table row carrying the portal's own ids:
 | `.inhalt` | collapsed lesson content | detail sheet |
 | `.homework` | homework container | — |
 | `.homework .realHomework` | the actual assignment text | the list |
-| `.homework .done` | label reading `offen` / `erledigt` | portal done-state |
+| `.homework .done` | always-present `erledigt` label; `hidden` while open | portal done-state |
+| `.homework .undone` | the "als erledigt markieren" button | portal done-state |
 | `a[href*=sus_download]` | attachments | detail sheet |
 | `.teacher .btn` | teacher shorthand | course metadata |
 
 These are exactly the selectors the Safari userscript already targets, so if the
 userscript still works, the parser should too — and vice versa.
 
-**Done-state detection** reads the label text first (`erledigt` → done, `offen`
-→ open) and only falls back to the CSS class (`label-success` → done). Text is
-more stable than Bootstrap classes here.
+**Done-state detection** is a *class* test, not a text test. The portal ships
+both labels on every entry and switches between them with `hidden`:
+
+```html
+<span class="done label label-default hidden">erledigt</span>
+<span class="undone"><span class="label label-warning change">als "erledigt" markieren</span></span>
+```
+
+So `.done` is present and reads `erledigt` whether or not the homework is done —
+it carries `hidden` while the entry is still open. `.undone` is the visible one.
+Verified against a live page: all six open entries render exactly this way.
+
+Read it as: `.done` without `hidden` → done; otherwise open. Match the class as a
+whole token — the portal also uses `hidden-print`, which a substring test would
+wrongly read as `hidden`. No label ever reads `offen`, and `label-success` sits
+on the *"Hausaufgabe"* title span rather than on the state, so neither of those
+is usable as a signal.
 
 ### Pushing a tick back
 
@@ -93,8 +108,17 @@ POST https://start.schulportal.hessen.de/meinunterricht.php
 Content-Type: application/x-www-form-urlencoded
 X-Requested-With: XMLHttpRequest
 
-a=sus_homeworkDone&entry=<data-entry>&id=<data-book>&b=done      # or b=undone
+a=sus_homeworkDone&id=<data-book>&entry=<data-entry>
 ```
+
+These three fields are the whole payload — taken from the portal's own
+`module/meinunterricht/js/sus_start.js`, which posts
+`{a: 'sus_homeworkDone', id: book, entry: entry}`. There is no `b` parameter.
+
+**The route is one-way.** That script binds the POST to the "als erledigt
+markieren" button and offers nothing to undo it, so un-ticking cannot reach the
+portal at all. `PortalService.setHomeworkDone` returns `.localOnly` for that case
+instead of throwing, so the entry does not sit in the retry queue forever.
 
 The portal answers `1` on success. This is reconstructed from the page's own
 behaviour rather than documented, so it is treated as best-effort: a failure
@@ -111,6 +135,11 @@ expressed with `rowspan`.
 | Selector | Meaning |
 |---|---|
 | `table#own`, `table#all`, or the first table containing `.stunde` | the plan |
+
+> Neither `#own` nor `#all` existed on the one live plan checked (a `?a=detail_klasse`
+> view reached by a server-side redirect from bare `stundenplan.php`) — the third
+> fallback is what actually carried it. Treat the ids as optional, not as the
+> primary hook.
 | header `th` text | weekday, matched on the first two letters (`Mo`, `Montag`, …) |
 | first cell of each row | period number and `span.VonBis` times (`07:45 - 08:30`) |
 | `.stunde` inside a day cell | one lesson block (several = parallel courses) |

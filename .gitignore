@@ -1,0 +1,9 @@
+.DS_Store
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+build/
+DerivedData/
+.swiftpm/
+SchulportalMobile.xcodeproj/project.xcworkspace/xcuserdata/
+SchulportalMobile.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/

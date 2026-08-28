@@ -32,6 +32,9 @@ struct MainTabView: View {
             TimetableView()
                 .tabItem { Label("Plan", systemImage: "calendar") }
 
+            MensaTabView()
+                .tabItem { Label("Essen", systemImage: "fork.knife") }
+
             PortalBrowserView()
                 .tabItem { Label("Portal", systemImage: "safari") }
 

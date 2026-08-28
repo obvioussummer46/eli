@@ -52,6 +52,52 @@ Support. A decoding failure after a schema change resets rather than crashes.
 **`CalendarSync`** — EventKit. Deliberately isolated: it is the only code that
 writes outside the app's own container.
 
+## The mensa is a second, parallel stack
+
+`menuebestellung.de` is a different company, a different account and a different
+session. It gets its own column rather than a corner of the existing one:
+
+```
+        MensaLoginView                    MensaKeychain
+             │                          (device-only, no iCloud)
+             │ username + password              │
+             ▼                                  ▼
+        MensaClient (actor)  ── ephemeral URLSession, private cookie jar ──►
+             │                                     www.menuebestellung.de
+             │  signs itself back in on .notLoggedIn, once, silently
+             ▼
+        MensaService          fetch + parse, one method per page
+             │
+     ┌───────┴────────┐
+     ▼                ▼
+SpeiseplanParser   berichte_api.php JSON      (SwiftSoup / JSONDecoder)
+     │                ▼
+     └───────┬────────┘
+             ▼
+        MensaModel  (@MainActor @Observable)   ← nothing persisted to disk
+```
+
+Three decisions worth knowing:
+
+* **Its own cookie jar.** The configuration is `ephemeral`, so the session lives
+  in a private in-memory store. `SPHCookies.clearAll()` wipes
+  `HTTPCookieStorage.shared` wholesale on Schulportal sign-out, and it must not
+  take the mensa session with it.
+* **It holds a password**, which the Schulportal side never does. The site has
+  no SSO and no login page worth embedding, so a web view would buy nothing and
+  cost a login screen every time the session dropped. The credentials go into
+  the Keychain as `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` and
+  `MensaClient` re-signs in on its own. Only a *rejected credential* reaches
+  `MensaModel` and sends the user back to the login screen; an expired session
+  never does.
+* **Nothing is cached to disk.** The plan changes weekly and the balance changes
+  hourly. A stale balance read out of a snapshot would be worse than an empty
+  screen, so there is no `SnapshotStore` equivalent here.
+
+It is read-only. `speiseplan.php` would take a `POST` with `csrftoken`,
+`submit_bestellung` and one `menue_<DAY>_0` per day — that is how an order is
+placed — and the app deliberately does not send it.
+
 ## The one interesting decision: who owns "done"
 
 Two sources disagree constantly — the portal's own flag, and what the user just

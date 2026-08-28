@@ -16,6 +16,7 @@ Vertretungsplan, Kalender) still look right.
 | **Heute** | What's on right now, the rest of today's lessons, and the open homework digest. |
 | **Aufgaben** | Every open homework from *Mein Unterricht*, grouped, searchable, filterable by subject. Tap the circle or swipe to mark done — the flag is pushed back to the portal and kept locally either way. |
 | **Plan** | The weekly timetable as a day list or a week grid, and the button that writes it into a dedicated iOS calendar. |
+| **Essen** | This week's mensa menu and what is left on the lunch card, from `menuebestellung.de`. Read-only. |
 | **Portal** | The real portal in a web view, restyled by the bundled userscript. |
 | **Mehr** | Account, refresh behaviour, calendar options. |
 
@@ -29,6 +30,24 @@ Vertretungsplan, Kalender) still look right.
   refresh.
 * Homework that scrolls out of the portal's two-week window but was never
   ticked off is kept in a local archive instead of silently disappearing.
+
+### Mensa and lunch balance
+
+A second, unrelated service: the school's caterer runs on `menuebestellung.de`,
+with its own account. The **Essen** tab shows the week's menu, which dish is
+already ordered, the card balance and the last month of bookings.
+
+* **Read-only on purpose.** Choosing a menu spends real money, so the app shows
+  the selection the website holds and never changes it. Ordering stays on
+  `menuebestellung.de`.
+* Unlike the Schulportal, this site offers nothing but a username/password API —
+  no SSO, no login page worth embedding. So the credentials go into the **iOS
+  Keychain** (device-only, never synchronised) and the app signs itself back in
+  when the session expires, instead of putting a login screen in front of a
+  child every few hours. They are verified against the site before they are
+  stored.
+* Its session is kept in a private cookie jar, so signing out of the Schulportal
+  cannot take the mensa session with it, and vice versa.
 
 ### Timetable → iOS calendar
 
@@ -82,7 +101,7 @@ SchulportalMobile/
   Models/         Course, Homework, Timetable, Subject catalogue
   Storage/        observable app state, JSON snapshot, settings
   CalendarSync/   EventKit writer
-  Features/       Today, Homework, Timetable, Portal, Settings
+  Features/       Today, Homework, Timetable, Mensa, Portal, Settings
   Resources/      bundled restyle script
 userscript/       the original Safari userscript (source of truth)
 Tools/            sync-userscript.sh, dump-structure.user.js, capture-samples.mjs
@@ -105,4 +124,8 @@ Docs/             architecture and the scraping contract
   plan omits the time column, but an exotic layout may need a tweak.
 * Messages (*Nachrichten*) are end-to-end encrypted in the portal and are not
   parsed natively; they open in the Portal tab.
-* Unofficial and unaffiliated with the Land Hessen.
+* The **Essen** tab is a scraper too, against a different site. The balance and
+  the account statement come from `menuebestellung.de`'s own JSON API, but the
+  menu itself is parsed out of `speiseplan.php` — the one page that carries the
+  week's dishes, the current order *and* the balance in a single request.
+* Unofficial and unaffiliated with the Land Hessen, the ASB or OPAL Catering.

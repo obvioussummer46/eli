@@ -163,6 +163,73 @@ unusual school layout.
 from the name, so an unmapped subject still gets a stable colour. Adding a
 subject is one line in `Subject.names` (plus optionally `Subject.colors`).
 
+## `menuebestellung.de` → `SpeiseplanParser`
+
+A different site entirely — the school's caterer — behind the **Essen** tab. It
+is half modern and half legacy, and the split matters: the login and the account
+pages are a Next.js front end over a JSON API, while the menu itself is still a
+server-rendered PHP page.
+
+**Login** — `POST /asb-heserv/login_api.php?loginWithUsernameAndPassword`,
+body `{"username":…,"password":…}`, answer
+`{"success":bool,"secondFactorRequired":bool,"redirectUrl":"","errors":[…]}`.
+`errors[0]` is shown verbatim, because the site words it better than we could. A
+lost session shows up as a redirect to `/asb-heserv/login?next=…`, or as an HTML
+error page under a `200` where JSON was promised — both mean "sign in again",
+which `MensaClient` does by itself.
+
+**Balance** — `GET /asb-heserv/berichte_api.php?getPageData` →
+`{"balance":"31.85","totalBalance":"31.85","lowBalanceThreshold":{"minimumBalance":"15.00"}}`.
+Every money field is a **string**; keep it that way until `Decimal`, never
+through a `Double`.
+
+**Statement** — `POST /asb-heserv/berichte_api.php?searchTransactions` with
+`{"type":"","direction":"","dateFrom":"YYYY-MM-DD","dateTo":…,"valutaFrom":"","valutaTo":"","orderBy":{"column":"t.id","orderType":"DESC"},"page":1,"pageSize":20}`.
+Empty `type`/`direction` is the site's own "Alle" preset. Entries whose `value`
+is `"0.00"` are pick-up confirmations, not money moving.
+
+**The plan** — `GET /asb-heserv/speiseplan.php?week=YYYY_WW`. This one page
+carries the week's dishes, what is ordered *and* the balance, so the tab fills
+from a single request:
+
+| Selector | Meaning | Used for |
+|---|---|---|
+| `span.username` | who is logged in | the balance card |
+| `#guthaben` | the balance, `31,85` | the balance card |
+| `select[name=week] option` | every offered week, `value="2026_36"` | the week pager |
+| `option[selected]` | the week on screen | the heading |
+| `div.tab-pane.day` | one school day | the day loop |
+| `@id` | `day-MO` | the day key |
+| `@name` | `2026-08-31` | the date |
+| `input.hiddenmenuefield` `@value` | the ordered menu id, `""` if none | "Bestellt" |
+| `div.panel.menue` | one dish | the cards |
+| `@rel` | menu id | matching against the hidden field |
+| `.panel-title` | dish name | the card |
+| `.badge` | price, `3,00 €` | the card |
+| `.panel-body p` | description | the card |
+| `.panel-body p small` | allergen codes, `1, GL, LA` | the card |
+| `@data-content` | the same codes spelled out | accessibility, long-press |
+| `.disabled` | past the ordering deadline | the greyed-out state |
+| `.colorflag-dge` | DGE quality seal | the badge |
+
+Two traps:
+
+* **The hidden field, not the `active` class, is what is ordered.** `active`
+  also comes and goes with the site's own client-side selection handling; the
+  hidden field is what the form would actually submit.
+* **`<br>` is the only real line break.** The caterer writes
+  `Gericht<br>\nBeilage<br>\n<br>\nDessert`, so `HTMLText.multiline` — which
+  honours source newlines too, correctly, for the portal — doubles every break
+  and destroys the difference between a new line and a blank one.
+  `SpeiseplanParser.brSeparatedLines` ignores source whitespace and lets the
+  tags decide.
+
+**Ordering is deliberately not implemented.** It would be a `POST` to the same
+`speiseplan.php?week=…` with `csrftoken` (also readable from the
+`csrftoken_asb_heserv` cookie), `submit_bestellung=submit` and one
+`menue_<DAY>_0=<menuId>` per day. It spends real money, so the app reads and
+leaves the choosing to the website.
+
 ## Not parsed natively
 
 *Nachrichten* is encrypted client-side by the portal, and *Kalender* /

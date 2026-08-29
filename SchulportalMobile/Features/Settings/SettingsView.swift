@@ -54,14 +54,13 @@ struct SettingsView: View {
                     LabeledContent("Stunden im Plan", value: "\(model.snapshot.timetable.entries.count)")
                 }
 
-                Section {
-                    Link(destination: SPHEndpoints.index) {
-                        Label("Schulportal im Browser", systemImage: "safari")
-                    }
-                } header: {
-                    Text("Über")
-                } footer: {
+                // The portal itself lives in the Portal tab — including its
+                // own „In Safari öffnen“. A second way in from here only made
+                // it ambiguous which of the two was the real one.
+                Section("Über") {
                     Text("Inoffizielle App. Sie liest genau die Seiten, die du auch im Browser siehst, und speichert nichts außerhalb deines Geräts. Kein Passwort wird gespeichert.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Einstellungen")

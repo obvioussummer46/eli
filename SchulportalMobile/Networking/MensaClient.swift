@@ -126,7 +126,7 @@ actor MensaClient {
     func getJSON(_ url: URL) async throws -> Data {
         try await authenticated {
             var request = URLRequest(url: url)
-            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            Self.markAsXHR(&request)
             let (data, response) = try await self.send(request)
             try Self.rejectIfSignedOut(response)
             try Self.rejectHTMLBody(data)
@@ -138,14 +138,25 @@ actor MensaClient {
         try await authenticated {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
+            Self.markAsXHR(&request)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue(MensaEndpoints.origin, forHTTPHeaderField: "Origin")
             request.httpBody = try? JSONSerialization.data(withJSONObject: body)
             let (data, response) = try await self.send(request)
             try Self.rejectIfSignedOut(response)
             try Self.rejectHTMLBody(data)
             return data
         }
+    }
+
+    /// The account endpoints are legacy PHP behind a modern front end and they
+    /// answer a request that does not look like the site's own `fetch` with the
+    /// HTML page instead of JSON — which arrives here as an unreadable body and
+    /// used to be blamed on the session. So we say what the browser says.
+    private static func markAsXHR(_ request: inout URLRequest) {
+        request.setValue("application/json, text/javascript, */*; q=0.01", forHTTPHeaderField: "Accept")
+        request.setValue("XMLHttpRequest", forHTTPHeaderField: "X-Requested-With")
+        request.setValue(MensaEndpoints.base.absoluteString, forHTTPHeaderField: "Referer")
     }
 
     /// Runs `work` with a live session, signing in first if we have none and
@@ -159,7 +170,14 @@ actor MensaClient {
             logger.notice("Sitzung beim Bestellsystem abgelaufen, melde neu an.")
             hasSession = false
             try await performSignIn(credentials)
-            return try await work()
+            do {
+                return try await work()
+            } catch MensaError.notLoggedIn {
+                // A fresh login and still "not logged in": the session was
+                // never the problem, and saying so would send the user hunting
+                // for a fault in their password.
+                throw MensaError.rejected
+            }
         }
     }
 

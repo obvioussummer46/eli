@@ -94,7 +94,10 @@ struct MensaAccount: Codable, Equatable {
 /// One line of the account statement: a kiosk purchase, a top-up, or a menu
 /// pick-up.
 struct MensaTransaction: Codable, Equatable, Identifiable {
-    var id: Int
+    /// The site's own id where it sends one, else a stable digest of the row —
+    /// it is a `String` because the back end answers with `12` on one route and
+    /// `"12"` on the next, and neither is worth losing a booking over.
+    var id: String
     var date: Date
     var text: String
     var amount: Decimal

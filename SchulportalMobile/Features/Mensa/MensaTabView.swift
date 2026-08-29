@@ -73,7 +73,10 @@ struct MensaTabView: View {
             VStack(spacing: 16) {
                 MensaBalanceCard()
 
-                if let message = mensa.lastErrorMessage {
+                // Only a failing plan page earns a banner; a failing account
+                // statement stays in the Kontoauszug, which is the only screen
+                // it affects.
+                if let message = mensa.weekErrorMessage {
                     InlineErrorBanner(message: message) {
                         Task { await mensa.refresh() }
                     }

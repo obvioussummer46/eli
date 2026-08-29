@@ -7,6 +7,7 @@ enum MensaEndpoints {
     static let tenant = "asb-heserv"
 
     static let base = URL(string: "https://\(host)/\(tenant)/")!
+    static let origin = "https://\(host)"
 
     /// The login the site's own form posts to. There is a newer
     /// `api/v1/auth/login` alongside it, but this is the one the website

@@ -25,7 +25,11 @@ final class MensaModel {
     private(set) var week = MenuWeek()
     private(set) var statement = MensaStatement()
     private(set) var isLoading = false
-    private(set) var lastErrorMessage: String?
+    /// A failure of the plan page — the tab's actual content. Worth a banner.
+    private(set) var weekErrorMessage: String?
+    /// A failure of the account statement. Deliberately *not* worth a banner:
+    /// see `refresh()`.
+    private(set) var statementErrorMessage: String?
     private(set) var lastRefresh: Date?
     /// Set when the stored credentials stopped working — the login screen says
     /// so instead of silently showing nothing.
@@ -87,7 +91,8 @@ final class MensaModel {
         statement = MensaStatement()
         selectedWeekKey = nil
         lastRefresh = nil
-        lastErrorMessage = nil
+        weekErrorMessage = nil
+        statementErrorMessage = nil
         phase = .signedOut
     }
 
@@ -96,10 +101,9 @@ final class MensaModel {
     func refresh() async {
         guard phase == .ready, !isLoading else { return }
         isLoading = true
-        lastErrorMessage = nil
+        weekErrorMessage = nil
+        statementErrorMessage = nil
         defer { isLoading = false }
-
-        var errors: [String] = []
 
         do {
             // The plan page carries the balance in its sidebar, so this alone
@@ -112,7 +116,7 @@ final class MensaModel {
             account.balance = result.account.balance
         } catch {
             if handleSignInFailure(error) { return }
-            errors.append(error.localizedDescription)
+            weekErrorMessage = error.localizedDescription
         }
 
         do {
@@ -124,11 +128,17 @@ final class MensaModel {
             }
         } catch {
             if handleSignInFailure(error) { return }
-            errors.append(error.localizedDescription)
+            // The statement is the tab's footnote, not its point: the balance
+            // and the whole week's menu come from the plan page and are already
+            // on screen. Putting a warning across a screen that is otherwise
+            // correct — and that the user can do nothing about — only teaches
+            // them to ignore warnings, so this one stays inside the Kontoauszug
+            // where it means something.
+            statementErrorMessage = error.localizedDescription
+            logger.notice("Kontoauszug nicht geladen: \(error.localizedDescription, privacy: .public)")
         }
 
         lastRefresh = Date()
-        lastErrorMessage = errors.isEmpty ? nil : errors.joined(separator: "\n")
     }
 
     /// Only a rejected *credential* sends the user back to the login screen. A

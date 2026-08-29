@@ -23,14 +23,29 @@ struct MensaStatementView: View {
                 }
             }
 
-            Section("Letzte 30 Tage") {
+            Section {
                 if mensa.statement.transactions.isEmpty {
-                    Text(mensa.isLoading ? "Wird geladen …" : "Keine Buchungen.")
-                        .foregroundStyle(.secondary)
+                    if mensa.isLoading {
+                        Text("Wird geladen …")
+                            .foregroundStyle(.secondary)
+                    } else if mensa.statementErrorMessage != nil {
+                        // "Keine Buchungen" would be a claim about the account.
+                        // We do not know that — we know the list did not load.
+                        Button("Nochmal laden") { Task { await mensa.refresh() } }
+                    } else {
+                        Text("Keine Buchungen.")
+                            .foregroundStyle(.secondary)
+                    }
                 } else {
                     ForEach(mensa.statement.transactions) { transaction in
                         MensaTransactionRow(transaction: transaction)
                     }
+                }
+            } header: {
+                Text("Letzte 30 Tage")
+            } footer: {
+                if let message = mensa.statementErrorMessage {
+                    Text("Der Kontoauszug ließ sich nicht laden. \(message)")
                 }
             }
         }

@@ -70,14 +70,14 @@ session. It gets its own column rather than a corner of the existing one:
              │
      ┌───────┴────────┐
      ▼                ▼
-SpeiseplanParser   berichte_api.php JSON      (SwiftSoup / JSONDecoder)
+SpeiseplanParser   MensaStatementParser    (SwiftSoup / MensaJSON)
      │                ▼
      └───────┬────────┘
              ▼
         MensaModel  (@MainActor @Observable)   ← nothing persisted to disk
 ```
 
-Three decisions worth knowing:
+Four decisions worth knowing:
 
 * **Its own cookie jar.** The configuration is `ephemeral`, so the session lives
   in a private in-memory store. `SPHCookies.clearAll()` wipes
@@ -93,6 +93,12 @@ Three decisions worth knowing:
 * **Nothing is cached to disk.** The plan changes weekly and the balance changes
   hourly. A stale balance read out of a snapshot would be worse than an empty
   screen, so there is no `SnapshotStore` equivalent here.
+* **The two halves of the tab fail separately.** `speiseplan.php` carries the
+  menu *and* the balance, so it alone fills the screen; the account statement is
+  the extra detail behind „Kontoauszug“. `MensaModel` therefore keeps
+  `weekErrorMessage` and `statementErrorMessage` apart — only the first earns a
+  banner over the tab. A warning on a screen that is otherwise correct, about
+  something the reader cannot act on, only teaches them to ignore warnings.
 
 It is read-only. `speiseplan.php` would take a `POST` with `csrftoken`,
 `submit_bestellung` and one `menue_<DAY>_0` per day — that is how an order is

@@ -178,15 +178,43 @@ lost session shows up as a redirect to `/asb-heserv/login?next=…`, or as an HT
 error page under a `200` where JSON was promised — both mean "sign in again",
 which `MensaClient` does by itself.
 
+Both account calls go out with `X-Requested-With: XMLHttpRequest`, a `Referer`
+under `/asb-heserv/` and (on `POST`) an `Origin`. Without them the endpoints
+answer with the site's HTML page under a `200`, which the client can only read
+as a dead session.
+
 **Balance** — `GET /asb-heserv/berichte_api.php?getPageData` →
 `{"balance":"31.85","totalBalance":"31.85","lowBalanceThreshold":{"minimumBalance":"15.00"}}`.
 Every money field is a **string**; keep it that way until `Decimal`, never
 through a `Double`.
 
 **Statement** — `POST /asb-heserv/berichte_api.php?searchTransactions` with
-`{"type":"","direction":"","dateFrom":"YYYY-MM-DD","dateTo":…,"valutaFrom":"","valutaTo":"","orderBy":{"column":"t.id","orderType":"DESC"},"page":1,"pageSize":20}`.
+`{"type":"","direction":"","dateFrom":"YYYY-MM-DD","dateTo":…,"valutaFrom":"","valutaTo":"","orderBy":{"column":"t.id","orderType":"DESC"},"page":1,"pageSize":100}`.
 Empty `type`/`direction` is the site's own "Alle" preset. Entries whose `value`
 is `"0.00"` are pick-up confirmations, not money moving.
+
+The answers to those two are **not** decoded strictly, and that is deliberate —
+`Parsing/MensaJSON.swift` walks them as plain values and reads each field by
+meaning:
+
+* Money and ids arrive as a string on one route and a number on the next; a
+  timestamp comes as ISO 8601, as `2026-08-28 12:30:00`, as `28.08.2026`, as a
+  Unix number or as PHP's `{"date":…,"timezone_type":3}` object. A strict
+  `Codable` model throws on the first surprise and loses the whole list.
+* The record list has been seen under `data`, but the finder also accepts
+  `transactions`/`entries`/`rows`/… and a bare array, and only accepts an array
+  when its objects actually look like bookings. A defaulted `data: [Entry] = []`
+  turns "the wrapper key moved" into a confident "no bookings", which is the bug
+  this replaced.
+* **An empty statement and an unreadable one must never look alike.** Zero rows
+  is printed as „Keine Buchungen“ *only* when the answer contained a record list
+  at all; otherwise the tab reports that the statement could not be read.
+
+**The date range is the trap.** The endpoint is German-facing PHP and answers a
+range it cannot parse with "nothing found" rather than an error. So an empty
+answer is retried with `dd.MM.yyyy` and then with the fields left empty (the
+site's "Alle" preset) before it is believed. Only the first request happens when
+things work.
 
 **The plan** — `GET /asb-heserv/speiseplan.php?week=YYYY_WW`. This one page
 carries the week's dishes, what is ordered *and* the balance, so the tab fills

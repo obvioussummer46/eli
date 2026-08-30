@@ -9,7 +9,9 @@ import SwiftUI
 struct LoginView: View {
     @Environment(AppModel.self) private var model
     @State private var isShowingPortalLogin = false
+    @State private var isShowingSchoolPicker = false
     @State private var schoolID: String = ""
+    @State private var schoolName: String = ""
 
     var body: some View {
         NavigationStack {
@@ -26,14 +28,39 @@ struct LoginView: View {
             .navigationTitle("Willkommen")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .onAppear { schoolID = model.settings.schoolID }
+        .onAppear {
+            schoolID = model.settings.schoolID
+            schoolName = model.settings.schoolName
+        }
+        .sheet(isPresented: $isShowingSchoolPicker) {
+            SchoolPickerView { school in
+                schoolID = school.id
+                schoolName = school.name
+            }
+        }
         .fullScreenCover(isPresented: $isShowingPortalLogin) {
-            LoginWebSheet(schoolID: schoolID.trimmingCharacters(in: .whitespaces)) {
-                model.settings.schoolID = schoolID.trimmingCharacters(in: .whitespaces)
+            LoginWebSheet(schoolID: trimmedID) {
+                model.settings.schoolID = trimmedID
+                // Empty whenever the number was typed rather than picked —
+                // `manualID` keeps the two from ever naming different schools.
+                model.settings.schoolName = schoolName
                 isShowingPortalLogin = false
                 Task { await model.didSignIn() }
             }
         }
+    }
+
+    private var trimmedID: String { schoolID.trimmingCharacters(in: .whitespaces) }
+
+    /// The number typed by hand, which drops any name picked earlier — the two
+    /// must never name different schools on screen.
+    ///
+    /// A binding rather than `onChange`, which fires on the *next* view update
+    /// and would therefore also run for the picker's own assignment, wiping the
+    /// name it had just set.
+    private var manualID: Binding<String> {
+        Binding(get: { schoolID },
+                set: { schoolID = $0; schoolName = "" })
     }
 
     private var header: some View {
@@ -71,13 +98,46 @@ struct LoginView: View {
 
     private var signInBox: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Schulnummer (optional)")
+            Text("Schule (optional)")
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.secondary)
-            TextField("z. B. 5182", text: $schoolID)
-                .keyboardType(.numberPad)
-                .textFieldStyle(.roundedBorder)
-            Text("Wenn du sie einträgst, ist deine Schule beim Anmelden schon ausgewählt. Du findest sie in der Adresszeile des Portals als „?i=…“.")
+
+            Button {
+                isShowingSchoolPicker = true
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(schoolName.isEmpty ? "Schule suchen" : schoolName)
+                            .foregroundStyle(schoolName.isEmpty ? Color.accentColor : Color.primary)
+                            .multilineTextAlignment(.leading)
+                        if !schoolName.isEmpty {
+                            Text("Schulnummer \(schoolID)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
+                .background(Color(.tertiarySystemGroupedBackground), in: .rect(cornerRadius: 10))
+            }
+            .buttonStyle(.plain)
+
+            // The number still works on its own: whoever already knows it
+            // should not have to search for a name to get at it.
+            DisclosureGroup("Schulnummer direkt eingeben") {
+                TextField("z. B. 5182", text: manualID)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.top, 6)
+            }
+            .font(.caption)
+            .tint(.secondary)
+
+            Text("Damit ist deine Schule beim Anmelden schon ausgewählt. Ohne sie fragt das Schulportal selbst danach.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

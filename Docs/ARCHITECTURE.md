@@ -35,6 +35,13 @@ HTTP: how to decode the portal's occasional Latin-1 pages, and how to recognise
 being bounced to the login wall (`SPHError.notLoggedIn`), which is the signal
 that propagates all the way up to showing the login screen again.
 
+**`Networking/SchoolDirectory`** — the public school list behind the login
+page's own picker, so a school can be chosen by name instead of by number. The
+one call that happens before there is a session, and therefore the one that must
+*not* go through `SPHClient`: that client turns a redirect to the login host
+into `.notLoggedIn`, which is exactly the state the caller is trying to leave.
+Its own ephemeral session, no shared cookies, cached for the app's lifetime.
+
 **`Networking/PortalService`** — the seam between "HTTP" and "domain". One
 method per portal page; swapping a parser or adding a page touches nothing else.
 

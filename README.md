@@ -81,24 +81,31 @@ brew install xcodegen && xcodegen generate
 
 ## How login works
 
-The app **never handles your password**. Signing in opens the portal's real
-login page in a `WKWebView`; SSO, two-factor and school-specific identity
-providers therefore all keep working. Once the portal hands out a session
-cookie, that cookie is copied into the app's `URLSession` and everything after
-that is plain native fetching. Nothing leaves the device.
+The app **never handles your Schulportal password**. Signing in opens the
+portal's real login page in a `WKWebView`; SSO, two-factor and school-specific
+identity providers therefore all keep working. Once the portal hands out a
+session cookie, that cookie is copied into the app's `URLSession` and everything
+after that is plain native fetching. Nothing leaves the device.
 
-Entering your school number (the `?i=…` in the portal URL) is optional — it just
-preselects your school on the login page.
+Choosing your school is optional and happens by **name**: the app loads the same
+public directory the portal's own login page uses (all ~2000 Hessen schools) and
+searches it by school name or town, so nobody has to dig the `?i=…` number out
+of a URL. The number can still be typed in directly. Either way it only
+preselects the school on the login page.
+
+(The **Essen** tab is the exception to "no password": `menuebestellung.de` has
+no SSO and offers nothing but a username/password API, so those credentials —
+and only those — go into the iOS Keychain, device-only. See above.)
 
 ## Repository layout
 
 ```
 SchulportalMobile/
   App/            app entry, tab shell
-  Auth/           web-view login
-  Networking/     session, endpoints, fetch + push
+  Auth/           web-view login, school picker
+  Networking/     session, endpoints, school directory, fetch + push
   Parsing/        HTML → model (SwiftSoup)
-  Models/         Course, Homework, Timetable, Subject catalogue
+  Models/         Course, Homework, Timetable, School, Subject catalogue
   Storage/        observable app state, JSON snapshot, settings
   CalendarSync/   EventKit writer
   Features/       Today, Homework, Timetable, Mensa, Portal, Settings

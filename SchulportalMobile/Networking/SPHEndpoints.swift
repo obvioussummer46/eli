@@ -29,8 +29,13 @@ enum SPHEndpoints {
         return URL(string: "https://login.schulportal.hessen.de/?i=\(schoolID)")!
     }
 
-    /// The public school directory used by the portal's own search box.
-    static let schoolList = URL(string: "https://startcache.schulportal.hessen.de/exporteur.php?a=schoolonline")!
+    /// The public school directory behind the login page's own school picker:
+    /// one array of *Schulämter*, each with its schools. Needs no session.
+    ///
+    /// `?a=schoolonline` — an older spelling of this — now redirects to a
+    /// generic HTML page, so a wrong name here fails as unreadable JSON rather
+    /// than as a 404.
+    static let schoolList = URL(string: "https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist")!
 
     /// Any host that belongs to the portal — used when deciding whether a
     /// WKWebView navigation stays in-app.

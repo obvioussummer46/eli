@@ -258,6 +258,43 @@ Two traps:
 `menue_<DAY>_0=<menuId>` per day. It spends real money, so the app reads and
 leaves the choosing to the website.
 
+## The school directory → `SchoolDirectory`
+
+The one route here that needs no session, and the only one that is real JSON
+rather than scraped HTML:
+
+```
+GET https://startcache.schulportal.hessen.de/exporteur.php?a=schoollist
+```
+
+```json
+[{"Id": "7", "Name": "Bergstraße/Odenwaldkreis",
+  "Schulen": [{"Id": "3354", "Name": "Adam-Karrillon-Schule", "Ort": "Wald-Michelbach"}]}]
+```
+
+One array of *Schulämter*, each with its schools; ~2000 entries, ~140 KB, 17
+districts. `Id` is exactly the number `login.schulportal.hessen.de/?i=…` wants,
+which is the only reason the app reads this at all — so nobody has to find it in
+a URL.
+
+Load-bearing: the top-level array, `Schulen`, and `Id`/`Name`/`Ort` on a school.
+`Ort` is what tells the eighteen „Albert-Schweitzer-Schule“ apart, so it is
+shown alongside every result. Ids arrive as strings here and as numbers elsewhere in
+the portal, so both are accepted.
+
+Two things worth knowing when this breaks:
+
+* **A wrong route name fails as bad JSON, not as a 404.** `?a=schoolonline` — an
+  older spelling that the app shipped with at first — now `302`s to a generic
+  HTML page under a `200`. Check the final URL before suspecting the parser.
+* It runs **before** anyone is signed in, so it must not go through `SPHClient`:
+  that client reports a redirect to the login host as `.notLoggedIn`, which is
+  the very state the user is trying to leave. `SchoolDirectory` has its own
+  ephemeral session and never touches `HTTPCookieStorage.shared`.
+
+The whole thing is optional. Without a school the portal simply shows its own
+picker, and the app is no worse off than before.
+
 ## Not parsed natively
 
 *Nachrichten* is encrypted client-side by the portal, and *Kalender* /

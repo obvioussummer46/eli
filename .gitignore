@@ -1,0 +1,14 @@
+.DS_Store
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+build/
+DerivedData/
+.swiftpm/
+SchulportalMobile.xcodeproj/project.xcworkspace/xcuserdata/
+SchulportalMobile.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# Tooling (nur für Tools/capture-samples.mjs, nicht für die App)
+node_modules/
+package-lock.json
+.schulportal-profile/

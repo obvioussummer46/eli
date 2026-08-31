@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 /// Thin HTTP layer on top of the user's *own* Schulportal session.
 ///
@@ -34,6 +35,8 @@ actor SPHClient {
     /// hitting a dead session at once would otherwise each start their own
     /// login; they wait on this instead.
     private var signInTask: Task<Void, Error>?
+
+    private let logger = Logger(subsystem: "de.schulportalmobile.app", category: "login")
 
     init() {
         let config = URLSessionConfiguration.default
@@ -126,20 +129,47 @@ actor SPHClient {
         }
         guard http.statusCode != 503 else { throw SPHError.badResponse(503) }
 
-        if landedInSession(http) { return }
+        if landedInSession(http) {
+            logger.notice("Login-Diagnose: angemeldet, endete auf \(http.url?.absoluteString ?? "-", privacy: .public)")
+            return
+        }
         // Some answers stop the chain at the login host even on success;
         // `connect` then hands the session over on request.
         if let (_, connectResponse) = try? await session.data(from: SPHEndpoints.connect),
-           let connectHTTP = connectResponse as? HTTPURLResponse,
-           landedInSession(connectHTTP) {
-            return
+           let connectHTTP = connectResponse as? HTTPURLResponse {
+            if landedInSession(connectHTTP) {
+                logger.notice("Login-Diagnose: angemeldet über connect, endete auf \(connectHTTP.url?.absoluteString ?? "-", privacy: .public)")
+                return
+            }
+            logger.notice("Login-Diagnose: connect endete auf \(connectHTTP.url?.absoluteString ?? "-", privacy: .public), Status \(connectHTTP.statusCode)")
+        } else {
+            logger.notice("Login-Diagnose: connect nicht erreichbar")
         }
 
         let body = Self.decode(data, response: http)
+        // The re-rendered login page names the outcome in `#lemon_code`:
+        // 9 = fresh page, 4/5 = credentials rejected. Anything else is a
+        // state we have not seen — log it, and say it, so a report carries
+        // the number.
+        let code = Self.lemonCode(in: body)
+        logger.notice("Login-Diagnose: abgelehnt — endete auf \(http.url?.absoluteString ?? "-", privacy: .public), Status \(http.statusCode), sid=\(self.hasSessionCookie), Code=\(code.map(String.init) ?? "-", privacy: .public), Bytes=\(data.count)")
+
         if body.contains("authErrorLocktime") {
             throw SPHError.invalidCredentials("Zu viele Fehlversuche — das Schulportal sperrt die Anmeldung kurz. Warte einen Moment und versuche es dann erneut.")
         }
-        throw SPHError.invalidCredentials("Das Schulportal hat Benutzername oder Passwort nicht akzeptiert.")
+        switch code {
+        case 4, 5, nil:
+            throw SPHError.invalidCredentials("Das Schulportal hat Benutzername oder Passwort nicht akzeptiert.")
+        default:
+            throw SPHError.invalidCredentials("Das Schulportal hat die Anmeldung abgelehnt (Code \(code ?? 0)).")
+        }
+    }
+
+    /// `<span id="lemon_code"> 5 </span>` — the login page's own outcome
+    /// marker, read back after a failed POST.
+    static func lemonCode(in html: String) -> Int? {
+        guard let match = html.firstMatch(of: /id="lemon_code">\s*(\d+)/) else { return nil }
+        return Int(match.1)
     }
 
     private func landedInSession(_ response: HTTPURLResponse) -> Bool {

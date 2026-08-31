@@ -89,7 +89,9 @@ enum MeinUnterrichtParser {
 
         let attachments = parseAttachments(in: row)
 
-        let id = entryID.map { "entry:\($0)" }
+        // Course-scoped for the same reason as `Homework.makeID`: `data-entry`
+        // counts per book, so "entry 3" exists in every course.
+        let id = entryID.map { "entry:\(courseID):\($0)" }
             ?? "row:" + StableHash.string("\(courseID)|\(dateText)|\(topic)")
 
         return LessonEntry(id: id,

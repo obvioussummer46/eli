@@ -176,7 +176,9 @@ the calendar always matches the last scrape.
 ## Ids must be stable
 
 Anything persisted (homework overrides, archived items) is keyed by an id that
-must survive app restarts. Where the portal gives one (`data-entry`) it is used.
-Otherwise the id is an FNV-1a hash of course + date + text — **not**
-`String.hashValue`, which is seeded per process and would silently lose every
-tick on relaunch.
+must survive app restarts. Where the portal gives one (`data-entry`) it is
+used — scoped by the course, because `data-entry` is a *per-book counter*
+(1, 2, 3, …), not a global id: the portal's own done-POST sends it together
+with the book id, and "entry 3" exists in every course. Otherwise the id is an
+FNV-1a hash of course + date + text — **not** `String.hashValue`, which is
+seeded per process and would silently lose every tick on relaunch.

@@ -45,14 +45,17 @@ final class AppModel {
 
     func bootstrap() async {
         snapshot = await store.load()
-        // `WKWebsiteDataStore` persists the portal's session cookie across
-        // launches, `HTTPCookieStorage` does not — so the web view is what
-        // carries the session over, and the scraper picks it up from there.
-        await SPHCookies.importFromWebView()
-        // Stored credentials are the other way back in: with them adopted,
-        // `verifySession` signs in on its own when no cookie survived.
         let credentials = PortalKeychain.load()
         portalUsername = credentials?.username
+        // Two ways back into a session. With stored credentials the client
+        // signs in on its own, and the web view is not needed — touching
+        // `WKWebsiteDataStore` here would spawn WebKit's networking process
+        // on every launch for nothing. Only browser-login installs need the
+        // session carried over from the web view, which is the one place it
+        // survives across launches.
+        if credentials == nil {
+            await SPHCookies.importFromWebView()
+        }
         // `loginID` remembers *how* this account signs in (school number, or
         // `-1` for Bildungsserver accounts); installs from before it existed
         // fall back to the school, which is what they logged in with.

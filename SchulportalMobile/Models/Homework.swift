@@ -28,7 +28,11 @@ struct Homework: Identifiable, Codable, Hashable {
     var effectiveDate: Date? { dueDate ?? assignedDate }
 
     static func makeID(courseID: String, entryID: String?, date: Date?, text: String) -> String {
-        if let entryID, !entryID.isEmpty { return "entry:\(entryID)" }
+        // `data-entry` is a per-course counter (1, 2, 3, …), not a global id
+        // — the portal's own POST scopes it with the book id, and two courses
+        // both having "entry 3" is the norm. Unscoped, ticking one homework
+        // could mark another course's homework done.
+        if let entryID, !entryID.isEmpty { return "entry:\(courseID):\(entryID)" }
         let day = date.map { ISO8601DateFormatter.dayOnly.string(from: $0) } ?? "nodate"
         let digest = String(text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(160))
         return "hash:" + StableHash.string("\(courseID)|\(day)|\(digest)")

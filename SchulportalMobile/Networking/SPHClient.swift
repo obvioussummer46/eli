@@ -84,13 +84,20 @@ actor SPHClient {
         self.schoolID = schoolID
     }
 
-    /// Coalesces concurrent re-logins onto one request.
+    private var lastSignIn: Date?
+
+    /// Coalesces concurrent re-logins onto one request — and refuses to
+    /// log in twice within seconds: the refresh fires four page loads in
+    /// parallel, and each SPH login *replaces* the session, so a second
+    /// login would kill the very session the first retry is running on.
     private func performSignIn(_ credentials: PortalCredentials, schoolID: String) async throws {
         if let signInTask { return try await signInTask.value }
+        if let lastSignIn, Date().timeIntervalSince(lastSignIn) < 10 { return }
         let task = Task { try await self.requestSignIn(credentials, schoolID: schoolID) }
         signInTask = task
         defer { signInTask = nil }
         try await task.value
+        lastSignIn = Date()
     }
 
     /// The login form's own POST. `URLSession` chases the redirect chain
@@ -242,7 +249,7 @@ actor SPHClient {
         }
 
         let body = Self.decode(data, response: http)
-        if Self.looksLikeLoginWall(body) { throw SPHError.notLoggedIn }
+        if Self.looksLikeLoginWall(body) || Self.looksLikeErrorPage(body) { throw SPHError.notLoggedIn }
         return body
     }
 
@@ -292,11 +299,26 @@ actor SPHClient {
         return String(data: data, encoding: .isoLatin1) ?? ""
     }
 
-    /// Two unambiguous markers: the portal's "session expired" interstitial and
-    /// the login form itself, which is the only form posting to the login host.
+    /// Three spellings of the same wall, one per portal handler: the
+    /// "session expired" interstitial, the login form itself (the only form
+    /// posting to the login host), and the "Login nötig" stub some pages —
+    /// the Stundenplan among them — serve instead, which carries only a
+    /// *link* to the login and would otherwise read as an empty page.
     static func looksLikeLoginWall(_ html: String) -> Bool {
         html.contains("Sitzung abgelaufen")
             || html.contains("action=\"https://login.schulportal.hessen.de")
+            || html.contains("Login nötig")
+    }
+
+    /// The portal's generic error page — served with a 200 where content was
+    /// asked for. In practice it means the session lost its rights (most
+    /// commonly: the same account logged in somewhere else, and SPH keeps
+    /// one session per account), so it is treated exactly like a login wall:
+    /// with stored credentials the client signs back in and wins the session
+    /// back, without them it surfaces as "bitte neu anmelden". lanis-mobile
+    /// reads this page the same way.
+    static func looksLikeErrorPage(_ html: String) -> Bool {
+        html.contains("Fehler - Schulportal Hessen")
     }
 }
 

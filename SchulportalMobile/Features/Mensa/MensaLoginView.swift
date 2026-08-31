@@ -28,11 +28,9 @@ struct MensaLoginView: View {
                         .focused($focus, equals: .username)
                         .onSubmit { focus = .password }
 
-                    SecureField("Passwort", text: $password)
-                        .textContentType(.password)
-                        .submitLabel(.go)
-                        .focused($focus, equals: .password)
-                        .onSubmit { submit() }
+                    RevealablePasswordField("Passwort", text: $password, focus: $focus, focusValue: .password) {
+                        submit()
+                    }
                 }
                 .textFieldStyle(.roundedBorder)
 

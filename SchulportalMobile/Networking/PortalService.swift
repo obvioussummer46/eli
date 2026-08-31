@@ -69,12 +69,38 @@ struct PortalService {
 
     func loadMeinUnterricht() async throws -> MeinUnterrichtResult {
         let html = try await client.html(SPHEndpoints.meinUnterricht)
-        return try MeinUnterrichtParser.parse(html: html)
+        do {
+            return try MeinUnterrichtParser.parse(html: html)
+        } catch {
+            logDiagnosis("Mein Unterricht", html: html, markers: ["data-book", "sus_view"])
+            throw error
+        }
     }
 
     func loadStundenplan() async throws -> Timetable {
         let html = try await client.html(SPHEndpoints.stundenplan)
-        return try StundenplanParser.parse(html: html)
+        do {
+            return try StundenplanParser.parse(html: html)
+        } catch {
+            logDiagnosis("Stundenplan", html: html,
+                         markers: ["stunde", "<table", "detail_klasse", "http-equiv", "location.href", "<select", "Kein Plan"])
+            throw error
+        }
+    }
+
+    /// One line about a page that arrived but parsed to nothing — the shape
+    /// of the answer, never its content. "Nichts geliefert" on screen is
+    /// only debuggable if the log says what *was* delivered.
+    private func logDiagnosis(_ page: String, html: String, markers: [String]) {
+        let found = markers.filter { html.localizedCaseInsensitiveContains($0) }.joined(separator: ",")
+        let title = html.firstMatch(of: /<title>([^<]{0,80})/).map { String($0.1) } ?? "-"
+        // Tag-stripped opening of the body: enough to name the page, local
+        // os_log only.
+        let text = html
+            .replacingOccurrences(of: #"<script[\s\S]*?</script>"#, with: " ", options: .regularExpression)
+            .replacingOccurrences(of: #"<[^>]+>"#, with: " ", options: .regularExpression)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+        logger.notice("Seiten-Diagnose \(page, privacy: .public): \(html.count) Zeichen, Titel »\(title, privacy: .public)«, Marker [\(found, privacy: .public)], Text »\(text.prefix(260), privacy: .public)«")
     }
 
     /// The Vertretungsplan. The page is a shell whose day buttons carry

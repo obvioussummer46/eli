@@ -17,6 +17,8 @@ final class Settings {
         var syncsHomeworkToCalendar: Bool
         var refreshesOnLaunch: Bool
         var hidesDoneHomework: Bool
+        var notifiesHomework: Bool
+        var notifiesLowBalance: Bool
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -31,7 +33,9 @@ final class Settings {
             calendarWeeksAhead: defaults.object(forKey: Keys.calendarWeeksAhead) as? Int ?? 4,
             syncsHomeworkToCalendar: defaults.object(forKey: Keys.syncsHomeworkToCalendar) as? Bool ?? false,
             refreshesOnLaunch: defaults.object(forKey: Keys.refreshesOnLaunch) as? Bool ?? true,
-            hidesDoneHomework: defaults.object(forKey: Keys.hidesDoneHomework) as? Bool ?? false
+            hidesDoneHomework: defaults.object(forKey: Keys.hidesDoneHomework) as? Bool ?? false,
+            notifiesHomework: defaults.object(forKey: Keys.notifiesHomework) as? Bool ?? false,
+            notifiesLowBalance: defaults.object(forKey: Keys.notifiesLowBalance) as? Bool ?? false
         )
     }
 
@@ -77,6 +81,16 @@ final class Settings {
         set { values.hidesDoneHomework = newValue; defaults.set(newValue, forKey: Keys.hidesDoneHomework) }
     }
 
+    var notifiesHomework: Bool {
+        get { values.notifiesHomework }
+        set { values.notifiesHomework = newValue; defaults.set(newValue, forKey: Keys.notifiesHomework) }
+    }
+
+    var notifiesLowBalance: Bool {
+        get { values.notifiesLowBalance }
+        set { values.notifiesLowBalance = newValue; defaults.set(newValue, forKey: Keys.notifiesLowBalance) }
+    }
+
     private enum Keys {
         static let schoolID = "school.id"
         static let schoolName = "school.name"
@@ -85,5 +99,14 @@ final class Settings {
         static let syncsHomeworkToCalendar = "calendar.homework"
         static let refreshesOnLaunch = "refresh.onLaunch"
         static let hidesDoneHomework = "homework.hideDone"
+        static let notifiesHomework = "notify.homework"
+        static let notifiesLowBalance = "notify.lowBalance"
+    }
+
+    /// `MensaModel` lives in the other half of the app and owns no `Settings`;
+    /// it reads this one flag straight from `UserDefaults` under the same key
+    /// the toggle above writes.
+    static var lowBalanceNotificationsEnabled: Bool {
+        UserDefaults.standard.bool(forKey: Keys.notifiesLowBalance)
     }
 }

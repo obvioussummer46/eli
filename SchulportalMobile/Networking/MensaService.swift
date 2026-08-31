@@ -57,13 +57,13 @@ struct MensaService {
 
     /// The bookings of the last `days` days.
     ///
-    /// The date range is the fragile part. `berichte_api.php` is German-facing
-    /// PHP: handed a range it cannot read, it answers "nothing found" rather
-    /// than an error, and that is indistinguishable from an account that simply
-    /// has no bookings — which is exactly how the statement came to be
-    /// permanently empty. So an empty answer is not believed until the other
-    /// two spellings the site's own filter uses have been tried as well. Only
-    /// the first request happens in the normal case.
+    /// The site's own page sends the ISO spelling, so the first request is the
+    /// right one. The other two range spellings are kept as belt-and-braces:
+    /// an empty answer is not believed until they have been tried as well,
+    /// because "nothing found" and "wrong filter" look identical in the JSON.
+    /// Only the first request happens in the normal case. (The statement once
+    /// came back permanently empty for a different reason entirely — the
+    /// missing `X-CSRFToken` header, see `MensaClient.postJSON`.)
     private func transactions(days: Int, pageSize: Int) async throws -> [MensaTransaction] {
         let today = Date()
         let from = GermanDate.calendar.date(byAdding: .day, value: -days, to: today) ?? today

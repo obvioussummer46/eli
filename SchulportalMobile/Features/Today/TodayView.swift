@@ -14,6 +14,7 @@ struct TodayView: View {
                             Task { await model.refresh() }
                         }
                     }
+                    substitutionsCard
                     nextLessonCard
                     todaysLessonsCard
                     homeworkCard
@@ -50,6 +51,21 @@ struct TodayView: View {
     }
 
     // MARK: - Cards
+
+    /// Today's substitutions — or, once today has none (typically from the
+    /// afternoon on), the next day's, which is what the evening look at the
+    /// app is really for. Absent entirely when there is nothing to say: a
+    /// permanent "keine Vertretungen" card would only be noise.
+    @ViewBuilder
+    private var substitutionsCard: some View {
+        let today = model.todaysSubstitutions
+        if !today.isEmpty {
+            SubstitutionsCard(title: "Vertretungen heute", entries: today)
+        } else if let next = model.nextSubstitutionDay {
+            SubstitutionsCard(title: "Vertretungen \(GermanDate.relativeLabel(for: next.date))",
+                              entries: next.entries)
+        }
+    }
 
     @ViewBuilder
     private var nextLessonCard: some View {
@@ -164,5 +180,55 @@ struct TodayView: View {
         let now = GermanDate.calendar.dateComponents([.hour, .minute], from: Date())
         let minutes = (now.hour ?? 0) * 60 + (now.minute ?? 0)
         return lesson.start.minutesFromMidnight <= minutes && minutes < lesson.end.minutesFromMidnight
+    }
+}
+
+private struct SubstitutionsCard: View {
+    let title: String
+    let entries: [Substitution]
+
+    var body: some View {
+        Card {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(title)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                ForEach(entries) { entry in
+                    HStack(alignment: .top, spacing: 10) {
+                        Text(entry.period)
+                            .font(.subheadline.weight(.semibold).monospacedDigit())
+                            .frame(width: 36, alignment: .leading)
+                            .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack(spacing: 6) {
+                                if let subject = entry.subject ?? entry.previousSubject {
+                                    Text(subject).font(.subheadline.weight(.semibold))
+                                }
+                                if let kind = entry.kind, !kind.isEmpty {
+                                    Text(kind)
+                                        .font(.caption2.weight(.bold))
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 1)
+                                        .background(isCancellation(kind) ? Color.red : Color.accentColor,
+                                                    in: .capsule)
+                                }
+                            }
+                            let detail = entry.summary
+                            if !detail.isEmpty {
+                                Text(detail)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
+        }
+    }
+
+    private func isCancellation(_ kind: String) -> Bool {
+        kind.localizedCaseInsensitiveContains("entfall") || kind.localizedCaseInsensitiveContains("entfällt")
     }
 }

@@ -68,6 +68,27 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Toggle("Abends an fällige Aufgaben erinnern", isOn: Binding(
+                        get: { model.settings.notifiesHomework },
+                        set: { enabled in
+                            model.settings.notifiesHomework = enabled
+                            if enabled { Task { _ = await NotificationScheduler.requestAuthorization() } }
+                        }
+                    ))
+                    Toggle("Warnen, wenn das Mensa-Guthaben knapp wird", isOn: Binding(
+                        get: { model.settings.notifiesLowBalance },
+                        set: { enabled in
+                            model.settings.notifiesLowBalance = enabled
+                            if enabled { Task { _ = await NotificationScheduler.requestAuthorization() } }
+                        }
+                    ))
+                } header: {
+                    Text("Mitteilungen")
+                } footer: {
+                    Text("Die Erinnerung kommt um 17 Uhr am Vortag — für Aufgaben mit Abgabedatum und für alles, dessen Fach am nächsten Tag auf dem Plan steht. Alles bleibt auf dem Gerät.")
+                }
+
+                Section {
                     Button {
                         isShowingCalendarSheet = true
                     } label: {

@@ -27,7 +27,9 @@ struct MainTabView: View {
 
             HomeworkListView()
                 .tabItem { Label("Aufgaben", systemImage: "checklist") }
-                .badge(model.openHomework.count)
+                // Due today/tomorrow or overdue — not everything open, which
+                // kept the badge permanently red and therefore meaningless.
+                .badge(model.dueSoonCount)
 
             TimetableView()
                 .tabItem { Label("Plan", systemImage: "calendar") }

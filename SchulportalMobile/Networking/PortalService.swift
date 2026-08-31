@@ -41,6 +41,34 @@ struct PortalService {
         return try StundenplanParser.parse(html: html)
     }
 
+    /// The Vertretungsplan. The page is a shell whose day buttons carry
+    /// `data-tag` dates; each day is then fetched as JSON the way the page's
+    /// own script does it. Shells without the AJAX interface (schools that
+    /// disable full-plan access) fall back to their server-rendered tables.
+    func loadVertretungsplan() async throws -> SubstitutionPlan {
+        let shell = try await client.html(SPHEndpoints.vertretungsplan)
+        let dates = VertretungsplanParser.dates(inShell: shell)
+        guard !dates.isEmpty else {
+            return try VertretungsplanParser.plan(fromShell: shell)
+        }
+
+        var plan = SubstitutionPlan()
+        for date in dates {
+            let body = try await client.postForm(SPHEndpoints.vertretungsplan.appendingQuery(["a": "my"]),
+                                                 fields: ["tag": date, "ganzerPlan": "true"])
+            guard let data = body.data(using: .utf8) else { continue }
+            do {
+                plan.days.append(try VertretungsplanParser.day(fromAJAX: data, date: date))
+            } catch {
+                // One unreadable day means the AJAX contract is off for this
+                // school — the tables are then the honest source for all days.
+                return try VertretungsplanParser.plan(fromShell: shell)
+            }
+        }
+        plan.fetchedAt = Date()
+        return plan
+    }
+
     /// Pushes the done-flag back to the portal so the change is visible in the
     /// browser and to teachers.
     ///

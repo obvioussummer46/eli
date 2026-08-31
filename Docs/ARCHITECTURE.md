@@ -13,11 +13,13 @@
                ▼
           PortalService          fetch + parse, one method per page
                │
-     ┌─────────┴──────────┐
-     ▼                    ▼
-MeinUnterrichtParser  StundenplanParser        (SwiftSoup)
-     │                    │
-     └─────────┬──────────┘
+     ┌─────────┼──────────────────┐
+     ▼         ▼                  ▼
+MeinUnterricht-  Stundenplan-  Vertretungsplan-
+   Parser          Parser         Parser        (SwiftSoup / JSON)
+     │         │                  │
+     └─────────┼──────────────────┘
+               │
                ▼
           AppModel  (@MainActor @Observable)   ← the single source of truth
                │                    │

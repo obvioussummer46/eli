@@ -14,6 +14,9 @@ struct Snapshot: Codable, Equatable {
     /// the user never ticked off — keeping them avoids silently losing an open
     /// task after two weeks.
     var archivedHomework: [Homework] = []
+    /// Optional so snapshots written before this field existed still decode.
+    /// Stale days age out naturally: the UI only ever asks for dated days.
+    var substitutions: SubstitutionPlan?
 }
 
 /// A locally set done-flag, remembered even when the portal round-trip failed.

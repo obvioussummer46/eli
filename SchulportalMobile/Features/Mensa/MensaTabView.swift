@@ -151,10 +151,16 @@ struct MensaTabView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(mensa.week.days) { day in
-                    MensaDayChip(day: day,
-                                 isSelected: day.id == selectedDayID,
-                                 isToday: day.id == mensa.todaysDay?.id)
-                    .onTapGesture { selectedDayID = day.id }
+                    // A Button, not an `onTapGesture`: VoiceOver announces it
+                    // as tappable and it picks up the pressed state for free.
+                    Button {
+                        selectedDayID = day.id
+                    } label: {
+                        MensaDayChip(day: day,
+                                     isSelected: day.id == selectedDayID,
+                                     isToday: day.id == mensa.todaysDay?.id)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 2)

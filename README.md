@@ -13,7 +13,7 @@ parse natively (Nachrichten, Vertretungsplan, Kalender) still look right.
 
 | Tab | |
 |---|---|
-| **Heute** | What's on right now, the rest of today's lessons, and the open homework digest. |
+| **Heute** | Today's substitutions (or tomorrow's, once today is over), what's on right now, the rest of today's lessons, and the open homework digest. |
 | **Aufgaben** | Every open homework from *Mein Unterricht*, grouped, searchable, filterable by subject. Tap the circle or swipe to mark done — the flag is pushed back to the portal and kept locally either way. |
 | **Plan** | The weekly timetable as a day list or a week grid, and the button that writes it into a dedicated iOS calendar. |
 | **Essen** | This week's mensa menu and what is left on the lunch card, from `menuebestellung.de`. Read-only. |
@@ -133,8 +133,16 @@ Docs/             architecture and the scraping contract
 * Timetable layouts differ between schools. The parser walks the grid generically
   (colspan/rowspan aware) and falls back to standard Hessen bell times when a
   plan omits the time column, but an exotic layout may need a tweak.
+* The *Vertretungsplan* is parsed natively via the page's own per-day JSON
+  interface, with the server-rendered tables as fallback for schools that
+  disable it. The Heute tab filters it to the pupil's class, guessed from the
+  course titles; schools that publish no plan simply show no card.
+* Optional local notifications (off by default, under **Mehr**): an evening
+  reminder for homework due the next day — with the next lesson of the subject
+  standing in as deadline when the teacher wrote none — and a warning when the
+  lunch card runs low. Nothing leaves the device.
 * Messages (*Nachrichten*) are end-to-end encrypted in the portal and are not
-  parsed natively; they open in the Portal tab.
+  parsed natively; they open in the built-in portal browser.
 * The **Essen** tab is a scraper too, against a different site. The balance and
   the account statement come from `menuebestellung.de`'s own JSON API, but the
   menu itself is parsed out of `speiseplan.php` — the one page that carries the

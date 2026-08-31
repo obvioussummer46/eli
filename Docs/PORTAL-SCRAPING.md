@@ -295,9 +295,30 @@ Two things worth knowing when this breaks:
 The whole thing is optional. Without a school the portal simply shows its own
 picker, and the app is no worse off than before.
 
+## `vertretungsplan.php`
+
+Two shapes, because the portal has two. The page itself is a shell: day
+buttons carrying `data-tag="dd.MM.yyyy"`. Each of those days is fetched the
+way the page's own script does it — `POST vertretungsplan.php?a=my` with form
+fields `tag=<dd.MM.yyyy>` and `ganzerPlan=true` — and answered with a JSON
+array of rows keyed `Stunde`, `Art`, `Klasse`, `Fach`, `Fach_alt`, `Lehrer`,
+`Vertreter`, `Raum`, `Raum_alt`, `Hinweis` (a bare `-1` means "nothing that
+day"). This JSON, not any HTML, is the load-bearing contract; the approach and
+the key list follow the lanis-mobile project, which runs it statewide.
+
+Schools that disable "Zugriff auf den gesamten Plan" render classic
+server-side tables instead: `#tagDD_MM_YYYY` panels, a `table[id^=vtable]`
+inside, and every header cell naming its column in `data-field` — which is
+what keeps that fallback layout-independent. Load-bearing there: the panel id
+pattern, `data-field` (with `Stunde` present), and `td[colspan]` marking the
+"keine Einträge" placeholder row.
+
+Failures are deliberately quiet: schools that publish no plan are normal, so
+`AppModel` treats an error as "no data" rather than as a banner.
+
 ## Not parsed natively
 
-*Nachrichten* is encrypted client-side by the portal, and *Kalender* /
-*Vertretungsplan* vary a lot between schools. All three open in the Portal tab
-with the userscript applied. `PortalService` is the right place to add them
-later — one method, one parser, no other layer changes.
+*Nachrichten* is encrypted client-side by the portal, and *Kalender* varies a
+lot between schools. Both open in the built-in portal browser with the
+userscript applied. `PortalService` is the right place to add them later — one
+method, one parser, no other layer changes.

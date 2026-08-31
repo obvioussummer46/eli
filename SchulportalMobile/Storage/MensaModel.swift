@@ -139,6 +139,13 @@ final class MensaModel {
         }
 
         lastRefresh = Date()
+
+        // The low-balance warning, when switched on under „Mehr“. The
+        // scheduler throttles itself, so a refresh storm cannot nag.
+        if Settings.lowBalanceNotificationsEnabled,
+           account.isLow(threshold: statement.lowBalanceThreshold ?? 15) {
+            NotificationScheduler.notifyLowBalance(account.balanceDisplay)
+        }
     }
 
     /// Only a rejected *credential* sends the user back to the login screen. A

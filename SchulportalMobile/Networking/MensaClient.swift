@@ -141,12 +141,26 @@ actor MensaClient {
             Self.markAsXHR(&request)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue(MensaEndpoints.origin, forHTTPHeaderField: "Origin")
+            // The API guards its POSTs with a double-submit cookie: the value
+            // of `csrftoken_<tenant>` must come back as `X-CSRFToken`, or the
+            // answer is the HTML error page — under a 200, which then reads
+            // as a session problem. The cookie arrives with the login, so a
+            // fresh sign-in also refreshes the token.
+            if let token = self.csrfToken {
+                request.setValue(token, forHTTPHeaderField: "X-CSRFToken")
+            }
             request.httpBody = try? JSONSerialization.data(withJSONObject: body)
             let (data, response) = try await self.send(request)
             try Self.rejectIfSignedOut(response)
             try Self.rejectHTMLBody(data)
             return data
         }
+    }
+
+    /// The `csrftoken_<tenant>` cookie from the private jar, read at request
+    /// time — it changes with every new session.
+    private var csrfToken: String? {
+        cookieStorage?.cookies?.first { $0.name.hasPrefix("csrftoken") }?.value
     }
 
     /// The account endpoints are legacy PHP behind a modern front end and they

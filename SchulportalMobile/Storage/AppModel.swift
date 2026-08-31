@@ -115,6 +115,7 @@ final class AppModel {
         let service = self.service
         async let lessons = service.loadMeinUnterricht()
         async let plan = service.loadStundenplan()
+        async let substitutions = service.loadVertretungsplan()
 
         var errors: [String] = []
 
@@ -143,10 +144,22 @@ final class AppModel {
             errors.append(error.localizedDescription)
         }
 
+        // The Vertretungsplan is a bonus, not the point: plenty of schools
+        // never publish one, so a failure here must not put a permanent
+        // banner over a screen that is otherwise fine. Stale days age out on
+        // their own — the UI only ever asks for today and the next day.
+        if let fetched = try? await substitutions {
+            snapshot.substitutions = fetched
+        }
+
         snapshot.lastRefresh = Date()
         lastErrorMessage = errors.isEmpty ? nil : errors.joined(separator: "\n")
         await persist()
         await retryPendingHomeworkSyncs()
+
+        if settings.notifiesHomework {
+            NotificationScheduler.rescheduleHomeworkReminders(homeworkByDeadline())
+        }
     }
 
     private func handleSessionLoss() {
@@ -290,6 +303,99 @@ final class AppModel {
             guard let homework = lookup[id] else { continue }
             await pushDoneFlag(for: homework, done: override.isDone)
         }
+    }
+
+    // MARK: - Deadlines
+
+    /// When a homework is actually due. An explicit date in the text wins;
+    /// without one, the next lesson of its subject is the deadline every
+    /// teacher means when they write nothing.
+    func deadline(for homework: Homework) -> Date? {
+        if let due = homework.dueDate { return due }
+        return nextLessonDate(for: homework.subject)
+    }
+
+    /// The next date after today on which this subject is taught.
+    private func nextLessonDate(for subject: Subject) -> Date? {
+        let cal = GermanDate.calendar
+        guard !snapshot.timetable.isEmpty else { return nil }
+        var cursor = cal.startOfDay(for: Date())
+        for _ in 0..<14 {
+            guard let next = cal.date(byAdding: .day, value: 1, to: cursor) else { break }
+            cursor = next
+            guard let weekday = Weekday.fromCalendarWeekday(cal.component(.weekday, from: cursor)) else { continue }
+            if snapshot.timetable.entries(on: weekday).contains(where: { $0.subject.name == subject.name }) {
+                return cal.date(bySettingHour: 12, minute: 0, second: 0, of: cursor)
+            }
+        }
+        return nil
+    }
+
+    /// What the Aufgaben tab badge counts: open homework due today, tomorrow
+    /// or already overdue. Counting *everything* open kept the badge
+    /// permanently red, and a number that is always on teaches nobody
+    /// anything.
+    var dueSoonCount: Int {
+        let cal = GermanDate.calendar
+        guard let cutoff = cal.date(byAdding: .day, value: 2, to: cal.startOfDay(for: Date())) else { return 0 }
+        return openHomework.filter { homework in
+            guard let deadline = deadline(for: homework) else { return false }
+            return deadline < cutoff
+        }.count
+    }
+
+    /// Open homework grouped by the day it is due — the units the evening
+    /// reminders are scheduled in.
+    private func homeworkByDeadline() -> [Date: [Homework]] {
+        let cal = GermanDate.calendar
+        let today = cal.startOfDay(for: Date())
+        var groups: [Date: [Homework]] = [:]
+        for item in openHomework {
+            guard let deadline = deadline(for: item) else { continue }
+            let day = cal.startOfDay(for: deadline)
+            // A deadline already reached has no evening-before left to warn on.
+            guard day > today else { continue }
+            groups[day, default: []].append(item)
+        }
+        return groups
+    }
+
+    // MARK: - Vertretungen
+
+    /// The pupil's class, guessed from the course titles ("M 07c GYM" →
+    /// "7c") — the most frequent token wins. `nil` for Oberstufe courses
+    /// that carry no class, in which case the plan is shown unfiltered.
+    var likelyClassName: String? {
+        var counts: [String: Int] = [:]
+        for course in snapshot.courses {
+            for match in course.rawTitle.matches(of: /\b(\d{1,2}[a-z])\b/.ignoresCase()) {
+                counts[SubstitutionPlan.normalize(String(match.1)), default: 0] += 1
+            }
+        }
+        return counts.max { $0.value < $1.value }?.key
+    }
+
+    /// Substitutions on one day, narrowed to the pupil's class when one is
+    /// recognisable.
+    func substitutions(on date: Date) -> [Substitution] {
+        guard let day = snapshot.substitutions?.day(on: date) else { return [] }
+        guard let className = likelyClassName else { return day.entries }
+        return day.entries.filter { SubstitutionPlan.matches($0, className: className) }
+    }
+
+    var todaysSubstitutions: [Substitution] { substitutions(on: Date()) }
+
+    /// The first later plan day that has anything for the pupil — what the
+    /// evening bag-packing look at the app should show.
+    var nextSubstitutionDay: (date: Date, entries: [Substitution])? {
+        guard let plan = snapshot.substitutions else { return nil }
+        let cal = GermanDate.calendar
+        let today = cal.startOfDay(for: Date())
+        for day in plan.days.sorted(by: { $0.date < $1.date }) where cal.startOfDay(for: day.date) > today {
+            let entries = substitutions(on: day.date)
+            if !entries.isEmpty { return (day.date, entries) }
+        }
+        return nil
     }
 
     // MARK: - Today

@@ -83,8 +83,11 @@ Each lesson entry is a table row carrying the portal's own ids:
 These are exactly the selectors the Safari userscript already targets, so if the
 userscript still works, the parser should too — and vice versa.
 
-**Done-state detection** is a *class* test, not a text test. The portal ships
-both labels on every entry and switches between them with `hidden`:
+**Done-state detection** has to read *two* renderings of the same flag,
+depending on whose account is looking.
+
+The **pupil view** is a *class* test, not a text test. The portal ships both
+labels on every entry and switches between them with `hidden`:
 
 ```html
 <span class="done label label-default hidden">erledigt</span>
@@ -94,12 +97,23 @@ both labels on every entry and switches between them with `hidden`:
 So `.done` is present and reads `erledigt` whether or not the homework is done —
 it carries `hidden` while the entry is still open. `.undone` is the visible one.
 Verified against a live page: all six open entries render exactly this way.
+Match the class as a whole token — the portal also uses `hidden-print`, which a
+substring test would wrongly read as `hidden`. No pupil label ever reads
+`offen`, and `label-success` sits on the *"Hausaufgabe"* title span rather than
+on the state.
 
-Read it as: `.done` without `hidden` → done; otherwise open. Match the class as a
-whole token — the portal also uses `hidden-print`, which a substring test would
-wrongly read as `hidden`. No label ever reads `offen`, and `label-success` sits
-on the *"Hausaufgabe"* title span rather than on the state, so neither of those
-is usable as a signal.
+The **parent view** (Eltern-Konten see their child's Kurshefte read-only) has
+no `.undone` button at all, and `.done` is an always-visible status label whose
+*text* is the state — verified live:
+
+```html
+<span class="done label label-warning">offen</span>
+```
+
+Read the two together as: `.done` with `hidden` → open; `.done` whose text
+contains `offen` → open; any other visible `.done` → done; no `.done` at all →
+fall back to a hidden `.undone`. Applying the pupil rule alone to a parent page
+ticks off every homework in the house.
 
 ### Pushing a tick back
 

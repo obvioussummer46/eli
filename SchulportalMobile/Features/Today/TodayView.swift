@@ -15,6 +15,9 @@ struct TodayView: View {
                             Task { await model.refresh() }
                         }
                     }
+                    if let notice = model.accountNotice {
+                        InlineInfoBanner(message: notice)
+                    }
                     substitutionsCard
                     nextLessonCard
                     todaysLessonsCard

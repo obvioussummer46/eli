@@ -79,6 +79,25 @@ struct InlineErrorBanner: View {
     }
 }
 
+/// Calm blue sibling of `InlineErrorBanner` — for facts about the account or
+/// the school, where a retry button would promise something no retry can do.
+struct InlineInfoBanner: View {
+    let message: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "info.circle.fill")
+                .foregroundStyle(.blue)
+            Text(message)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.blue.opacity(0.10), in: .rect(cornerRadius: 12))
+    }
+}
+
 extension View {
     /// Applies a subtle leading colour bar, as the homework blocks have.
     func subjectAccent(_ color: Color) -> some View {

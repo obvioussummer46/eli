@@ -23,6 +23,10 @@ final class AppModel {
     private(set) var needsReauthentication = false
     /// Why the native sign-in failed — shown on the login screen.
     private(set) var signInErrorMessage: String?
+    /// Set when the account cannot see the app's core pages — the typical
+    /// Eltern-Konto. Informational, not an error: nothing here is fixable by
+    /// retrying.
+    private(set) var accountNotice: String?
     /// The account whose password is in the Keychain, when the user stored one.
     private(set) var portalUsername: String?
 
@@ -81,6 +85,14 @@ final class AppModel {
         let credentials = PortalCredentials(username: username, password: password)
         do {
             try await service.signIn(credentials, schoolID: settings.schoolID)
+        } catch let error as SPHError {
+            // Description *and* recovery: for the accounts the form cannot
+            // serve (SSO, 2FA, some Eltern-Konten) the way out is the
+            // browser route, and the error is the only place to say so.
+            signInErrorMessage = [error.errorDescription, error.recoverySuggestion]
+                .compactMap { $0 }
+                .joined(separator: " ")
+            return false
         } catch {
             signInErrorMessage = error.localizedDescription
             return false
@@ -113,48 +125,72 @@ final class AppModel {
         // Hoisted out of the child tasks so they capture a plain value rather
         // than a main-actor-isolated property.
         let service = self.service
-        async let lessons = service.loadMeinUnterricht()
-        async let plan = service.loadStundenplan()
-        async let substitutions = service.loadVertretungsplan()
-        async let events = service.loadKalender()
+
+        // What this account can see at all. An Eltern-Konto lacks „Mein
+        // Unterricht“ (and often the Stundenplan); asking anyway would turn
+        // "this account cannot see homework" into a parser error and an
+        // orange banner whose retry can never help. Unknown — the Startseite
+        // markup changed — means "assume everything", the old behaviour.
+        var modules: Set<PortalModule>?
+        do {
+            modules = try await service.loadAvailableModules()
+        } catch SPHError.notLoggedIn {
+            handleSessionLoss()
+            return
+        } catch SPHError.invalidCredentials(let detail) {
+            await handleCredentialLoss(detail)
+            return
+        } catch {
+            modules = nil
+        }
+        updateAccountNotice(modules)
+        let has: (PortalModule) -> Bool = { modules?.contains($0) ?? true }
+
+        let lessonsTask = has(.meinUnterricht) ? Task { try await service.loadMeinUnterricht() } : nil
+        let planTask = has(.stundenplan) ? Task { try await service.loadStundenplan() } : nil
+        let substitutionsTask = has(.vertretungsplan) ? Task { try await service.loadVertretungsplan() } : nil
+        let eventsTask = has(.kalender) ? Task { try await service.loadKalender() } : nil
 
         var errors: [String] = []
 
-        do {
-            let result = try await lessons
-            apply(result)
-        } catch SPHError.notLoggedIn {
-            handleSessionLoss()
-            return
-        } catch SPHError.invalidCredentials(let detail) {
-            await handleCredentialLoss(detail)
-            return
-        } catch {
-            errors.append(error.localizedDescription)
+        if let lessonsTask {
+            do {
+                apply(try await lessonsTask.value)
+            } catch SPHError.notLoggedIn {
+                handleSessionLoss()
+                return
+            } catch SPHError.invalidCredentials(let detail) {
+                await handleCredentialLoss(detail)
+                return
+            } catch {
+                errors.append(error.localizedDescription)
+            }
         }
 
-        do {
-            snapshot.timetable = try await plan
-        } catch SPHError.notLoggedIn {
-            handleSessionLoss()
-            return
-        } catch SPHError.invalidCredentials(let detail) {
-            await handleCredentialLoss(detail)
-            return
-        } catch {
-            errors.append(error.localizedDescription)
+        if let planTask {
+            do {
+                snapshot.timetable = try await planTask.value
+            } catch SPHError.notLoggedIn {
+                handleSessionLoss()
+                return
+            } catch SPHError.invalidCredentials(let detail) {
+                await handleCredentialLoss(detail)
+                return
+            } catch {
+                errors.append(error.localizedDescription)
+            }
         }
 
         // The Vertretungsplan is a bonus, not the point: plenty of schools
         // never publish one, so a failure here must not put a permanent
         // banner over a screen that is otherwise fine. Stale days age out on
         // their own — the UI only ever asks for today and the next day.
-        if let fetched = try? await substitutions {
+        if let substitutionsTask, let fetched = try? await substitutionsTask.value {
             snapshot.substitutions = fetched
         }
         // Same reasoning as the Vertretungsplan: a school without the
         // Kalender module is normal, not an error.
-        if let fetched = try? await events {
+        if let eventsTask, let fetched = try? await eventsTask.value {
             snapshot.events = fetched
         }
 
@@ -172,6 +208,23 @@ final class AppModel {
         needsReauthentication = true
         phase = .signedOut
         lastErrorMessage = SPHError.notLoggedIn.errorDescription
+    }
+
+    /// One calm sentence instead of two orange parser errors when the
+    /// account simply lacks the pages — Eltern-Konten are the common case.
+    private func updateAccountNotice(_ modules: Set<PortalModule>?) {
+        guard let modules else {
+            accountNotice = nil
+            return
+        }
+        var missing: [String] = []
+        if !modules.contains(.meinUnterricht) { missing.append("„Mein Unterricht“ (Hausaufgaben)") }
+        if !modules.contains(.stundenplan) { missing.append("den Stundenplan") }
+        guard !missing.isEmpty else {
+            accountNotice = nil
+            return
+        }
+        accountNotice = "Dieses Konto sieht \(missing.joined(separator: " und ")) nicht — typisch für ein Eltern-Konto. Der Rest der App funktioniert; was fehlt, zeigt nur das Schülerkonto."
     }
 
     /// The portal rejected the stored *password*, not just the session.

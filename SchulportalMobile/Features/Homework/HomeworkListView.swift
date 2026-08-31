@@ -24,12 +24,22 @@ struct HomeworkListView: View {
 
                 if open.isEmpty && done.isEmpty {
                     Section {
-                        EmptyStateView(icon: "checkmark.seal",
-                                       title: model.snapshot.lastRefresh == nil ? "Noch nichts geladen" : "Keine Hausaufgaben",
-                                       message: model.snapshot.lastRefresh == nil
-                                            ? "Zieh die Liste nach unten, um „Mein Unterricht“ zu laden."
-                                            : "Im Portal steht gerade nichts Offenes.")
-                        .listRowBackground(Color.clear)
+                        if let notice = model.accountNotice {
+                            // The truthful reason the list is empty — not a
+                            // cheery "nichts Offenes" the account could
+                            // never have shown.
+                            EmptyStateView(icon: "person.2",
+                                           title: "Kein „Mein Unterricht“",
+                                           message: notice)
+                            .listRowBackground(Color.clear)
+                        } else {
+                            EmptyStateView(icon: "checkmark.seal",
+                                           title: model.snapshot.lastRefresh == nil ? "Noch nichts geladen" : "Keine Hausaufgaben",
+                                           message: model.snapshot.lastRefresh == nil
+                                                ? "Zieh die Liste nach unten, um „Mein Unterricht“ zu laden."
+                                                : "Im Portal steht gerade nichts Offenes.")
+                            .listRowBackground(Color.clear)
+                        }
                     }
                 } else {
                     Section {

@@ -176,6 +176,15 @@ struct LoginView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
+            // The button quietly refusing to enable is worse than a sentence:
+            // whoever typed name + password deserves to know what is missing.
+            if trimmedID.isEmpty, !username.isEmpty, !password.isEmpty {
+                Text("Wähle oben deine Schule aus — die Anmeldung mit Passwort braucht ihre Schulnummer.")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
             Button {
                 submitCredentials()
             } label: {

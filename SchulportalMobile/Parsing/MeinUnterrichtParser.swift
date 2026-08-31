@@ -128,18 +128,26 @@ enum MeinUnterrichtParser {
                         portalBookID: bookID)
     }
 
-    /// The portal ships *both* labels on every entry and switches between them
-    /// with the `hidden` class — `.done` ("erledigt") carries `hidden` while the
-    /// homework is still open, and `.undone` (the "als erledigt markieren"
-    /// button) is the one on screen. Its own `sus_start.js` does exactly this:
-    /// on a successful tick it calls `.done` `removeClass('hidden')` and fades
-    /// `.undone` out.
+    /// Two views of the same flag, depending on who is looking.
     ///
-    /// The label *text* therefore says nothing: `.done` reads "erledigt" either
-    /// way, and no label ever reads "offen".
+    /// **Pupil view:** the portal ships *both* labels on every entry and
+    /// switches between them with the `hidden` class — `.done` ("erledigt")
+    /// carries `hidden` while the homework is still open, and `.undone` (the
+    /// "als erledigt markieren" button) is the one on screen. Its own
+    /// `sus_start.js` does exactly this: on a successful tick it calls
+    /// `.done` `removeClass('hidden')` and fades `.undone` out. The label
+    /// text says nothing there; no pupil label ever reads "offen".
+    ///
+    /// **Parent view:** no `.undone` button at all, and `.done` is an
+    /// always-visible status label whose *text* is the state — "offen" on
+    /// `label-warning`, "erledigt" on `label-success`. Reading the pupil
+    /// rule against it would tick off every single homework.
     private static func doneState(in container: Element) -> Bool {
         if let done = container.firstMatch(".done") {
-            return !hasClass(done, "hidden")
+            if hasClass(done, "hidden") { return false }
+            let text = HTMLText.inline(done).lowercased()
+            if text.contains("offen") { return false }
+            return true
         }
         if let undone = container.firstMatch(".undone") {
             return hasClass(undone, "hidden")

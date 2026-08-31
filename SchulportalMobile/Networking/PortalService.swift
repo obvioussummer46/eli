@@ -1,5 +1,15 @@
 import Foundation
 import OSLog
+import SwiftSoup
+
+/// The portal pages the app fetches natively, by the filename their links
+/// carry on the Startseite.
+enum PortalModule: String, CaseIterable, Sendable {
+    case meinUnterricht = "meinunterricht.php"
+    case stundenplan = "stundenplan.php"
+    case vertretungsplan = "vertretungsplan.php"
+    case kalender = "kalender.php"
+}
 
 /// What actually became of a done-flag push.
 enum HomeworkPushOutcome {
@@ -29,6 +39,32 @@ struct PortalService {
 
     func adopt(_ credentials: PortalCredentials?, schoolID: String?) async {
         await client.adopt(credentials, schoolID: schoolID)
+    }
+
+    /// Which portal pages this account can see at all. The Startseite links
+    /// every enabled module; an Eltern-Konto typically lacks „Mein
+    /// Unterricht“ and often the Stundenplan, and asking for a page the
+    /// account does not have only turns "this account cannot see homework"
+    /// into a parser error.
+    func loadAvailableModules() async throws -> Set<PortalModule> {
+        let html = try await client.html(SPHEndpoints.startseite)
+        let document: Document
+        do {
+            document = try SwiftSoup.parse(html)
+        } catch {
+            throw SPHError.parsing("Die Startseite")
+        }
+        var modules: Set<PortalModule> = []
+        for module in PortalModule.allCases {
+            if document.firstMatch("a[href*=\(module.rawValue)]") != nil {
+                modules.insert(module)
+            }
+        }
+        // A startseite that links nothing recognisable is markup we do not
+        // understand — claiming "this account has no modules" from it would
+        // switch the whole app off over a redesign.
+        guard !modules.isEmpty else { throw SPHError.parsing("Die Startseite") }
+        return modules
     }
 
     func loadMeinUnterricht() async throws -> MeinUnterrichtResult {

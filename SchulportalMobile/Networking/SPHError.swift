@@ -33,7 +33,7 @@ enum SPHError: LocalizedError, Equatable {
     var recoverySuggestion: String? {
         switch self {
         case .notLoggedIn: "Melde dich erneut an."
-        case .invalidCredentials: "Prüfe Benutzername und Passwort, oder melde dich über die Portalseite an."
+        case .invalidCredentials: "Prüfe die Eingaben — oder nutze „Über die Portalseite anmelden“; das funktioniert für jedes Konto, auch mit SSO oder Zwei-Faktor."
         case .network: "Prüfe deine Internetverbindung und versuche es noch einmal."
         default: nil
         }

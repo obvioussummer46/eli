@@ -40,6 +40,14 @@ Current lesson as a Live Activity ticking through the school day. Fun, low
 practical value; needs ActivityKit plumbing in the widget target. Do after
 the widgets have proven themselves.
 
+## Make the Essen tab optional
+The tab is hardwired to the ASB tenant on menuebestellung.de
+(`MensaEndpoints.tenant`). A school with a different caterer — or none —
+gets a permanently useless tab that makes the whole app feel broken.
+Needed: a setting to hide the tab entirely, and ideally a tenant picker
+(the tenant list is public on menuebestellung.de's Systemauswahl page) so
+other ASB-style schools work too. Widgets/digest must degrade with it.
+
 ## Widget deep links
 `widgetURL` → open the matching tab (Aufgaben from the Heute widget, Essen
 from the Mensa widget). Needs a tiny URL scheme + tab selection state in

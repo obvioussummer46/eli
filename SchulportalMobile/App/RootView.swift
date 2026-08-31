@@ -46,13 +46,31 @@ struct MainTabView: View {
     }
 }
 
+/// Reading a good sentence takes about as long as the session check — so the
+/// wait gets a quote instead of a logo staring back.
 struct LaunchPlaceholder: View {
+    @State private var quote = LaunchQuote.random()
+
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "graduationcap.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(Color.accentColor)
+        VStack(spacing: 0) {
+            Spacer()
+            VStack(spacing: 14) {
+                Image(systemName: "quote.opening")
+                    .font(.title3)
+                    .foregroundStyle(Color.accentColor)
+                Text(quote.text)
+                    .font(.system(.title3, design: .serif))
+                    .italic()
+                    .multilineTextAlignment(.center)
+                Text("— \(quote.author)")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 36)
+            Spacer()
             ProgressView()
+                .controlSize(.small)
+                .padding(.bottom, 48)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemGroupedBackground))

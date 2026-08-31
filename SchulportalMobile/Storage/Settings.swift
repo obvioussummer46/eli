@@ -12,6 +12,7 @@ final class Settings {
     private struct Values {
         var schoolID: String
         var schoolName: String
+        var loginID: String
         var calendarIdentifier: String?
         var calendarWeeksAhead: Int
         var syncsHomeworkToCalendar: Bool
@@ -29,6 +30,7 @@ final class Settings {
         values = Values(
             schoolID: defaults.string(forKey: Keys.schoolID) ?? "",
             schoolName: defaults.string(forKey: Keys.schoolName) ?? "",
+            loginID: defaults.string(forKey: Keys.loginID) ?? "",
             calendarIdentifier: defaults.string(forKey: Keys.calendarIdentifier),
             calendarWeeksAhead: defaults.object(forKey: Keys.calendarWeeksAhead) as? Int ?? 4,
             syncsHomeworkToCalendar: defaults.object(forKey: Keys.syncsHomeworkToCalendar) as? Bool ?? false,
@@ -47,6 +49,15 @@ final class Settings {
     var schoolName: String {
         get { values.schoolName }
         set { values.schoolName = newValue; defaults.set(newValue, forKey: Keys.schoolName) }
+    }
+
+    /// What went into the login page's `?i=` for the native sign-in: the
+    /// school number for school-issued accounts, `-1` for Bildungsserver
+    /// accounts ("Login ohne Schulbezug" — typically parents). Kept apart
+    /// from `schoolID`, which stays the *school*, whoever is logged in.
+    var loginID: String {
+        get { values.loginID }
+        set { values.loginID = newValue; defaults.set(newValue, forKey: Keys.loginID) }
     }
 
     var calendarIdentifier: String? {
@@ -94,6 +105,7 @@ final class Settings {
     private enum Keys {
         static let schoolID = "school.id"
         static let schoolName = "school.name"
+        static let loginID = "login.id"
         static let calendarIdentifier = "calendar.identifier"
         static let calendarWeeksAhead = "calendar.weeksAhead"
         static let syncsHomeworkToCalendar = "calendar.homework"

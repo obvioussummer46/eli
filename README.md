@@ -86,7 +86,10 @@ Two routes, both on the login screen:
   never synchronised). From then on the app signs itself back in when the
   short-lived SPH session expires, instead of putting a login screen in front
   of a child several times a day — the same pattern the **Essen** tab uses for
-  the mensa account.
+  the mensa account. Both of the portal's account types work: **school-issued**
+  accounts (pupils, teachers — the login carries the school number) and
+  self-registered **Bildungsserver** accounts ("ohne Schulbezug", typically
+  parents — the portal spells those `i=-1`, no school prefix).
 * **Via the portal's own page** — a `WKWebView` on the real login page, for
   accounts the form cannot serve: SSO, two-factor and school-specific identity
   providers all keep working there, and the app then only ever holds the

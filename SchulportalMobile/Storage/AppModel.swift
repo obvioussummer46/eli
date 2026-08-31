@@ -53,7 +53,11 @@ final class AppModel {
         // `verifySession` signs in on its own when no cookie survived.
         let credentials = PortalKeychain.load()
         portalUsername = credentials?.username
-        await service.adopt(credentials, schoolID: settings.schoolID)
+        // `loginID` remembers *how* this account signs in (school number, or
+        // `-1` for Bildungsserver accounts); installs from before it existed
+        // fall back to the school, which is what they logged in with.
+        let loginID = settings.loginID.isEmpty ? settings.schoolID : settings.loginID
+        await service.adopt(credentials, schoolID: loginID)
         do {
             let signedIn = try await service.verifySession()
             phase = signedIn ? .ready : .signedOut
@@ -79,12 +83,13 @@ final class AppModel {
 
     /// The native sign-in: verifies against the portal, then stores the
     /// credentials so the app can re-login silently — the mensa pattern.
-    /// Needs the school picked, because the login form wants its number.
-    func signIn(username: String, password: String) async -> Bool {
+    /// `loginID` is the school number for school-issued accounts, or `-1`
+    /// for Bildungsserver accounts, which have no school in their login.
+    func signIn(username: String, password: String, loginID: String) async -> Bool {
         signInErrorMessage = nil
         let credentials = PortalCredentials(username: username, password: password)
         do {
-            try await service.signIn(credentials, schoolID: settings.schoolID)
+            try await service.signIn(credentials, schoolID: loginID)
         } catch let error as SPHError {
             // Description *and* recovery: for the accounts the form cannot
             // serve (SSO, 2FA, some Eltern-Konten) the way out is the
@@ -98,6 +103,7 @@ final class AppModel {
             return false
         }
         PortalKeychain.save(credentials)
+        settings.loginID = loginID
         portalUsername = username
         await didSignIn()
         return true

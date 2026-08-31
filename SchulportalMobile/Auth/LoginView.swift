@@ -18,10 +18,28 @@ struct LoginView: View {
     @State private var schoolName: String = ""
     @State private var username: String = ""
     @State private var password: String = ""
+    @State private var accountKind: AccountKind = .school
     @State private var isSigningIn = false
     @FocusState private var focus: Field?
 
     private enum Field { case username, password }
+
+    /// The portal's own "Login-Typ-Wahl": accounts issued by the school
+    /// (pupils, teachers — the login carries the school number) versus
+    /// self-registered Bildungsserver accounts ("ohne Schulbezug", typically
+    /// parents — no school in the login at all).
+    private enum AccountKind: String, CaseIterable, Identifiable {
+        case school
+        case bildungsserver
+        var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .school: "Schulkonto"
+            case .bildungsserver: "Bildungsserver"
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -153,7 +171,20 @@ struct LoginView: View {
                 .foregroundStyle(.secondary)
                 .padding(.top, 6)
 
-            TextField("Benutzername (vorname.nachname)", text: $username)
+            Picker("Konto", selection: $accountKind) {
+                ForEach(AccountKind.allCases) { kind in
+                    Text(kind.label).tag(kind)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Text(accountKind == .school
+                 ? "Von der Schule ausgegeben — Schüler und Lehrkräfte. Braucht die Schule oben."
+                 : "Selbst registriert, „ohne Schulbezug“ — meist Eltern-Konten.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            TextField(accountKind == .school ? "Benutzername (vorname.nachname)" : "Benutzername", text: $username)
                 .textContentType(.username)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -178,8 +209,8 @@ struct LoginView: View {
 
             // The button quietly refusing to enable is worse than a sentence:
             // whoever typed name + password deserves to know what is missing.
-            if trimmedID.isEmpty, !username.isEmpty, !password.isEmpty {
-                Text("Wähle oben deine Schule aus — die Anmeldung mit Passwort braucht ihre Schulnummer.")
+            if accountKind == .school, trimmedID.isEmpty, !username.isEmpty, !password.isEmpty {
+                Text("Wähle oben deine Schule aus — die Anmeldung mit einem Schulkonto braucht ihre Schulnummer.")
                     .font(.footnote)
                     .foregroundStyle(.orange)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -224,7 +255,7 @@ struct LoginView: View {
 
     private var canSubmitCredentials: Bool {
         !isSigningIn
-            && !trimmedID.isEmpty
+            && (accountKind == .bildungsserver || !trimmedID.isEmpty)
             && !username.trimmingCharacters(in: .whitespaces).isEmpty
             && !password.isEmpty
     }
@@ -232,15 +263,17 @@ struct LoginView: View {
     private func submitCredentials() {
         guard canSubmitCredentials else { return }
         focus = nil
-        // The form's POST wants the school number, so the pick becomes real
-        // now — before the request, not after.
+        // The pick becomes real now — before the request, not after. For a
+        // Bildungsserver account the school is only the *school*, not part
+        // of the login; the portal spells that as `i=-1`.
         model.settings.schoolID = trimmedID
         model.settings.schoolName = schoolName
+        let loginID = accountKind == .school ? trimmedID : "-1"
         let name = username.trimmingCharacters(in: .whitespaces)
         let secret = password
         isSigningIn = true
         Task {
-            if await model.signIn(username: name, password: secret) {
+            if await model.signIn(username: name, password: secret, loginID: loginID) {
                 password = ""
             }
             isSigningIn = false

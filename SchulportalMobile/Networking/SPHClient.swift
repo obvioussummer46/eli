@@ -102,8 +102,14 @@ actor SPHClient {
         var request = URLRequest(url: SPHEndpoints.login(schoolID: schoolID))
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded; charset=UTF-8", forHTTPHeaderField: "Content-Type")
+        // The login page's own submit handler: school-issued accounts send
+        // `user` as "<schoolID>.<name>", Bildungsserver accounts ("Login
+        // ohne Schulbezug", `i=-1`) send the bare name.
+        let qualified = (schoolID.isEmpty || schoolID == "-1")
+            ? credentials.username
+            : "\(schoolID).\(credentials.username)"
         request.httpBody = Self.formBody([
-            "user": "\(schoolID).\(credentials.username)",
+            "user": qualified,
             "user2": credentials.username,
             "password": credentials.password
         ])

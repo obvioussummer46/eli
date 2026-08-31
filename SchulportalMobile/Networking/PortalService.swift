@@ -52,13 +52,19 @@ struct PortalService {
             return try VertretungsplanParser.plan(fromShell: shell)
         }
 
+        // The day's Hinweise only ever live in the shell, whichever way the
+        // rows arrive.
+        let infosByDate = VertretungsplanParser.infos(inShell: shell)
+
         var plan = SubstitutionPlan()
         for date in dates {
             let body = try await client.postForm(SPHEndpoints.vertretungsplan.appendingQuery(["a": "my"]),
                                                  fields: ["tag": date, "ganzerPlan": "true"])
             guard let data = body.data(using: .utf8) else { continue }
             do {
-                plan.days.append(try VertretungsplanParser.day(fromAJAX: data, date: date))
+                var day = try VertretungsplanParser.day(fromAJAX: data, date: date)
+                day.infos = infosByDate[date]
+                plan.days.append(day)
             } catch {
                 // One unreadable day means the AJAX contract is off for this
                 // school — the tables are then the honest source for all days.
@@ -68,6 +74,35 @@ struct PortalService {
         plan.fetchedAt = Date()
         return plan
     }
+
+    /// The school calendar for a window around now: a week back (running
+    /// events count) to four months out. `?f=getEvents` answers with plain
+    /// JSON; only the category names and colours come from the page itself.
+    func loadKalender() async throws -> [SchoolEvent] {
+        let shell = try await client.html(SPHEndpoints.kalender)
+        let categories = KalenderParser.categories(inShell: shell)
+
+        let now = Date()
+        let cal = GermanDate.calendar
+        let start = cal.date(byAdding: .day, value: -7, to: now) ?? now
+        let end = cal.date(byAdding: .day, value: 120, to: now) ?? now
+        let body = try await client.postForm(SPHEndpoints.kalender.appendingQuery(["f": "getEvents"]), fields: [
+            "f": "getEvents",
+            "start": Self.isoDay.string(from: start),
+            "end": Self.isoDay.string(from: end),
+            "s": ""
+        ])
+        guard let data = body.data(using: .utf8) else { throw SPHError.parsing("Der Kalender") }
+        return try KalenderParser.events(fromJSON: data, categories: categories)
+    }
+
+    private static let isoDay: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = GermanDate.timeZone
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 
     /// Pushes the done-flag back to the portal so the change is visible in the
     /// browser and to teachers.

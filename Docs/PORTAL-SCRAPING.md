@@ -316,9 +316,24 @@ pattern, `data-field` (with `Stunde` present), and `td[colspan]` marking the
 Failures are deliberately quiet: schools that publish no plan are normal, so
 `AppModel` treats an error as "no data" rather than as a banner.
 
+Day-level *Hinweise* live only in the shell, whichever way the rows arrive:
+a `table.infos` per day panel, header rows carrying class `header`, the
+announcement lines as plain rows beneath.
+
+## `kalender.php`
+
+`POST kalender.php?f=getEvents` (form fields `f`, `start`, `end` as
+`yyyy-MM-dd`, empty `s`) answers with a plain JSON array of events — keys
+`Id`, `title`, `description`, `Ort`, `category`, `allDay`, and the dates
+twice: German `Anfang`/`Ende` (`yyyy-MM-dd HH:mm:ss`) and FullCalendar ISO
+`start`/`end`. Only the category list (name + colour per id) has to be fished
+out of the page HTML, where the page's own script pushes them as loose JS:
+`categories.push({id: 1, name: '…', color: '#…'})`. Load-bearing: the array
+shape, `Anfang`/`start`, `title` — a row missing those is dropped alone.
+
 ## Not parsed natively
 
-*Nachrichten* is encrypted client-side by the portal, and *Kalender* varies a
-lot between schools. Both open in the built-in portal browser with the
-userscript applied. `PortalService` is the right place to add them later — one
-method, one parser, no other layer changes.
+*Nachrichten* is encrypted client-side by the portal and opens in the
+built-in portal browser with the userscript applied. `PortalService` is the
+right place to add anything further — one method, one parser, no other layer
+changes.

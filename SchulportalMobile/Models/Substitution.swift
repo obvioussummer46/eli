@@ -39,11 +39,21 @@ struct Substitution: Codable, Equatable, Hashable, Identifiable {
     }
 }
 
+/// A day-level announcement above the plan — "7c ganztags Ausflug",
+/// "Nachmittagsunterricht entfällt". Header optional: some schools write
+/// bare lines.
+struct SubstitutionInfo: Codable, Equatable, Hashable {
+    var header: String
+    var values: [String]
+}
+
 /// All substitutions of one school day.
 struct SubstitutionDay: Codable, Equatable {
     /// The day, at noon Europe/Berlin (see `GermanDate.firstDate`).
     var date: Date
     var entries: [Substitution] = []
+    /// Optional so days stored before this field existed still decode.
+    var infos: [SubstitutionInfo]?
 }
 
 /// The whole plan as fetched — usually today and the next school day.

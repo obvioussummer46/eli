@@ -116,6 +116,7 @@ final class AppModel {
         async let lessons = service.loadMeinUnterricht()
         async let plan = service.loadStundenplan()
         async let substitutions = service.loadVertretungsplan()
+        async let events = service.loadKalender()
 
         var errors: [String] = []
 
@@ -150,6 +151,11 @@ final class AppModel {
         // their own — the UI only ever asks for today and the next day.
         if let fetched = try? await substitutions {
             snapshot.substitutions = fetched
+        }
+        // Same reasoning as the Vertretungsplan: a school without the
+        // Kalender module is normal, not an error.
+        if let fetched = try? await events {
+            snapshot.events = fetched
         }
 
         snapshot.lastRefresh = Date()
@@ -230,8 +236,23 @@ final class AppModel {
         return live + snapshot.archivedHomework.filter { !liveIDs.contains($0.id) }
     }
 
+    /// Open homework in working order: soonest deadline first (explicit or
+    /// implicit-next-lesson), the undatable rest behind it newest-first. This
+    /// is the order someone doing the work should tackle it in.
     var openHomework: [Homework] {
-        allHomework.filter { !isDone($0) }.sorted(by: Self.byDueDate)
+        let open = allHomework.filter { !isDone($0) }
+        let deadlines = Dictionary(open.map { ($0.id, deadline(for: $0)) },
+                                   uniquingKeysWith: { first, _ in first })
+        return open.sorted { lhs, rhs in
+            switch (deadlines[lhs.id] ?? nil, deadlines[rhs.id] ?? nil) {
+            case let (l?, r?):
+                if l != r { return l < r }
+                return lhs.subject.name < rhs.subject.name
+            case (.some, .none): return true
+            case (.none, .some): return false
+            case (.none, .none): return Self.byDueDate(lhs, rhs)
+            }
+        }
     }
 
     var doneHomework: [Homework] {
@@ -385,17 +406,35 @@ final class AppModel {
 
     var todaysSubstitutions: [Substitution] { substitutions(on: Date()) }
 
+    /// The day-level Hinweise are school-wide announcements; they are shown
+    /// unfiltered — a class token in free text is not reliably findable.
+    func substitutionInfos(on date: Date) -> [SubstitutionInfo] {
+        snapshot.substitutions?.day(on: date)?.infos ?? []
+    }
+
+    var todaysSubstitutionInfos: [SubstitutionInfo] { substitutionInfos(on: Date()) }
+
     /// The first later plan day that has anything for the pupil — what the
     /// evening bag-packing look at the app should show.
-    var nextSubstitutionDay: (date: Date, entries: [Substitution])? {
+    var nextSubstitutionDay: (date: Date, entries: [Substitution], infos: [SubstitutionInfo])? {
         guard let plan = snapshot.substitutions else { return nil }
         let cal = GermanDate.calendar
         let today = cal.startOfDay(for: Date())
         for day in plan.days.sorted(by: { $0.date < $1.date }) where cal.startOfDay(for: day.date) > today {
             let entries = substitutions(on: day.date)
-            if !entries.isEmpty { return (day.date, entries) }
+            let infos = substitutionInfos(on: day.date)
+            if !entries.isEmpty || !infos.isEmpty { return (day.date, entries, infos) }
         }
         return nil
+    }
+
+    // MARK: - Termine
+
+    /// Everything still running or ahead, soonest first — the school
+    /// calendar minus what is already over.
+    var upcomingEvents: [SchoolEvent] {
+        let now = Date()
+        return (snapshot.events ?? []).filter { $0.isCurrent(at: now) }
     }
 
     // MARK: - Today

@@ -17,6 +17,9 @@ struct Snapshot: Codable, Equatable {
     /// Optional so snapshots written before this field existed still decode.
     /// Stale days age out naturally: the UI only ever asks for dated days.
     var substitutions: SubstitutionPlan?
+    /// The school calendar, same deal: optional for old snapshots, and past
+    /// events fall out of every view by date.
+    var events: [SchoolEvent]?
 }
 
 /// A locally set done-flag, remembered even when the portal round-trip failed.

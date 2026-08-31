@@ -25,6 +25,47 @@ enum VertretungsplanParser {
         return dates
     }
 
+    // MARK: - Day infos
+
+    /// The announcement tables inside each day panel, keyed by the panel's
+    /// `dd.MM.yyyy`. They only exist in the shell HTML — the AJAX answers
+    /// carry rows, never the day's Hinweise — so both parse paths read them
+    /// from here.
+    static func infos(inShell html: String) -> [String: [SubstitutionInfo]] {
+        guard let document = try? SwiftSoup.parse(html) else { return [:] }
+        var result: [String: [SubstitutionInfo]] = [:]
+        for panel in document.allMatches("[id^=tag]") {
+            guard let id = panel.attribute("id"),
+                  let match = id.wholeMatch(of: /tag(\d{2})_(\d{2})_(\d{4})/) else { continue }
+            let list = infoTables(in: panel)
+            if !list.isEmpty { result["\(match.1).\(match.2).\(match.3)"] = list }
+        }
+        return result
+    }
+
+    /// A `table.infos` holds header rows (class `header`, one cell) with
+    /// their announcement lines following as plain rows.
+    private static func infoTables(in panel: Element) -> [SubstitutionInfo] {
+        guard let table = panel.firstMatch("table.infos") else { return [] }
+        var infos: [SubstitutionInfo] = []
+        var current: SubstitutionInfo?
+        for row in table.allMatches("tr") {
+            guard let first = row.allMatches("td").first else { continue }
+            if ((try? row.className()) ?? "").contains("header") {
+                if let current { infos.append(current) }
+                current = SubstitutionInfo(header: HTMLText.inline(first), values: [])
+            } else {
+                let text = HTMLText.multiline(first)
+                guard !text.isEmpty else { continue }
+                if current == nil { current = SubstitutionInfo(header: "", values: []) }
+                current?.values.append(text)
+            }
+        }
+        if let current { infos.append(current) }
+        // A header with nothing under it says nothing.
+        return infos.filter { !$0.values.isEmpty || !$0.header.isEmpty }
+    }
+
     // MARK: - AJAX day
 
     /// One `?a=my` answer for one day. The portal sends a JSON array of rows;
@@ -91,6 +132,8 @@ enum VertretungsplanParser {
             if let table = panel.firstMatch("table[id^=vtable]") ?? document.firstMatch("#vtable\(id.dropFirst(3))") {
                 day.entries = rows(of: table, date: "\(match.1).\(match.2).\(match.3)")
             }
+            let infos = infoTables(in: panel)
+            if !infos.isEmpty { day.infos = infos }
             plan.days.append(day)
         }
         plan.fetchedAt = Date()

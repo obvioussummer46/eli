@@ -7,11 +7,15 @@ struct HomeworkRow: View {
 
     private var isDone: Bool { model.isDone(homework) }
 
-    /// Only a real deadline counts as overdue — the date a task was *given* out
+    /// Explicit due date, or the next lesson of the subject — the deadline a
+    /// teacher means when they write none.
+    private var deadline: Date? { model.deadline(for: homework) }
+
+    /// Only a deadline counts as overdue — the date a task was *given* out
     /// is always in the past and must not turn the row red.
     private var isOverdue: Bool {
-        guard let due = homework.dueDate, !isDone else { return false }
-        return due < GermanDate.calendar.startOfDay(for: Date())
+        guard let deadline, !isDone else { return false }
+        return deadline < GermanDate.calendar.startOfDay(for: Date())
     }
 
     var body: some View {
@@ -38,8 +42,8 @@ struct HomeworkRow: View {
                             .foregroundStyle(.tertiary)
                             .accessibilityLabel("Noch nicht ans Portal übertragen")
                     }
-                    if let date = homework.effectiveDate {
-                        Text(dateLabel(date))
+                    if let label = dateLabel {
+                        Text(label)
                             .font(.caption)
                             .foregroundStyle(isOverdue ? Color.red : Color.secondary)
                     }
@@ -56,7 +60,15 @@ struct HomeworkRow: View {
         .contentShape(.rect)
     }
 
-    private func dateLabel(_ date: Date) -> String {
+    /// "bis morgen" when a deadline (written or implied by the next lesson)
+    /// exists; the assignment date as plain context otherwise. Done rows keep
+    /// the assignment date — a computed "next lesson" for a finished task
+    /// would point at nothing.
+    private var dateLabel: String? {
+        if !isDone, let deadline {
+            return "bis " + GermanDate.relativeLabel(for: deadline)
+        }
+        guard let date = homework.effectiveDate else { return nil }
         let prefix = homework.dueDate != nil ? "bis " : ""
         return prefix + GermanDate.relativeLabel(for: date)
     }

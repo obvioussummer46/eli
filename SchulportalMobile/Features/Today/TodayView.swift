@@ -4,6 +4,7 @@ import SwiftUI
 struct TodayView: View {
     @Environment(AppModel.self) private var model
     @State private var selection: Homework?
+    @State private var isShowingEvents = false
 
     var body: some View {
         NavigationStack {
@@ -18,6 +19,7 @@ struct TodayView: View {
                     nextLessonCard
                     todaysLessonsCard
                     homeworkCard
+                    eventsCard
                     footer
                 }
                 .padding(16)
@@ -37,6 +39,9 @@ struct TodayView: View {
             }
             .sheet(item: $selection) { item in
                 HomeworkDetailView(homework: item).environment(model)
+            }
+            .sheet(isPresented: $isShowingEvents) {
+                EventsListView().environment(model)
             }
         }
     }
@@ -59,11 +64,39 @@ struct TodayView: View {
     @ViewBuilder
     private var substitutionsCard: some View {
         let today = model.todaysSubstitutions
-        if !today.isEmpty {
-            SubstitutionsCard(title: "Vertretungen heute", entries: today)
+        let todayInfos = model.todaysSubstitutionInfos
+        if !today.isEmpty || !todayInfos.isEmpty {
+            SubstitutionsCard(title: "Vertretungen heute", entries: today, infos: todayInfos)
         } else if let next = model.nextSubstitutionDay {
             SubstitutionsCard(title: "Vertretungen \(GermanDate.relativeLabel(for: next.date))",
-                              entries: next.entries)
+                              entries: next.entries,
+                              infos: next.infos)
+        }
+    }
+
+    /// The next few school events — and the door to the full list.
+    @ViewBuilder
+    private var eventsCard: some View {
+        let upcoming = model.upcomingEvents
+        if !upcoming.isEmpty {
+            Card {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Termine")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    ForEach(upcoming.prefix(4)) { event in
+                        EventRow(event: event)
+                    }
+                    if upcoming.count > 4 {
+                        Button {
+                            isShowingEvents = true
+                        } label: {
+                            Label("Alle \(upcoming.count) Termine", systemImage: "calendar")
+                                .font(.subheadline.weight(.medium))
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -186,6 +219,7 @@ struct TodayView: View {
 private struct SubstitutionsCard: View {
     let title: String
     let entries: [Substitution]
+    var infos: [SubstitutionInfo] = []
 
     var body: some View {
         Card {
@@ -224,11 +258,61 @@ private struct SubstitutionsCard: View {
                         Spacer(minLength: 0)
                     }
                 }
+                // The day's Hinweise — school-wide free text, below the rows.
+                ForEach(infos, id: \.self) { info in
+                    VStack(alignment: .leading, spacing: 2) {
+                        if !info.header.isEmpty {
+                            Text(info.header)
+                                .font(.caption.weight(.semibold))
+                        }
+                        ForEach(info.values, id: \.self) { line in
+                            Text(line)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
         }
     }
 
     private func isCancellation(_ kind: String) -> Bool {
         kind.localizedCaseInsensitiveContains("entfall") || kind.localizedCaseInsensitiveContains("entfällt")
+    }
+}
+
+/// One school event, compact — used by the Heute card and the full list.
+struct EventRow: View {
+    let event: SchoolEvent
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(event.color)
+                .frame(width: 4, height: 30)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(event.title)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(2)
+                HStack(spacing: 6) {
+                    Text(event.dateLabel)
+                    if let place = event.place, !place.isEmpty {
+                        Label(place, systemImage: "mappin.and.ellipse")
+                            .lineLimit(1)
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+            if let category = event.categoryName {
+                Text(category)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(event.color)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(event.color.opacity(0.14), in: .capsule)
+            }
+        }
     }
 }

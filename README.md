@@ -13,7 +13,7 @@ parse natively (Nachrichten, Vertretungsplan, Kalender) still look right.
 
 | Tab | |
 |---|---|
-| **Heute** | Today's substitutions (or tomorrow's, once today is over), what's on right now, the rest of today's lessons, and the open homework digest. |
+| **Heute** | Today's substitutions (or tomorrow's, once today is over) with the day's Hinweise, what's on right now, the rest of today's lessons, the open homework digest, and the next school events from the Kalender. |
 | **Aufgaben** | Every open homework from *Mein Unterricht*, grouped, searchable, filterable by subject. Tap the circle or swipe to mark done — the flag is pushed back to the portal and kept locally either way. |
 | **Plan** | The weekly timetable as a day list or a week grid, and the button that writes it into a dedicated iOS calendar. |
 | **Essen** | This week's mensa menu and what is left on the lunch card, from `menuebestellung.de`. Read-only. |

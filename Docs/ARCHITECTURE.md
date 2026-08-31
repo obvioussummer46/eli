@@ -30,10 +30,15 @@ MeinUnterrichtParser  StundenplanParser        (SwiftSoup)
 ## Layers
 
 **`Networking/SPHClient`** — an actor wrapping one `URLSession` that shares
-`HTTPCookieStorage.shared` with the web views. It knows two things beyond plain
-HTTP: how to decode the portal's occasional Latin-1 pages, and how to recognise
-being bounced to the login wall (`SPHError.notLoggedIn`), which is the signal
-that propagates all the way up to showing the login screen again.
+`HTTPCookieStorage.shared` with the web views. It knows three things beyond
+plain HTTP: how to decode the portal's occasional Latin-1 pages, how to
+recognise being bounced to the login wall (`SPHError.notLoggedIn`), and — when
+the user stored credentials — how to answer that bounce itself: it speaks the
+login form's own POST (`user`/`user2`/`password`, then
+`connect.schulportal.hessen.de` hands out the `sid`) and retries once, exactly
+the way `MensaClient` does. Only without stored credentials, or when the portal
+rejects them (`SPHError.invalidCredentials`), does the signal propagate all the
+way up to showing the login screen again.
 
 **`Networking/SchoolDirectory`** — the public school list behind the login
 page's own picker, so a school can be chosen by name instead of by number. The
@@ -90,13 +95,15 @@ Four decisions worth knowing:
   in a private in-memory store. `SPHCookies.clearAll()` wipes
   `HTTPCookieStorage.shared` wholesale on Schulportal sign-out, and it must not
   take the mensa session with it.
-* **It holds a password**, which the Schulportal side never does. The site has
-  no SSO and no login page worth embedding, so a web view would buy nothing and
-  cost a login screen every time the session dropped. The credentials go into
-  the Keychain as `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` and
-  `MensaClient` re-signs in on its own. Only a *rejected credential* reaches
-  `MensaModel` and sends the user back to the login screen; an expired session
-  never does.
+* **It holds a password.** The site has no SSO and no login page worth
+  embedding, so a web view would buy nothing and cost a login screen every time
+  the session dropped. The credentials go into the Keychain as
+  `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` and `MensaClient` re-signs
+  in on its own. Only a *rejected credential* reaches `MensaModel` and sends
+  the user back to the login screen; an expired session never does. (This was
+  the mensa's invention; the Schulportal side has since adopted the same
+  pattern as its optional native login, with the browser login remaining the
+  password-free route for SSO/2FA accounts.)
 * **Nothing is cached to disk.** The plan changes weekly and the balance changes
   hourly. A stale balance read out of a snapshot would be worse than an empty
   screen, so there is no `SnapshotStore` equivalent here.

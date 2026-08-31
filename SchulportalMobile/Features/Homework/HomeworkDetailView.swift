@@ -126,7 +126,7 @@ struct HomeworkDetailView: View {
             Text("Der Haken ist gesetzt, konnte aber noch nicht ans Schulportal gemeldet werden. Die App versucht es beim nächsten Aktualisieren erneut.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-        } else if homework.portalEntryID == nil {
+        } else if homework.portalEntryID == nil || homework.portalBookID == nil {
             Text("Diese Aufgabe lässt sich im Portal nicht abhaken – der Haken bleibt nur in der App.")
                 .font(.caption)
                 .foregroundStyle(.secondary)

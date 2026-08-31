@@ -35,9 +35,9 @@ struct MainTabView: View {
             MensaTabView()
                 .tabItem { Label("Essen", systemImage: "fork.knife") }
 
-            PortalBrowserView()
-                .tabItem { Label("Portal", systemImage: "safari") }
-
+            // Five tabs, deliberately: a sixth would push iOS into its
+            // automatic "Mehr" overflow screen and bury this one behind it.
+            // The portal browser lives inside this tab instead.
             SettingsView()
                 .tabItem { Label("Mehr", systemImage: "gearshape") }
         }

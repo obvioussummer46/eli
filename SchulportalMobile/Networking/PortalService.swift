@@ -19,6 +19,18 @@ struct PortalService {
         self.client = client
     }
 
+    // MARK: - Session
+
+    /// Verifies against the portal *before* anything is stored — a typo must
+    /// never end up in the Keychain.
+    func signIn(_ credentials: PortalCredentials, schoolID: String) async throws {
+        try await client.signIn(credentials, schoolID: schoolID)
+    }
+
+    func adopt(_ credentials: PortalCredentials?, schoolID: String?) async {
+        await client.adopt(credentials, schoolID: schoolID)
+    }
+
     func loadMeinUnterricht() async throws -> MeinUnterrichtResult {
         let html = try await client.html(SPHEndpoints.meinUnterricht)
         return try MeinUnterrichtParser.parse(html: html)
@@ -64,7 +76,7 @@ struct PortalService {
         return .pushed
     }
 
-    func verifySession() async -> Bool {
-        await client.verifySession()
+    func verifySession() async throws -> Bool {
+        try await client.verifySession()
     }
 }

@@ -20,8 +20,14 @@ enum SPHEndpoints {
     static let videokonferenz = base.appendingPathComponent("videokonferenz.php")
     static let logout = URL(string: "https://start.schulportal.hessen.de/index.php?logout=all")!
 
+    /// After a successful credential POST the login host hands the session to
+    /// this host, which in turn redirects to `schulportallogin.php?k=…` on the
+    /// start host — the request that finally sets the `sid` cookie.
+    static let connect = URL(string: "https://connect.schulportal.hessen.de/")!
+
     /// Login page. Passing the school id preselects the school so the user only
-    /// has to type name + password.
+    /// has to type name + password. The same URL also takes the credential POST
+    /// (`user`, `user2`, `password`) for the native sign-in.
     static func login(schoolID: String?) -> URL {
         guard let schoolID, !schoolID.isEmpty else {
             return URL(string: "https://login.schulportal.hessen.de/")!

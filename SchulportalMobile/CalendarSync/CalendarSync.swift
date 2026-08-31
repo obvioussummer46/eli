@@ -75,7 +75,7 @@ final class CalendarSync {
         let removed = try removeManagedEvents(in: calendar, from: start, to: end)
 
         var lessonCount = 0
-        for date in schoolDays(from: start, to: end) {
+        for date in schoolDays(from: start, to: end, using: timetable) {
             guard let weekday = Weekday.fromCalendarWeekday(cal.component(.weekday, from: date)) else { continue }
             for entry in timetable.entries(on: weekday) {
                 guard let event = makeLessonEvent(entry, on: date, in: calendar) else { continue }
@@ -157,13 +157,15 @@ final class CalendarSync {
         return events.count
     }
 
-    private func schoolDays(from start: Date, to end: Date) -> [Date] {
+    /// Every date in the window whose weekday actually appears in the plan —
+    /// not a hardcoded Mon–Fri, because a few schools do timetable Saturdays.
+    private func schoolDays(from start: Date, to end: Date, using timetable: Timetable) -> [Date] {
         let cal = GermanDate.calendar
+        let used = Set(timetable.weekdaysInUse.map(\.calendarWeekday))
         var days: [Date] = []
         var cursor = start
         while cursor < end {
-            let weekday = cal.component(.weekday, from: cursor)
-            if weekday != 1 && weekday != 7 { days.append(cursor) }
+            if used.contains(cal.component(.weekday, from: cursor)) { days.append(cursor) }
             guard let next = cal.date(byAdding: .day, value: 1, to: cursor) else { break }
             cursor = next
         }

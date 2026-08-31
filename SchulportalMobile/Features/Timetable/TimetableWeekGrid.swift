@@ -54,10 +54,17 @@ struct TimetableWeekGrid: View {
         VStack(spacing: 6) {
             header(Text(day.shortName).font(.subheadline.weight(.semibold)))
             ForEach(slots(for: day), id: \.period) { slot in
-                if let entry = slot.entry {
-                    LessonBlock(entry: entry)
-                        .frame(width: columnWidth,
-                               height: rowHeight * CGFloat(slot.span) + 6 * CGFloat(slot.span - 1))
+                if !slot.entries.isEmpty {
+                    // Parallel courses (Religion/Ethik, second languages)
+                    // share the slot side by side instead of the first one
+                    // silently swallowing the rest.
+                    HStack(spacing: 3) {
+                        ForEach(slot.entries) { entry in
+                            LessonBlock(entry: entry)
+                        }
+                    }
+                    .frame(width: columnWidth,
+                           height: rowHeight * CGFloat(slot.span) + 6 * CGFloat(slot.span - 1))
                 } else if !slot.isCovered {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color(.secondarySystemGroupedBackground).opacity(0.5))
@@ -82,7 +89,9 @@ struct TimetableWeekGrid: View {
 
     private struct Slot {
         var period: Int
-        var entry: TimetableEntry?
+        /// Everything starting in this period — more than one when courses
+        /// run in parallel.
+        var entries: [TimetableEntry]
         var span: Int
         /// A row swallowed by the block above it — renders nothing at all.
         var isCovered: Bool
@@ -95,15 +104,16 @@ struct TimetableWeekGrid: View {
 
         for period in periods {
             if period <= coveredUntil {
-                result.append(Slot(period: period, entry: nil, span: 1, isCovered: true))
+                result.append(Slot(period: period, entries: [], span: 1, isCovered: true))
                 continue
             }
-            if let entry = lessons.first(where: { $0.firstPeriod == period }) {
-                let span = max(1, entry.lastPeriod - entry.firstPeriod + 1)
-                coveredUntil = entry.lastPeriod
-                result.append(Slot(period: period, entry: entry, span: span, isCovered: false))
+            let starting = lessons.filter { $0.firstPeriod == period }
+            if let longest = starting.map(\.lastPeriod).max() {
+                let span = max(1, longest - period + 1)
+                coveredUntil = longest
+                result.append(Slot(period: period, entries: starting, span: span, isCovered: false))
             } else {
-                result.append(Slot(period: period, entry: nil, span: 1, isCovered: false))
+                result.append(Slot(period: period, entries: [], span: 1, isCovered: false))
             }
         }
         return result

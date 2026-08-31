@@ -2,6 +2,9 @@ import Foundation
 
 enum SPHError: LocalizedError, Equatable {
     case notLoggedIn
+    /// The portal refused the stored username/password — as opposed to
+    /// `.notLoggedIn`, which only means the session is gone.
+    case invalidCredentials(String)
     case network(String)
     case badResponse(Int)
     case parsing(String)
@@ -12,6 +15,8 @@ enum SPHError: LocalizedError, Equatable {
         switch self {
         case .notLoggedIn:
             "Du bist nicht (mehr) am Schulportal angemeldet."
+        case .invalidCredentials(let detail):
+            detail
         case .network(let detail):
             "Netzwerkfehler: \(detail)"
         case .badResponse(let code):
@@ -28,6 +33,7 @@ enum SPHError: LocalizedError, Equatable {
     var recoverySuggestion: String? {
         switch self {
         case .notLoggedIn: "Melde dich erneut an."
+        case .invalidCredentials: "Prüfe Benutzername und Passwort, oder melde dich über die Portalseite an."
         case .network: "Prüfe deine Internetverbindung und versuche es noch einmal."
         default: nil
         }

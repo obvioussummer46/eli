@@ -1,17 +1,27 @@
 import SwiftUI
 
-/// Sign-in happens on the portal's own page inside a web view.
+/// Sign-in, two ways.
 ///
-/// That is deliberate: the app never sees the password, and SSO, 2FA and the
-/// school specific identity providers all keep working without us having to
-/// reimplement the handshake. Afterwards the session cookies are copied into
-/// `URLSession` and everything else is native.
+/// The native form is the everyday route: username + password are verified
+/// against the portal and then stored in the Keychain (device-only), so the
+/// app can sign itself back in when the short-lived SPH session dies —
+/// exactly what the Essen tab already does for the mensa account.
+///
+/// The browser route stays for everyone the form cannot serve: SSO, 2FA and
+/// school specific identity providers all work on the portal's own page, and
+/// the app then only ever holds the session cookie, never a password.
 struct LoginView: View {
     @Environment(AppModel.self) private var model
     @State private var isShowingPortalLogin = false
     @State private var isShowingSchoolPicker = false
     @State private var schoolID: String = ""
     @State private var schoolName: String = ""
+    @State private var username: String = ""
+    @State private var password: String = ""
+    @State private var isSigningIn = false
+    @FocusState private var focus: Field?
+
+    private enum Field { case username, password }
 
     var body: some View {
         NavigationStack {
@@ -31,6 +41,7 @@ struct LoginView: View {
         .onAppear {
             schoolID = model.settings.schoolID
             schoolName = model.settings.schoolName
+            if username.isEmpty { username = model.portalUsername ?? "" }
         }
         .sheet(isPresented: $isShowingSchoolPicker) {
             SchoolPickerView { school in
@@ -89,7 +100,7 @@ struct LoginView: View {
                        detail: "Als echte Termine in deinen iOS-Kalender, mit Raum und Lehrkraft.")
             FeatureRow(icon: "safari",
                        title: "Rest des Portals",
-                       detail: "Nachrichten & Co. öffnen sich im Tab „Portal“ – im gleichen mobilen Design.")
+                       detail: "Nachrichten & Co. öffnen sich im mobilen Design unter „Mehr“ › Portal.")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)
@@ -98,7 +109,7 @@ struct LoginView: View {
 
     private var signInBox: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Schule (optional)")
+            Text("Schule")
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.secondary)
 
@@ -137,30 +148,94 @@ struct LoginView: View {
             .font(.caption)
             .tint(.secondary)
 
-            Text("Damit ist deine Schule beim Anmelden schon ausgewählt. Ohne sie fragt das Schulportal selbst danach.")
-                .font(.caption)
+            Text("Zugangsdaten")
+                .font(.footnote.weight(.semibold))
                 .foregroundStyle(.secondary)
+                .padding(.top, 6)
+
+            TextField("Benutzername (vorname.nachname)", text: $username)
+                .textContentType(.username)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.next)
+                .focused($focus, equals: .username)
+                .onSubmit { focus = .password }
+                .textFieldStyle(.roundedBorder)
+
+            SecureField("Passwort", text: $password)
+                .textContentType(.password)
+                .submitLabel(.go)
+                .focused($focus, equals: .password)
+                .onSubmit { submitCredentials() }
+                .textFieldStyle(.roundedBorder)
+
+            if let message = model.signInErrorMessage {
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
             Button {
-                isShowingPortalLogin = true
+                submitCredentials()
             } label: {
-                Label("Am Schulportal anmelden", systemImage: "lock.open.fill")
-                    .frame(maxWidth: .infinity)
+                if isSigningIn {
+                    ProgressView().frame(maxWidth: .infinity)
+                } else {
+                    Label("Anmelden", systemImage: "lock.open.fill")
+                        .frame(maxWidth: .infinity)
+                }
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+            .disabled(!canSubmitCredentials)
             .padding(.top, 4)
+
+            // The escape hatch for everything the form cannot do: SSO, 2FA,
+            // school specific identity providers. It needs no school picked —
+            // the portal then asks itself.
+            Button("Über die Portalseite anmelden (SSO / 2FA)") {
+                isShowingPortalLogin = true
+            }
+            .font(.footnote)
+            .frame(maxWidth: .infinity)
+            .disabled(isSigningIn)
         }
         .padding(18)
         .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
     }
 
     private var privacyNote: some View {
-        Text("Die Anmeldung läuft auf der Originalseite des Schulportals. Die App speichert kein Passwort – nur die Sitzung, damit sie deine Daten laden kann.")
+        Text("Benutzername und Passwort landen im Schlüsselbund deines Geräts, damit die App sich selbst wieder anmelden kann, wenn die Sitzung abläuft. Sie werden weder synchronisiert noch irgendwohin sonst geschickt. Über die Portalseite geht es auch ganz ohne gespeichertes Passwort.")
             .font(.caption)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 8)
+    }
+
+    private var canSubmitCredentials: Bool {
+        !isSigningIn
+            && !trimmedID.isEmpty
+            && !username.trimmingCharacters(in: .whitespaces).isEmpty
+            && !password.isEmpty
+    }
+
+    private func submitCredentials() {
+        guard canSubmitCredentials else { return }
+        focus = nil
+        // The form's POST wants the school number, so the pick becomes real
+        // now — before the request, not after.
+        model.settings.schoolID = trimmedID
+        model.settings.schoolName = schoolName
+        let name = username.trimmingCharacters(in: .whitespaces)
+        let secret = password
+        isSigningIn = true
+        Task {
+            if await model.signIn(username: name, password: secret) {
+                password = ""
+            }
+            isSigningIn = false
+        }
     }
 }
 

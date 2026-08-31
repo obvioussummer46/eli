@@ -17,6 +17,20 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // The pages the app does not parse natively — Nachrichten,
+                // Vertretungsplan, Kalender — live behind this one link. It
+                // used to be a tab of its own, but a sixth tab pushes iOS
+                // into its automatic "Mehr" overflow and buries both.
+                Section {
+                    NavigationLink {
+                        PortalBrowserView()
+                    } label: {
+                        Label("Schulportal öffnen", systemImage: "safari")
+                    }
+                } footer: {
+                    Text("Nachrichten, Vertretungsplan, Kalender & Co. — das ganze Portal im mobilen Design.")
+                }
+
                 Section("Konto") {
                     Button {
                         isShowingSchoolPicker = true
@@ -27,6 +41,9 @@ struct SettingsView: View {
                         }
                     }
                     .tint(.primary)
+                    if let username = model.portalUsername {
+                        LabeledContent("Angemeldet als", value: username)
+                    }
                     if let last = model.snapshot.lastRefresh {
                         LabeledContent("Zuletzt geladen", value: last.formatted(date: .abbreviated, time: .shortened))
                     }
@@ -71,17 +88,13 @@ struct SettingsView: View {
                     LabeledContent("Stunden im Plan", value: "\(model.snapshot.timetable.entries.count)")
                 }
 
-                // The portal itself lives in the Portal tab — including its
-                // own „In Safari öffnen“. A second way in from here only made
-                // it ambiguous which of the two was the real one.
                 Section("Über") {
-                    // "Kein Passwort wird gespeichert" was true until the
-                    // Essen tab arrived: the Schulportal is a web-view login
-                    // and never hands one over, but menuebestellung.de has
-                    // nothing else, and its password does go into the
-                    // Keychain. Saying otherwise is the app being wrong about
-                    // where someone's password is.
-                    Text("Inoffizielle App. Sie liest genau die Seiten, die du auch im Browser siehst, und speichert nichts außerhalb deines Geräts. Fürs Schulportal wird kein Passwort gespeichert — nur die Zugangsdaten fürs Bestellsystem im Tab „Essen“ liegen im Schlüsselbund deines Geräts.")
+                    // Precise about the passwords: both accounts *can* live in
+                    // the Keychain, but the Schulportal one only when the
+                    // native login was used — the browser route never hands
+                    // one over. The app being vague about where someone's
+                    // password is would be worse than the longer sentence.
+                    Text("Inoffizielle App. Sie liest genau die Seiten, die du auch im Browser siehst, und speichert nichts außerhalb deines Geräts. Zugangsdaten, die du in der App eingibst — fürs Schulportal und fürs Bestellsystem im Tab „Essen“ — liegen im Schlüsselbund deines Geräts und werden nirgendwohin sonst geschickt. Wer sich über die Portalseite anmeldet, dessen Schulportal-Passwort sieht die App nie.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -93,7 +106,7 @@ struct SettingsView: View {
                 }
                 Button("Abbrechen", role: .cancel) {}
             } message: {
-                Text("Die lokal gespeicherten Hausaufgaben-Haken werden dabei gelöscht.")
+                Text("Die lokal gespeicherten Hausaufgaben-Haken und die Schulportal-Zugangsdaten im Schlüsselbund werden dabei gelöscht.")
             }
             .sheet(isPresented: $isShowingCalendarSheet) {
                 CalendarSyncView().environment(model)

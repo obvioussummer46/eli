@@ -6,8 +6,8 @@ off**, and a **timetable that goes straight into the iOS calendar**.
 
 It is the next step after the Safari userscript in `userscript/` — that script
 still lives here, and the exact same code is bundled into the app's built-in
-browser tab so the pages the app does not parse natively (Nachrichten,
-Vertretungsplan, Kalender) still look right.
+browser (under **Mehr › Schulportal öffnen**) so the pages the app does not
+parse natively (Nachrichten, Vertretungsplan, Kalender) still look right.
 
 ## What it does
 
@@ -17,8 +17,7 @@ Vertretungsplan, Kalender) still look right.
 | **Aufgaben** | Every open homework from *Mein Unterricht*, grouped, searchable, filterable by subject. Tap the circle or swipe to mark done — the flag is pushed back to the portal and kept locally either way. |
 | **Plan** | The weekly timetable as a day list or a week grid, and the button that writes it into a dedicated iOS calendar. |
 | **Essen** | This week's mensa menu and what is left on the lunch card, from `menuebestellung.de`. Read-only. |
-| **Portal** | The real portal in a web view, restyled by the bundled userscript. |
-| **Mehr** | Account, refresh behaviour, calendar options. |
+| **Mehr** | The real portal in a web view (restyled by the bundled userscript), account, refresh behaviour, calendar options. Five tabs on purpose — a sixth would trigger iOS's automatic "More" overflow. |
 
 ### Homework, marked done properly
 
@@ -40,12 +39,10 @@ already ordered, the card balance and the last month of bookings.
 * **Read-only on purpose.** Choosing a menu spends real money, so the app shows
   the selection the website holds and never changes it. Ordering stays on
   `menuebestellung.de`.
-* Unlike the Schulportal, this site offers nothing but a username/password API —
-  no SSO, no login page worth embedding. So the credentials go into the **iOS
-  Keychain** (device-only, never synchronised) and the app signs itself back in
-  when the session expires, instead of putting a login screen in front of a
-  child every few hours. They are verified against the site before they are
-  stored.
+* This site offers nothing but a username/password API — no SSO, no login page
+  worth embedding. So the credentials go into the **iOS Keychain** (device-only,
+  never synchronised) and the app signs itself back in when the session expires.
+  They are verified against the site before they are stored.
 * Its session is kept in a private cookie jar, so signing out of the Schulportal
   cannot take the mensa session with it, and vice versa.
 
@@ -81,21 +78,28 @@ brew install xcodegen && xcodegen generate
 
 ## How login works
 
-The app **never handles your Schulportal password**. Signing in opens the
-portal's real login page in a `WKWebView`; SSO, two-factor and school-specific
-identity providers therefore all keep working. Once the portal hands out a
-session cookie, that cookie is copied into the app's `URLSession` and everything
-after that is plain native fetching. Nothing leaves the device.
+Two routes, both on the login screen:
 
-Choosing your school is optional and happens by **name**: the app loads the same
-public directory the portal's own login page uses (all ~2000 Hessen schools) and
+* **Username + password in the app** — the everyday route. The credentials are
+  verified against the portal (the same `user`/`user2`/`password` POST the
+  login page itself sends), then stored in the **iOS Keychain** (device-only,
+  never synchronised). From then on the app signs itself back in when the
+  short-lived SPH session expires, instead of putting a login screen in front
+  of a child several times a day — the same pattern the **Essen** tab uses for
+  the mensa account.
+* **Via the portal's own page** — a `WKWebView` on the real login page, for
+  accounts the form cannot serve: SSO, two-factor and school-specific identity
+  providers all keep working there, and the app then only ever holds the
+  session cookie, **never the password**.
+
+Either way, once a session exists everything after that is plain native
+fetching. Nothing leaves the device.
+
+Choosing your school happens by **name**: the app loads the same public
+directory the portal's own login page uses (all ~2000 Hessen schools) and
 searches it by school name or town, so nobody has to dig the `?i=…` number out
-of a URL. The number can still be typed in directly. Either way it only
-preselects the school on the login page.
-
-(The **Essen** tab is the exception to "no password": `menuebestellung.de` has
-no SSO and offers nothing but a username/password API, so those credentials —
-and only those — go into the iOS Keychain, device-only. See above.)
+of a URL. The number can still be typed in directly. The native login needs the
+school picked (the form wants its number); the browser route works without it.
 
 ## Repository layout
 

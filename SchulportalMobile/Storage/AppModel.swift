@@ -21,6 +21,10 @@ final class AppModel {
     private(set) var lastErrorMessage: String?
     /// Set when the portal rejected the session mid-refresh.
     private(set) var needsReauthentication = false
+    /// Why the native sign-in failed — shown on the login screen.
+    private(set) var signInErrorMessage: String?
+    /// The account whose password is in the Keychain, when the user stored one.
+    private(set) var portalUsername: String?
 
     let settings = Settings()
 
@@ -41,22 +45,56 @@ final class AppModel {
         // launches, `HTTPCookieStorage` does not — so the web view is what
         // carries the session over, and the scraper picks it up from there.
         await SPHCookies.importFromWebView()
-        let signedIn = await service.verifySession()
-        phase = signedIn ? .ready : .signedOut
-        needsReauthentication = !signedIn
-        if signedIn, settings.refreshesOnLaunch {
-            await refresh()
+        // Stored credentials are the other way back in: with them adopted,
+        // `verifySession` signs in on its own when no cookie survived.
+        let credentials = PortalKeychain.load()
+        portalUsername = credentials?.username
+        await service.adopt(credentials, schoolID: settings.schoolID)
+        do {
+            let signedIn = try await service.verifySession()
+            phase = signedIn ? .ready : .signedOut
+            needsReauthentication = !signedIn
+            if signedIn, settings.refreshesOnLaunch {
+                await refresh()
+            }
+        } catch SPHError.invalidCredentials(let detail) {
+            await handleCredentialLoss(detail)
+        } catch {
+            phase = .signedOut
+            needsReauthentication = true
         }
     }
 
     /// Called by the login screen once cookies are in place.
     func didSignIn() async {
         needsReauthentication = false
+        signInErrorMessage = nil
         phase = .ready
         await refresh()
     }
 
+    /// The native sign-in: verifies against the portal, then stores the
+    /// credentials so the app can re-login silently — the mensa pattern.
+    /// Needs the school picked, because the login form wants its number.
+    func signIn(username: String, password: String) async -> Bool {
+        signInErrorMessage = nil
+        let credentials = PortalCredentials(username: username, password: password)
+        do {
+            try await service.signIn(credentials, schoolID: settings.schoolID)
+        } catch {
+            signInErrorMessage = error.localizedDescription
+            return false
+        }
+        PortalKeychain.save(credentials)
+        portalUsername = username
+        await didSignIn()
+        return true
+    }
+
     func signOut() async {
+        PortalKeychain.clear()
+        portalUsername = nil
+        await service.adopt(nil, schoolID: nil)
         await SPHCookies.clearAll()
         await store.reset()
         snapshot = Snapshot()
@@ -86,6 +124,9 @@ final class AppModel {
         } catch SPHError.notLoggedIn {
             handleSessionLoss()
             return
+        } catch SPHError.invalidCredentials(let detail) {
+            await handleCredentialLoss(detail)
+            return
         } catch {
             errors.append(error.localizedDescription)
         }
@@ -94,6 +135,9 @@ final class AppModel {
             snapshot.timetable = try await plan
         } catch SPHError.notLoggedIn {
             handleSessionLoss()
+            return
+        } catch SPHError.invalidCredentials(let detail) {
+            await handleCredentialLoss(detail)
             return
         } catch {
             errors.append(error.localizedDescription)
@@ -109,6 +153,17 @@ final class AppModel {
         needsReauthentication = true
         phase = .signedOut
         lastErrorMessage = SPHError.notLoggedIn.errorDescription
+    }
+
+    /// The portal rejected the stored *password*, not just the session.
+    /// Keeping it would retry a wrong secret forever, so it is dropped and the
+    /// login screen says why.
+    private func handleCredentialLoss(_ detail: String) async {
+        PortalKeychain.clear()
+        portalUsername = nil
+        await service.adopt(nil, schoolID: nil)
+        signInErrorMessage = detail
+        handleSessionLoss()
     }
 
     /// Merges a fresh scrape into the snapshot, keeping open homework the portal
@@ -205,15 +260,26 @@ final class AppModel {
             }
             // `.localOnly` counts as settled: there is nothing left to send, so
             // the entry must not sit in the retry queue.
-            if var override = snapshot.doneOverrides[homework.id], override.isDone == done {
-                override.syncedToPortal = true
-                snapshot.doneOverrides[homework.id] = override
-                await persist()
-            }
+            markSettled(homework, done: done)
+            await persist()
+        } catch SPHError.notSupported {
+            // Missing ids or a portal that refuses the POST: no retry will
+            // ever change that, so the tick settles as local-only. Leaving it
+            // "pending" would show a "wird erneut versucht" that never comes
+            // true — and retry a hopeless request on every refresh.
+            logger.notice("Das Portal nimmt diesen Haken nicht an — er bleibt lokal.")
+            markSettled(homework, done: done)
+            await persist()
         } catch {
             // Local state stands; we retry on the next refresh.
             logger.notice("Hausaufgabe konnte nicht ans Portal gemeldet werden: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    private func markSettled(_ homework: Homework, done: Bool) {
+        guard var override = snapshot.doneOverrides[homework.id], override.isDone == done else { return }
+        override.syncedToPortal = true
+        snapshot.doneOverrides[homework.id] = override
     }
 
     private func retryPendingHomeworkSyncs() async {

@@ -105,6 +105,13 @@ actor SPHClient {
     /// and the last hop is the one that sets the `sid` cookie — so success is
     /// "we ended up on the start host with a session", and a wrong password is
     /// the login page rendered again.
+    ///
+    /// Observed live, and worth knowing before blaming the password: the
+    /// portal can *refuse this POST outright while another session for the
+    /// same account is active* (say, an SSO login still open in a browser).
+    /// Log out there and the identical credentials go through. The error
+    /// text points users at this, because nothing about "nicht akzeptiert"
+    /// suggests it.
     private func requestSignIn(_ credentials: PortalCredentials, schoolID: String) async throws {
         // A leftover `sid` from the dead session would make that check lie.
         clearSessionCookie()

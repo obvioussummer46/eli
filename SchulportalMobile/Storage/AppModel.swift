@@ -296,17 +296,33 @@ final class AppModel {
         snapshot.entries = result.entries
 
         let currentIDs = Set(result.homework.map(\.id))
+        // Content identity, independent of the id scheme: an id format
+        // change, or the portal renumbering its entries, must not make the
+        // same homework count as "vanished" and get archived next to its
+        // live twin — that is how the whole list once doubled.
+        let currentContent = Set(result.homework.map(Self.contentKey))
         let cutoff = Calendar.current.date(byAdding: .day, value: -90, to: Date()) ?? .distantPast
 
         var archive: [String: Homework] = [:]
         for item in previous where !currentIDs.contains(item.id) {
             guard !isDone(item) else { continue }
+            guard !currentContent.contains(Self.contentKey(item)) else { continue }
             guard (item.effectiveDate ?? Date()) >= cutoff else { continue }
             archive[item.id] = item
         }
         snapshot.archivedHomework = archive.values.sorted { ($0.effectiveDate ?? .distantPast) > ($1.effectiveDate ?? .distantPast) }
 
         reconcileOverrides(with: result.homework)
+    }
+
+    /// What a homework *is*, regardless of how its id happens to be spelled:
+    /// the same digest `Homework.makeID` falls back to when the portal gives
+    /// no entry id — course + day + text.
+    private static func contentKey(_ homework: Homework) -> String {
+        Homework.makeID(courseID: homework.courseID,
+                        entryID: nil,
+                        date: homework.assignedDate,
+                        text: homework.text)
     }
 
     /// Drops overrides the portal has caught up with, and lets a change made in

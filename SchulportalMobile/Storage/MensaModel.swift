@@ -146,6 +146,22 @@ final class MensaModel {
            account.isLow(threshold: statement.lowBalanceThreshold ?? 15) {
             NotificationScheduler.notifyLowBalance(account.balanceDisplay)
         }
+
+        // The mensa half of the widget snapshot — merge-written, so the
+        // portal's half survives untouched.
+        var dishes: [String: String] = [:]
+        for day in week.days {
+            guard let date = day.date, let ordered = day.orderedOption else { continue }
+            dishes[SharedSnapshot.isoDay.string(from: date)] = ordered.title
+        }
+        let balance = account.balanceText == nil ? nil : account.balanceDisplay
+        SharedSnapshotStore.update { store in
+            store.balanceText = balance
+            store.orderedDishes = dishes
+        }
+        if Settings.digestNotificationsEnabled {
+            NotificationScheduler.rescheduleDigest()
+        }
     }
 
     /// Only a rejected *credential* sends the user back to the login screen. A

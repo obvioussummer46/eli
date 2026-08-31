@@ -26,6 +26,10 @@ struct CalendarSyncView: View {
                         get: { model.settings.syncsHomeworkToCalendar },
                         set: { model.settings.syncsHomeworkToCalendar = $0 }
                     ))
+                    Toggle("Schultermine übernehmen", isOn: Binding(
+                        get: { model.settings.syncsEventsToCalendar },
+                        set: { model.settings.syncsEventsToCalendar = $0 }
+                    ))
                 } header: {
                     Text("Was übertragen wird")
                 } footer: {
@@ -50,6 +54,9 @@ struct CalendarSyncView: View {
                         LabeledContent("Stunden", value: "\(summary.lessonEvents)")
                         if summary.homeworkEvents > 0 {
                             LabeledContent("Hausaufgaben", value: "\(summary.homeworkEvents)")
+                        }
+                        if summary.schoolEvents > 0 {
+                            LabeledContent("Schultermine", value: "\(summary.schoolEvents)")
                         }
                         LabeledContent("Kalender", value: summary.calendarTitle)
                         LabeledContent("Bis", value: GermanDate.dayMonthYear.string(from: summary.through))
@@ -97,6 +104,7 @@ struct CalendarSyncView: View {
         do {
             summary = try await sync.sync(timetable: model.snapshot.timetable,
                                           homework: model.openHomework,
+                                          events: model.upcomingEvents,
                                           settings: model.settings)
         } catch {
             summary = nil

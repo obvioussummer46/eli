@@ -12,6 +12,7 @@ final class CalendarSync {
     struct Summary: Equatable {
         var lessonEvents: Int
         var homeworkEvents: Int
+        var schoolEvents: Int
         var removedEvents: Int
         var calendarTitle: String
         var through: Date
@@ -60,7 +61,7 @@ final class CalendarSync {
 
     // MARK: - Sync
 
-    func sync(timetable: Timetable, homework: [Homework], settings: Settings) async throws -> Summary {
+    func sync(timetable: Timetable, homework: [Homework], events: [SchoolEvent], settings: Settings) async throws -> Summary {
         guard !timetable.isEmpty else { throw SyncError.emptyTimetable }
         guard try await requestAccess() else { throw SyncError.accessDenied }
 
@@ -94,12 +95,22 @@ final class CalendarSync {
             }
         }
 
+        var schoolEventCount = 0
+        if settings.syncsEventsToCalendar {
+            for item in events where item.start < end && item.end > start {
+                let event = makeSchoolEvent(item, in: calendar)
+                try store.save(event, span: .thisEvent, commit: false)
+                schoolEventCount += 1
+            }
+        }
+
         try store.commit()
         settings.calendarIdentifier = calendar.calendarIdentifier
 
         logger.info("Kalender synchronisiert: \(lessonCount) Stunden, \(homeworkCount) Hausaufgaben")
         return Summary(lessonEvents: lessonCount,
                        homeworkEvents: homeworkCount,
+                       schoolEvents: schoolEventCount,
                        removedEvents: removed,
                        calendarTitle: calendar.title,
                        through: end)
@@ -205,6 +216,24 @@ final class CalendarSync {
         event.title = "📚 \(homework.subject.name): \(firstLine.prefix(60))"
         event.notes = [homework.text, "", Self.signature].joined(separator: "\n")
         event.url = SPHEndpoints.meinUnterricht
+        return event
+    }
+
+    private func makeSchoolEvent(_ item: SchoolEvent, in calendar: EKCalendar) -> EKEvent {
+        let event = EKEvent(eventStore: store)
+        event.calendar = calendar
+        event.title = item.title
+        event.isAllDay = item.isAllDay
+        event.startDate = item.start
+        event.endDate = max(item.end, item.start)
+        event.timeZone = GermanDate.timeZone
+        event.location = item.place
+        event.url = SPHEndpoints.kalender
+        var notes: [String] = []
+        if !item.description.isEmpty { notes.append(item.description) }
+        if let category = item.categoryName { notes.append("Kategorie: \(category)") }
+        notes.append(Self.signature)
+        event.notes = notes.joined(separator: "\n")
         return event
     }
 

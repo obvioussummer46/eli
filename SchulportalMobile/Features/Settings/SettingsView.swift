@@ -68,6 +68,20 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Toggle("Abend-Überblick für morgen", isOn: Binding(
+                        get: { model.settings.notifiesDigest },
+                        set: { enabled in
+                            model.settings.notifiesDigest = enabled
+                            if enabled {
+                                Task {
+                                    _ = await NotificationScheduler.requestAuthorization()
+                                    NotificationScheduler.rescheduleDigest()
+                                }
+                            } else {
+                                NotificationScheduler.cancelDigest()
+                            }
+                        }
+                    ))
                     Toggle("Abends an fällige Aufgaben erinnern", isOn: Binding(
                         get: { model.settings.notifiesHomework },
                         set: { enabled in
@@ -85,7 +99,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Mitteilungen")
                 } footer: {
-                    Text("Die Erinnerung kommt um 17 Uhr am Vortag — für Aufgaben mit Abgabedatum und für alles, dessen Fach am nächsten Tag auf dem Plan steht. Alles bleibt auf dem Gerät.")
+                    Text("Der Überblick kommt um 18 Uhr: Stunden, fällige Aufgaben, Vertretungen und das bestellte Essen für morgen. Die Aufgaben-Erinnerung kommt um 17 Uhr am Vortag. Alles bleibt auf dem Gerät.")
                 }
 
                 Section {

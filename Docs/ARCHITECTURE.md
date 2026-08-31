@@ -120,6 +120,19 @@ It is read-only. `speiseplan.php` would take a `POST` with `csrftoken`,
 `submit_bestellung` and one `menue_<DAY>_0` per day — that is how an order is
 placed — and the app deliberately does not send it.
 
+## The widgets read a hand-off, not the models
+
+The widget extension never scrapes and never sees a credential. After every
+refresh, `AppModel` (and `MensaModel` for its half) writes a `SharedSnapshot`
+— display-ready lessons, substitutions, deadlines, balance, ordered dishes —
+into the App Group container (`Shared/SharedSnapshot.swift` is the whole
+contract, compiled into both targets). Widgets build their timelines from
+that file alone: entries at each lesson boundary plus the midnight rollover.
+The evening digest notification is composed from the same file, so whichever
+half refreshed last speaks with current data. A `BGAppRefreshTask` keeps the
+file fresh without the app being opened — possible only because the silent
+SPH re-login works headless.
+
 ## The one interesting decision: who owns "done"
 
 Two sources disagree constantly — the portal's own flag, and what the user just

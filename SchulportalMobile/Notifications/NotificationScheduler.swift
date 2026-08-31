@@ -53,6 +53,62 @@ enum NotificationScheduler {
         return cal.date(bySettingHour: 17, minute: 0, second: 0, of: dayBefore)
     }
 
+    // MARK: - Evening digest
+
+    private static let digestIdentifier = "digest"
+
+    static func cancelDigest() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: [digestIdentifier])
+    }
+
+    /// One notification at 18:00 that answers the bag-packing question for
+    /// the next day: lessons, due homework, Vertretungen, the ordered dish.
+    /// Built from the same `SharedSnapshot` the widgets read — whichever
+    /// half refreshes last (portal or mensa) reschedules with fresh data.
+    /// Says nothing when there is nothing to say (weekend, no data yet).
+    static func rescheduleDigest(now: Date = Date()) {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [digestIdentifier])
+        guard let snapshot = SharedSnapshotStore.load() else { return }
+
+        let cal = SharedSnapshot.calendar
+        var evening = cal.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+        if evening <= now {
+            evening = cal.date(byAdding: .day, value: 1, to: evening) ?? evening
+        }
+        guard let day = cal.date(byAdding: .day, value: 1, to: evening) else { return }
+
+        let lessons = snapshot.lessons(on: day)
+        let due = snapshot.deadlineSubjects(on: day)
+        let substitutions = snapshot.substitutions(on: day)
+        let dish = snapshot.orderedDish(on: day)
+        guard !lessons.isEmpty || !due.isEmpty || !substitutions.isEmpty else { return }
+
+        var parts: [String] = []
+        if let first = lessons.first, let last = lessons.last {
+            parts.append("\(lessons.count) Stunden (\(first.startLabel)–\(last.endLabel))")
+        }
+        if !due.isEmpty {
+            parts.append("fällig: \(due.joined(separator: ", "))")
+        }
+        if !substitutions.isEmpty {
+            parts.append("\(substitutions.count) Vertretung\(substitutions.count == 1 ? "" : "en")")
+        }
+        if let dish {
+            parts.append("Essen: \(dish)")
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Morgen, \(GermanDate.shortWeekdayDayMonth.string(from: day))"
+        content.body = parts.joined(separator: " · ")
+        content.sound = .default
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: cal.dateComponents([.year, .month, .day, .hour, .minute], from: evening),
+            repeats: false)
+        center.add(UNNotificationRequest(identifier: digestIdentifier, content: content, trigger: trigger))
+    }
+
     // MARK: - Mensa
 
     private static let lowBalanceStampKey = "notify.lowBalance.lastSent"

@@ -8,6 +8,11 @@ struct SchulportalMobileApp: App {
     @State private var mensa = MensaModel()
     @Environment(\.scenePhase) private var scenePhase
 
+    init() {
+        // Background-task handlers must exist before launch finishes.
+        BackgroundRefresh.register(appModel: model, mensaModel: mensa)
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -16,6 +21,10 @@ struct SchulportalMobileApp: App {
                 .animation(.easeInOut(duration: 0.2), value: model.phase)
                 .task { await model.bootstrap() }
                 .onChange(of: scenePhase) { previous, phase in
+                    if phase == .background {
+                        BackgroundRefresh.schedule()
+                        return
+                    }
                     guard previous == .background, phase == .active,
                           model.settings.refreshesOnLaunch else { return }
                     if model.phase == .ready { Task { await model.refresh() } }

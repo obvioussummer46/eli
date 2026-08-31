@@ -208,6 +208,47 @@ final class AppModel {
         if settings.notifiesHomework {
             NotificationScheduler.rescheduleHomeworkReminders(homeworkByDeadline())
         }
+        exportSharedSnapshot()
+    }
+
+    /// Hands the widgets (and the evening digest) their copy of the world —
+    /// display-ready, class-filtered, no app types.
+    private func exportSharedSnapshot() {
+        var weekdayLessons: [Int: [SharedLesson]] = [:]
+        for weekday in snapshot.timetable.weekdaysInUse {
+            weekdayLessons[weekday.rawValue] = snapshot.timetable.entries(on: weekday).map { entry in
+                SharedLesson(startMinutes: entry.start.minutesFromMidnight,
+                             endMinutes: entry.end.minutesFromMidnight,
+                             subject: entry.subject.name,
+                             room: entry.room,
+                             colorHex: entry.subject.colorHex)
+            }
+        }
+
+        var shared: [SharedSubstitution] = []
+        for day in snapshot.substitutions?.days ?? [] {
+            for entry in substitutions(on: day.date) {
+                shared.append(SharedSubstitution(date: day.date,
+                                                 period: entry.period,
+                                                 kind: entry.kind,
+                                                 subject: entry.subject ?? entry.previousSubject,
+                                                 summary: entry.summary))
+            }
+        }
+
+        let deadlines = openHomework.compactMap { homework -> SharedDeadline? in
+            guard let deadline = deadline(for: homework) else { return nil }
+            return SharedDeadline(date: deadline, subject: homework.subject.name)
+        }
+
+        SharedSnapshotStore.update { store in
+            store.weekdayLessons = weekdayLessons
+            store.substitutions = shared
+            store.deadlines = deadlines
+        }
+        if settings.notifiesDigest {
+            NotificationScheduler.rescheduleDigest()
+        }
     }
 
     private func handleSessionLoss() {

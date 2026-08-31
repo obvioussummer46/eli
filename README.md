@@ -117,7 +117,11 @@ SchulportalMobile/
   Storage/        observable app state, JSON snapshot, settings
   CalendarSync/   EventKit writer
   Features/       Today, Homework, Timetable, Mensa, Portal, Settings
+  Notifications/  local notifications, background refresh
   Resources/      bundled restyle script
+SchulportalWidgets/  the widget extension (reads the shared snapshot, never the network)
+Shared/           the app ↔ widget contract: SharedSnapshot + small helpers
+Config/           Info.plists and entitlements for both targets
 userscript/       the original Safari userscript (source of truth)
 Tools/            sync-userscript.sh, dump-structure.user.js, capture-samples.mjs
 samples/          masked structure dumps used to tune the parsers (see samples/README.md)
@@ -143,8 +147,14 @@ Docs/             architecture and the scraping contract
   course titles; schools that publish no plan simply show no card.
 * Optional local notifications (off by default, under **Mehr**): an evening
   reminder for homework due the next day — with the next lesson of the subject
-  standing in as deadline when the teacher wrote none — and a warning when the
-  lunch card runs low. Nothing leaves the device.
+  standing in as deadline when the teacher wrote none —, an 18:00 „Morgen"
+  digest (lessons, due homework, Vertretungen, the ordered dish), and a
+  warning when the lunch card runs low. Nothing leaves the device.
+* **Home-screen widgets** („Nächste Stunde", „Heute", „Mensa"), rendered
+  offline from a snapshot the app writes into an App Group — widgets never
+  talk to the portal. A `BGAppRefreshTask` keeps that snapshot and the
+  notifications current without the app being opened; the silent re-login
+  works headless.
 * Messages (*Nachrichten*) are end-to-end encrypted in the portal and are not
   parsed natively; they open in the built-in portal browser.
 * The **Essen** tab is a scraper too, against a different site. The balance and

@@ -50,6 +50,10 @@ struct SharedSnapshot: Codable {
     var balanceText: String?
     /// ISO day (`yyyy-MM-dd`) → title of the ordered dish.
     var orderedDishes: [String: String] = [:]
+    /// ISO days that have a published menu, are still open for ordering, and
+    /// have no order yet — what the Sunday "nichts bestellt" warning reads.
+    /// Optional so snapshots written before this field existed still decode.
+    var openOrderDays: [String]?
 
     // MARK: - Reading (used by widgets and the digest alike)
 
@@ -104,6 +108,16 @@ struct SharedSnapshot: Codable {
         }
         return today.first { $0.startMinutes > minutes }
     }
+}
+
+/// Where a tap on a widget lands in the app. The scheme is deliberately not
+/// registered in the Info.plist: WidgetKit hands `widgetURL` straight to the
+/// containing app's `onOpenURL`, and nothing outside the app should be able
+/// to steer its tabs anyway.
+enum WidgetLink {
+    static let aufgaben = URL(string: "schulportalmobile://tab/aufgaben")!
+    static let plan = URL(string: "schulportalmobile://tab/plan")!
+    static let essen = URL(string: "schulportalmobile://tab/essen")!
 }
 
 /// Atomic JSON in the App Group container — the same pattern as

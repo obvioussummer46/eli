@@ -125,7 +125,9 @@ struct SettingsView: View {
                                 SharedSnapshotStore.update { snapshot in
                                     snapshot.balanceText = nil
                                     snapshot.orderedDishes = [:]
+                                    snapshot.openOrderDays = nil
                                 }
+                                NotificationScheduler.cancelMensaOrderWarning()
                             }
                         }
                     ))
@@ -169,17 +171,35 @@ struct SettingsView: View {
                             if enabled { Task { _ = await NotificationScheduler.requestAuthorization() } }
                         }
                     ))
-                    Toggle("Warnen, wenn das Mensa-Guthaben knapp wird", isOn: Binding(
-                        get: { model.settings.notifiesLowBalance },
-                        set: { enabled in
-                            model.settings.notifiesLowBalance = enabled
-                            if enabled { Task { _ = await NotificationScheduler.requestAuthorization() } }
-                        }
-                    ))
+                    if model.settings.showsMensaTab {
+                        Toggle("Warnen, wenn das Mensa-Guthaben knapp wird", isOn: Binding(
+                            get: { model.settings.notifiesLowBalance },
+                            set: { enabled in
+                                model.settings.notifiesLowBalance = enabled
+                                if enabled { Task { _ = await NotificationScheduler.requestAuthorization() } }
+                            }
+                        ))
+                        Toggle("Sonntags erinnern, wenn nichts bestellt ist", isOn: Binding(
+                            get: { model.settings.notifiesMensaOrders },
+                            set: { enabled in
+                                model.settings.notifiesMensaOrders = enabled
+                                if enabled {
+                                    Task {
+                                        _ = await NotificationScheduler.requestAuthorization()
+                                        NotificationScheduler.rescheduleMensaOrderWarning()
+                                    }
+                                } else {
+                                    NotificationScheduler.cancelMensaOrderWarning()
+                                }
+                            }
+                        ))
+                    }
                 } header: {
                     Text("Mitteilungen")
                 } footer: {
-                    Text("Der Überblick kommt um 18 Uhr: Stunden, fällige Aufgaben, Vertretungen und das bestellte Essen für morgen. Die Aufgaben-Erinnerung kommt um 17 Uhr am Vortag. Alles bleibt auf dem Gerät.")
+                    Text(model.settings.showsMensaTab
+                         ? "Der Überblick kommt um 18 Uhr: Stunden, fällige Aufgaben, Vertretungen und das bestellte Essen für morgen. Die Aufgaben-Erinnerung kommt um 17 Uhr am Vortag, die Bestell-Erinnerung sonntags um 17 Uhr für die kommende Woche. Alles bleibt auf dem Gerät."
+                         : "Der Überblick kommt um 18 Uhr: Stunden, fällige Aufgaben und Vertretungen für morgen. Die Aufgaben-Erinnerung kommt um 17 Uhr am Vortag. Alles bleibt auf dem Gerät.")
                 }
 
                 Section {

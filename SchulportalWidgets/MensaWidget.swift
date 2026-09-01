@@ -19,13 +19,16 @@ struct MensaView: View {
     let entry: SnapshotEntry
 
     var body: some View {
-        if let snapshot = entry.snapshot, snapshot.balanceText != nil {
-            content(snapshot)
-        } else if family == .accessoryCircular {
-            Image(systemName: "fork.knife")
-        } else {
-            OpenAppHint()
+        Group {
+            if let snapshot = entry.snapshot, snapshot.balanceText != nil {
+                content(snapshot)
+            } else if family == .accessoryCircular {
+                Image(systemName: "fork.knife")
+            } else {
+                OpenAppHint()
+            }
         }
+        .widgetURL(WidgetLink.essen)
     }
 
     @ViewBuilder

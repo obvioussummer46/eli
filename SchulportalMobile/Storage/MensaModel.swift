@@ -147,20 +147,44 @@ final class MensaModel {
             NotificationScheduler.notifyLowBalance(account.balanceDisplay)
         }
 
+        // Once the weekend starts, the Sunday order warning and Monday's
+        // digest are about *next* week, which the default plan page no
+        // longer carries — so Fri–Sun the following week is fetched too,
+        // harvested for the snapshot only, never shown.
+        var allDays = week.days
+        let weekday = GermanDate.calendar.component(.weekday, from: Date())
+        if [1, 6, 7].contains(weekday), // Sun, Fri, Sat
+           let next = nextWeek,
+           let lookahead = try? await service.loadWeek(next.key) {
+            allDays += lookahead.week.days
+        }
+
         // The mensa half of the widget snapshot — merge-written, so the
         // portal's half survives untouched.
         var dishes: [String: String] = [:]
-        for day in week.days {
-            guard let date = day.date, let ordered = day.orderedOption else { continue }
-            dishes[SharedSnapshot.isoDay.string(from: date)] = ordered.title
+        var openDays: [String] = []
+        for day in allDays {
+            guard let date = day.date else { continue }
+            let iso = SharedSnapshot.isoDay.string(from: date)
+            if let ordered = day.orderedOption {
+                dishes[iso] = ordered.title
+            } else if !day.isLocked, !day.options.isEmpty {
+                openDays.append(iso)
+            }
         }
         let balance = account.balanceText == nil ? nil : account.balanceDisplay
         SharedSnapshotStore.update { store in
             store.balanceText = balance
             store.orderedDishes = dishes
+            store.openOrderDays = openDays
         }
         if Settings.digestNotificationsEnabled {
             NotificationScheduler.rescheduleDigest()
+        }
+        if Settings.mensaOrderNotificationsEnabled {
+            NotificationScheduler.rescheduleMensaOrderWarning()
+        } else {
+            NotificationScheduler.cancelMensaOrderWarning()
         }
     }
 

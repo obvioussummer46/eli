@@ -17,22 +17,30 @@ struct RootView: View {
     }
 }
 
+enum AppTab: String {
+    case heute, aufgaben, plan, essen, mehr
+}
+
 struct MainTabView: View {
     @Environment(AppModel.self) private var model
+    @State private var selectedTab: AppTab = .heute
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             TodayView()
                 .tabItem { Label("Heute", systemImage: "sun.max") }
+                .tag(AppTab.heute)
 
             HomeworkListView()
                 .tabItem { Label("Aufgaben", systemImage: "checklist") }
                 // Due today/tomorrow or overdue — not everything open, which
                 // kept the badge permanently red and therefore meaningless.
                 .badge(model.dueSoonCount)
+                .tag(AppTab.aufgaben)
 
             TimetableView()
                 .tabItem { Label("Plan", systemImage: "calendar") }
+                .tag(AppTab.plan)
 
             // Hidden, not broken: a school without a known caterer gets no
             // permanently dead Essen tab. Configured via registry/override
@@ -40,6 +48,7 @@ struct MainTabView: View {
             if model.settings.showsMensaTab {
                 MensaTabView()
                     .tabItem { Label("Essen", systemImage: "fork.knife") }
+                    .tag(AppTab.essen)
             }
 
             // Five tabs, deliberately: a sixth would push iOS into its
@@ -47,6 +56,17 @@ struct MainTabView: View {
             // The portal browser lives inside this tab instead.
             SettingsView()
                 .tabItem { Label("Mehr", systemImage: "gearshape") }
+                .tag(AppTab.mehr)
+        }
+        // Widget taps: `schulportalmobile://tab/<name>`, straight from
+        // `widgetURL` — see `WidgetLink`.
+        .onOpenURL { url in
+            guard url.scheme == "schulportalmobile", url.host == "tab",
+                  let tab = AppTab(rawValue: url.lastPathComponent) else { return }
+            // A hidden tab must not be selectable, or the TabView lands on
+            // nothing renderable.
+            if tab == .essen, !model.settings.showsMensaTab { return }
+            selectedTab = tab
         }
     }
 }

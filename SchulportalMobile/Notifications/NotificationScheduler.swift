@@ -131,4 +131,59 @@ enum NotificationScheduler {
         UNUserNotificationCenter.current()
             .add(UNNotificationRequest(identifier: "mensa.lowBalance", content: content, trigger: nil))
     }
+
+    // MARK: - Sunday order warning
+
+    private static let orderWarningIdentifier = "mensa.orders"
+
+    static func cancelMensaOrderWarning() {
+        UNUserNotificationCenter.current()
+            .removePendingNotificationRequests(withIdentifiers: [orderWarningIdentifier])
+    }
+
+    /// Sunday 17:00, when the coming week gets planned: which published menu
+    /// days of that week still have no order. Rewritten from the snapshot on
+    /// every mensa refresh, like the digest; says nothing when every day is
+    /// ordered, locked, or unpublished — silence must mean "all is well".
+    static func rescheduleMensaOrderWarning(now: Date = Date()) {
+        cancelMensaOrderWarning()
+        guard let openDays = SharedSnapshotStore.load()?.openOrderDays, !openDays.isEmpty else { return }
+
+        let cal = SharedSnapshot.calendar
+        guard var sunday = cal.nextDate(after: now,
+                                        matching: DateComponents(hour: 17, minute: 0, weekday: 1),
+                                        matchingPolicy: .nextTime) else { return }
+        // If a refresh runs Sunday *between* 17:00 and 20:30, the regular
+        // slot is already gone for a week — warn shortly instead of staying
+        // silent: Monday's order may still be open. Later than that, stay
+        // quiet; nobody orders at midnight.
+        if cal.component(.weekday, from: now) == 1,
+           let slot = cal.date(bySettingHour: 17, minute: 0, second: 0, of: now),
+           let lastChance = cal.date(bySettingHour: 20, minute: 30, second: 0, of: now),
+           now > slot, now < lastChance {
+            sunday = now.addingTimeInterval(60)
+        }
+        guard let weekEnd = cal.date(byAdding: .day, value: 7, to: sunday) else { return }
+
+        // Only days in the week the warning is about.
+        let affected = openDays
+            .compactMap { SharedSnapshot.isoDay.date(from: $0) }
+            .filter { $0 > sunday && $0 < weekEnd }
+            .sorted()
+        guard !affected.isEmpty else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Mensa: noch nichts bestellt"
+        let dayList = affected.map { GermanDate.shortWeekdayDayMonth.string(from: $0) }
+            .joined(separator: ", ")
+        content.body = affected.count == 1
+            ? "Für \(dayList) ist noch kein Essen bestellt."
+            : "Für \(affected.count) Tage nächste Woche ist noch kein Essen bestellt: \(dayList)."
+        content.sound = .default
+        let trigger = UNCalendarNotificationTrigger(
+            dateMatching: cal.dateComponents([.year, .month, .day, .hour, .minute], from: sunday),
+            repeats: false)
+        UNUserNotificationCenter.current()
+            .add(UNNotificationRequest(identifier: orderWarningIdentifier, content: content, trigger: trigger))
+    }
 }

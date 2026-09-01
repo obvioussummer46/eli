@@ -19,11 +19,15 @@ struct NextLessonView: View {
     let entry: SnapshotEntry
 
     var body: some View {
-        if let snapshot = entry.snapshot {
-            content(snapshot)
-        } else {
-            OpenAppHint()
+        Group {
+            if let snapshot = entry.snapshot {
+                content(snapshot)
+            } else {
+                OpenAppHint()
+            }
         }
+        // "What now, and where" continues on the timetable.
+        .widgetURL(WidgetLink.plan)
     }
 
     @ViewBuilder

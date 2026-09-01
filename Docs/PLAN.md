@@ -114,24 +114,28 @@ the Sunday mensa warning (2.2) alongside. Manual homework is *pending* —
 Dima is unconvinced; the PM case is recorded under 2.3 and awaits his
 verdict, so don't build it without one.
 
-### 2.1 Widget deep links  *(part of the widget focus)*
+### 2.1 Widget deep links — SHIPPED 01.09.2026
 
-- [ ] Tiny URL scheme + programmatic tab selection in `RootView` (tabs
-      currently have no selection state), `widgetURL` per widget:
-      Heute-widget → Aufgaben, Mensa-widget → Essen.
-- Effort: small.
+- [x] `schulportalmobile://tab/<name>` via `widgetURL` + tab selection in
+      `RootView`: Heute-widget → Aufgaben, Mensa-widget → Essen,
+      Nächste-Stunde-widget → Plan. The scheme is deliberately *not*
+      registered in the Info.plist — WidgetKit hands `widgetURL` straight
+      to the containing app, and nothing external should steer tabs.
+      A link to the hidden Essen tab is ignored. **Verify on a real
+      device**: widget taps can't be exercised in a fresh simulator.
 
-### 2.2 Mensa „nichts bestellt" warning — Sunday evening
+### 2.2 Mensa „nichts bestellt" warning — SHIPPED 01.09.2026
 
-- [ ] Decided 01.09.2026: the warning fires **Sunday evening**, looking
-      at the coming week — the moment families actually plan, and safely
-      before Monday's lock whatever the exact per-day lock times turn
-      out to be. Still verify the lock *time* on `speiseplan.php` before
-      relying on it for any finer-grained warning.
-- [ ] „Für nächste Woche ist noch nichts bestellt." Off by default,
-      like all notifications.
+- [x] Sunday 17:00, about the coming week's published-but-unordered
+      days; a refresh landing Sunday 17:00–20:30 warns shortly after
+      instead of skipping a week. Off by default; the toggle lives with
+      the other Mitteilungen and hides with the Essen tab.
+- [x] Fri–Sun the mensa refresh also fetches the *next* week
+      (harvested for the snapshot only, never shown) — which also feeds
+      Monday's dish into the Sunday digest, silently missing before.
 - Why: prevents the real failure mode — a hungry kid.
-- Effort: small.
+- The per-day lock *time* on `speiseplan.php` remains unverified; the
+  Sunday cadence was chosen so it doesn't matter for this warning.
 
 ### 2.3 Own tasks (manual homework) — PAUSED (Dima, 01.09.2026)
 

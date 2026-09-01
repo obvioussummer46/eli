@@ -20,6 +20,7 @@ final class Settings {
         var hidesDoneHomework: Bool
         var notifiesHomework: Bool
         var notifiesLowBalance: Bool
+        var notifiesMensaOrders: Bool
         var notifiesDigest: Bool
         var syncsEventsToCalendar: Bool
         var mensaTenantOverride: String
@@ -44,6 +45,7 @@ final class Settings {
             hidesDoneHomework: defaults.object(forKey: Keys.hidesDoneHomework) as? Bool ?? false,
             notifiesHomework: defaults.object(forKey: Keys.notifiesHomework) as? Bool ?? false,
             notifiesLowBalance: defaults.object(forKey: Keys.notifiesLowBalance) as? Bool ?? false,
+            notifiesMensaOrders: defaults.object(forKey: Keys.notifiesMensaOrders) as? Bool ?? false,
             notifiesDigest: defaults.object(forKey: Keys.notifiesDigest) as? Bool ?? false,
             syncsEventsToCalendar: defaults.object(forKey: Keys.syncsEventsToCalendar) as? Bool ?? false,
             mensaTenantOverride: defaults.string(forKey: Keys.mensaTenantOverride) ?? "",
@@ -111,6 +113,11 @@ final class Settings {
     var notifiesLowBalance: Bool {
         get { values.notifiesLowBalance }
         set { values.notifiesLowBalance = newValue; defaults.set(newValue, forKey: Keys.notifiesLowBalance) }
+    }
+
+    var notifiesMensaOrders: Bool {
+        get { values.notifiesMensaOrders }
+        set { values.notifiesMensaOrders = newValue; defaults.set(newValue, forKey: Keys.notifiesMensaOrders) }
     }
 
     var notifiesDigest: Bool {
@@ -183,6 +190,7 @@ final class Settings {
         static let hidesDoneHomework = "homework.hideDone"
         static let notifiesHomework = "notify.homework"
         static let notifiesLowBalance = "notify.lowBalance"
+        static let notifiesMensaOrders = "notify.mensaOrders"
         static let notifiesDigest = "notify.digest"
         static let syncsEventsToCalendar = "calendar.events"
         static let mensaTenantOverride = "mensa.tenant"
@@ -199,6 +207,10 @@ final class Settings {
 
     static var digestNotificationsEnabled: Bool {
         UserDefaults.standard.bool(forKey: Keys.notifiesDigest)
+    }
+
+    static var mensaOrderNotificationsEnabled: Bool {
+        UserDefaults.standard.bool(forKey: Keys.notifiesMensaOrders)
     }
 
     /// `MensaClient` builds its URLs off the main actor and owns no

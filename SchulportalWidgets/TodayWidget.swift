@@ -19,11 +19,16 @@ struct TodayView: View {
     let entry: SnapshotEntry
 
     var body: some View {
-        if let snapshot = entry.snapshot {
-            content(snapshot)
-        } else {
-            OpenAppHint()
+        Group {
+            if let snapshot = entry.snapshot {
+                content(snapshot)
+            } else {
+                OpenAppHint()
+            }
         }
+        // The day's glance answers "what's left" — the tap answers "what do
+        // I still have to do", so it lands on Aufgaben.
+        .widgetURL(WidgetLink.aufgaben)
     }
 
     private func content(_ snapshot: SharedSnapshot) -> some View {

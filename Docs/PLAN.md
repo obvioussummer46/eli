@@ -42,7 +42,12 @@ Build order: **1.1 registry → 1.2 quick links → 1.3 mensa optional.**
 News-as-a-parsed-feed was demoted out of Wave 1 (see "Deferred" below).
 
 **Wave 1 shipped 01.09.2026** (all three items below, plus lesson end
-times in the Heute-widget rows). Still worth doing when convenient:
+times in the Heute-widget rows). Also shipped same day, from review:
+the Heute tab and both lesson widgets roll over to the **next school
+day once today's last lesson has ended** (weekend → Monday), with the
+labels travelling along („Morgen · …", „Am Montag als Erstes") —
+deliberately *not* a fixed 18:00 flip, so tab and widgets flip on one
+shared rule. Still worth doing when convenient:
 Eli's Jahresterminplan link — left out of the registry because the plan
 never recorded its URL and a guessed link would be a dead one; verify
 the real address on the site, then add the entry to `schools.json`.

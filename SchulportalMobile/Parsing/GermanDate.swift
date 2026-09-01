@@ -68,6 +68,7 @@ enum GermanDate {
     static let dayMonth: DateFormatter = formatter("dd.MM.")
     static let dayMonthYear: DateFormatter = formatter("dd.MM.yyyy")
     static let weekdayDayMonth: DateFormatter = formatter("EEEE, d. MMMM")
+    static let weekdayName: DateFormatter = formatter("EEEE")
     static let shortWeekdayDayMonth: DateFormatter = formatter("EE, dd.MM.")
 
     private static func formatter(_ format: String) -> DateFormatter {

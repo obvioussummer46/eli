@@ -34,18 +34,24 @@ struct TodayView: View {
     private func content(_ snapshot: SharedSnapshot) -> some View {
         let cal = SharedSnapshot.calendar
         let now = entry.date
-        // After the last lesson the interesting day is tomorrow.
+        // After the last lesson the interesting day is the next school day —
+        // tomorrow on school nights, Monday across the weekend.
         let todaysRemaining = remainingLessons(snapshot, at: now)
-        let showingTomorrow = todaysRemaining.isEmpty
-        let day = showingTomorrow ? (cal.date(byAdding: .day, value: 1, to: now) ?? now) : now
-        let lessons = showingTomorrow ? Array(snapshot.lessons(on: day).prefix(3)) : todaysRemaining
+        let rolledOver = todaysRemaining.isEmpty
+        let day = rolledOver ? (snapshot.nextSchoolDay(after: now) ?? now) : now
+        let tomorrow = cal.date(byAdding: .day, value: 1, to: now) ?? now
+        let lessons = rolledOver ? Array(snapshot.lessons(on: day).prefix(3)) : todaysRemaining
         let substitutions = snapshot.substitutions(on: day)
-        let dueTomorrow = snapshot.deadlineSubjects(on: cal.date(byAdding: .day, value: 1, to: now) ?? now)
+        // The homework warning is about the shown day once the tab rolled
+        // over, about tomorrow while today is still running.
+        let dueDay = rolledOver ? day : tomorrow
+        let due = snapshot.deadlineSubjects(on: dueDay)
+        let dueLabel = cal.isDate(dueDay, inSameDayAs: tomorrow)
+            ? "bis morgen"
+            : "bis \(WidgetFormat.weekdayShort.string(from: dueDay))"
 
         return VStack(alignment: .leading, spacing: 6) {
-            Text(showingTomorrow
-                 ? "Morgen · \(WidgetFormat.weekdayDayMonth.string(from: day))"
-                 : "Heute · \(WidgetFormat.weekdayDayMonth.string(from: day))")
+            Text(dayTitle(day, rolledOver: rolledOver, tomorrow: tomorrow))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
 
@@ -83,18 +89,24 @@ struct TodayView: View {
                          systemImage: "arrow.triangle.2.circlepath",
                          tint: .red)
                 }
-                if !dueTomorrow.isEmpty {
-                    chip("\(dueTomorrow.count) Aufgabe\(dueTomorrow.count == 1 ? "" : "n") bis morgen",
+                if !due.isEmpty {
+                    chip("\(due.count) Aufgabe\(due.count == 1 ? "" : "n") \(dueLabel)",
                          systemImage: "checklist",
                          tint: .orange)
                 }
-                if substitutions.isEmpty && dueTomorrow.isEmpty {
+                if substitutions.isEmpty && due.isEmpty {
                     chip("Alles im Plan", systemImage: "checkmark.circle", tint: .green)
                 }
                 Spacer(minLength: 0)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func dayTitle(_ day: Date, rolledOver: Bool, tomorrow: Date) -> String {
+        let dated = WidgetFormat.weekdayDayMonth.string(from: day)
+        if !rolledOver { return "Heute · \(dated)" }
+        return SharedSnapshot.calendar.isDate(day, inSameDayAs: tomorrow) ? "Morgen · \(dated)" : dated
     }
 
     private func remainingLessons(_ snapshot: SharedSnapshot, at date: Date) -> [SharedLesson] {

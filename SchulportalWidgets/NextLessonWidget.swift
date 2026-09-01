@@ -37,10 +37,12 @@ struct NextLessonView: View {
             lessonView(lesson,
                        header: isOngoing(lesson) ? "Jetzt" : "Als Nächstes",
                        accent: Color(hex: lesson.colorHex))
-        } else if let tomorrow = cal.date(byAdding: .day, value: 1, to: entry.date),
-                  let first = snapshot.lessons(on: tomorrow).first {
+        } else if let next = snapshot.nextSchoolDay(after: entry.date),
+                  let first = snapshot.lessons(on: next).first {
             lessonView(first,
-                       header: "Morgen",
+                       header: cal.isDate(next, inSameDayAs: cal.date(byAdding: .day, value: 1, to: entry.date) ?? next)
+                           ? "Morgen"
+                           : WidgetFormat.weekdayShort.string(from: next),
                        accent: Color(hex: first.colorHex))
         } else {
             VStack(spacing: 4) {

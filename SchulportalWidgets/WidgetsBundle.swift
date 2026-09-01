@@ -80,6 +80,15 @@ enum WidgetFormat {
         formatter.dateFormat = "EE, d.M."
         return formatter
     }()
+
+    /// "Mo.", "Di." — for day labels past tomorrow.
+    static let weekdayShort: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.timeZone = SharedSnapshot.calendar.timeZone
+        formatter.dateFormat = "EE"
+        return formatter
+    }()
 }
 
 /// The line every widget falls back to when the app has not written a

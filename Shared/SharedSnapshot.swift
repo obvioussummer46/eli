@@ -98,6 +98,16 @@ struct SharedSnapshot: Codable {
         orderedDishes[Self.isoDay.string(from: date)]
     }
 
+    /// The next day with lessons after `date`, up to a week out — tomorrow
+    /// on school nights, Monday across the weekend.
+    func nextSchoolDay(after date: Date) -> Date? {
+        for offset in 1...7 {
+            guard let day = Self.calendar.date(byAdding: .day, value: offset, to: date) else { continue }
+            if !lessons(on: day).isEmpty { return day }
+        }
+        return nil
+    }
+
     /// The lesson running at `date`, or the next one that day.
     func currentOrNextLesson(at date: Date) -> SharedLesson? {
         let minutes = Self.calendar.component(.hour, from: date) * 60

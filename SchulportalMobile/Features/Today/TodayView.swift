@@ -105,10 +105,10 @@ struct TodayView: View {
 
     @ViewBuilder
     private var nextLessonCard: some View {
-        if let lesson = model.currentOrNextLesson {
+        if let lesson = model.heuteNextLesson {
             Card {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(isOngoing(lesson) ? "Gerade" : "Als Nächstes")
+                    Text(nextLessonHeader(lesson))
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)
                     HStack(spacing: 12) {
@@ -133,13 +133,15 @@ struct TodayView: View {
         }
     }
 
+    /// After the last lesson the interesting day is the next school day —
+    /// same rule as the widget, and the label travels with the data.
     @ViewBuilder
     private var todaysLessonsCard: some View {
-        let lessons = model.todaysLessons
+        let lessons = model.heuteLessons
         if !lessons.isEmpty {
             Card(padding: 0) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("Heute · \(GermanDate.weekdayDayMonth.string(from: Date()))")
+                    Text(lessonsCardTitle)
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 16)
@@ -210,6 +212,21 @@ struct TodayView: View {
                 .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
+    }
+
+    private var lessonsCardTitle: String {
+        let day = model.heuteDay
+        let dated = GermanDate.weekdayDayMonth.string(from: day.date)
+        if day.isToday { return "Heute · \(dated)" }
+        if GermanDate.calendar.isDateInTomorrow(day.date) { return "Morgen · \(dated)" }
+        return dated
+    }
+
+    private func nextLessonHeader(_ lesson: TimetableEntry) -> String {
+        let day = model.heuteDay
+        if day.isToday { return isOngoing(lesson) ? "Gerade" : "Als Nächstes" }
+        if GermanDate.calendar.isDateInTomorrow(day.date) { return "Morgen als Erstes" }
+        return "Am \(GermanDate.weekdayName.string(from: day.date)) als Erstes"
     }
 
     private func isOngoing(_ lesson: TimetableEntry) -> Bool {

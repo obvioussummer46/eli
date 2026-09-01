@@ -578,4 +578,41 @@ final class AppModel {
         }
         return lessons.first { $0.start.minutesFromMidnight > minutes }
     }
+
+    // MARK: - The day the Heute tab is about
+
+    /// Today while a lesson is still running or ahead; afterwards the next
+    /// day that has lessons, up to a week out (so the weekend rolls to
+    /// Monday). "Today" stops being actionable when the last lesson ends,
+    /// whatever the clock says — the widgets flip on the same rule, and two
+    /// surfaces disagreeing would read as a bug.
+    var heuteDay: (date: Date, isToday: Bool) {
+        let now = Date()
+        let cal = GermanDate.calendar
+        let minutes = cal.component(.hour, from: now) * 60 + cal.component(.minute, from: now)
+        if let last = todaysLessons.map(\.end.minutesFromMidnight).max(), minutes < last {
+            return (now, true)
+        }
+        for offset in 1...7 {
+            guard let date = cal.date(byAdding: .day, value: offset, to: now),
+                  !lessons(on: date).isEmpty else { continue }
+            return (date, false)
+        }
+        return (now, true)
+    }
+
+    var heuteLessons: [TimetableEntry] {
+        lessons(on: heuteDay.date)
+    }
+
+    /// What the "Als Nächstes" card shows: the running/next lesson while the
+    /// tab is about today, the day's first lesson once it rolled over.
+    var heuteNextLesson: TimetableEntry? {
+        heuteDay.isToday ? currentOrNextLesson : heuteLessons.first
+    }
+
+    private func lessons(on date: Date) -> [TimetableEntry] {
+        guard let weekday = Weekday.fromCalendarWeekday(GermanDate.calendar.component(.weekday, from: date)) else { return [] }
+        return snapshot.timetable.entries(on: weekday)
+    }
 }

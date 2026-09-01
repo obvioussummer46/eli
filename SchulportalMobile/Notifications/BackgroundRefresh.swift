@@ -33,6 +33,11 @@ enum BackgroundRefresh {
                 if mensaModel.phase == .ready, appModel.settings.showsMensaTab {
                     await mensaModel.refresh()
                 }
+                // Update-only: ActivityKit refuses to *start* an activity
+                // from the background.
+                if appModel.phase == .ready {
+                    LessonActivityController.sync(model: appModel, canStart: false)
+                }
                 schedule()
                 task.setTaskCompleted(success: true)
             }

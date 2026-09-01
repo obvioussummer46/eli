@@ -10,6 +10,7 @@ struct SchulportalWidgetsBundle: WidgetBundle {
         NextLessonWidget()
         TodayWidget()
         MensaWidget()
+        LessonLiveActivity()
     }
 }
 

@@ -23,6 +23,7 @@ final class Settings {
         var notifiesMensaOrders: Bool
         var notifiesDigest: Bool
         var syncsEventsToCalendar: Bool
+        var showsLiveActivity: Bool
         var mensaTenantOverride: String
         /// `nil` = automatic: the tab is shown exactly when a tenant is known.
         var showsMensaTabOverride: Bool?
@@ -48,6 +49,7 @@ final class Settings {
             notifiesMensaOrders: defaults.object(forKey: Keys.notifiesMensaOrders) as? Bool ?? false,
             notifiesDigest: defaults.object(forKey: Keys.notifiesDigest) as? Bool ?? false,
             syncsEventsToCalendar: defaults.object(forKey: Keys.syncsEventsToCalendar) as? Bool ?? false,
+            showsLiveActivity: defaults.object(forKey: Keys.showsLiveActivity) as? Bool ?? false,
             mensaTenantOverride: defaults.string(forKey: Keys.mensaTenantOverride) ?? "",
             showsMensaTabOverride: defaults.object(forKey: Keys.showsMensaTab) as? Bool,
             customLinks: Self.decodeLinks(defaults.data(forKey: Keys.customLinks))
@@ -130,6 +132,11 @@ final class Settings {
         set { values.syncsEventsToCalendar = newValue; defaults.set(newValue, forKey: Keys.syncsEventsToCalendar) }
     }
 
+    var showsLiveActivity: Bool {
+        get { values.showsLiveActivity }
+        set { values.showsLiveActivity = newValue; defaults.set(newValue, forKey: Keys.showsLiveActivity) }
+    }
+
     // MARK: - Per-school configuration (registry + overrides)
 
     /// The bundled registry's entry for the configured school, if any.
@@ -193,6 +200,7 @@ final class Settings {
         static let notifiesMensaOrders = "notify.mensaOrders"
         static let notifiesDigest = "notify.digest"
         static let syncsEventsToCalendar = "calendar.events"
+        static let showsLiveActivity = "liveActivity.enabled"
         static let mensaTenantOverride = "mensa.tenant"
         static let showsMensaTab = "mensa.showsTab"
         static let customLinks = "school.customLinks"

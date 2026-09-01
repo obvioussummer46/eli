@@ -19,11 +19,19 @@ struct SchulportalMobileApp: App {
                 .environment(model)
                 .environment(mensa)
                 .animation(.easeInOut(duration: 0.2), value: model.phase)
-                .task { await model.bootstrap() }
+                .task {
+                    await model.bootstrap()
+                    if model.phase == .ready {
+                        LessonActivityController.sync(model: model, canStart: true)
+                    }
+                }
                 .onChange(of: scenePhase) { previous, phase in
                     if phase == .background {
                         BackgroundRefresh.schedule()
                         return
+                    }
+                    if phase == .active, model.phase == .ready {
+                        LessonActivityController.sync(model: model, canStart: true)
                     }
                     guard previous == .background, phase == .active,
                           model.settings.refreshesOnLaunch else { return }

@@ -1,10 +1,12 @@
 import SwiftUI
+import UIKit
 
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
     @State private var isConfirmingSignOut = false
     @State private var isShowingCalendarSheet = false
     @State private var isShowingSchoolPicker = false
+    @State private var alternateIcon: String? = UIApplication.shared.alternateIconName
     @State private var presentedLink: SchoolLink?
     @State private var isAddingLink = false
     @State private var newLinkTitle = ""
@@ -203,6 +205,24 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Toggle("Aktuelle Stunde als Live-Aktivität", isOn: Binding(
+                        get: { model.settings.showsLiveActivity },
+                        set: { enabled in
+                            model.settings.showsLiveActivity = enabled
+                            if enabled {
+                                LessonActivityController.sync(model: model, canStart: true)
+                            } else {
+                                LessonActivityController.endAll()
+                            }
+                        }
+                    ))
+                } header: {
+                    Text("Live-Aktivität")
+                } footer: {
+                    Text("Zeigt die laufende Stunde mit Countdown auf dem Sperrbildschirm und in der Dynamic Island. Aktualisiert sich, wenn die App läuft. Lässt sich hier und in den iOS-Einstellungen jederzeit abschalten.")
+                }
+
+                Section {
                     Button {
                         isShowingCalendarSheet = true
                     } label: {
@@ -214,6 +234,21 @@ struct SettingsView: View {
                     Text(model.settings.calendarIdentifier == nil
                          ? "Noch nicht übertragen."
                          : "Ein eigener Kalender ist angelegt. Beim erneuten Übertragen wird er aktualisiert.")
+                }
+
+                // The Eli icon is an own design in the school's colours, not
+                // the official school logo — shipping *that* would need the
+                // school's okay. Free for now; may become part of the
+                // Unterstützer bundle once IAP exists (2.4).
+                if UIApplication.shared.supportsAlternateIcons {
+                    Section {
+                        iconRow("Klassisch", iconName: nil)
+                        iconRow("Eli", iconName: "AppIconEli")
+                    } header: {
+                        Text("App-Symbol")
+                    } footer: {
+                        Text("„Eli\u{201C} ist ein eigenes Design in den Schulfarben.")
+                    }
                 }
 
                 Section("Statistik") {
@@ -269,6 +304,24 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private func iconRow(_ title: String, iconName: String?) -> some View {
+        Button {
+            guard alternateIcon != iconName else { return }
+            UIApplication.shared.setAlternateIconName(iconName)
+            alternateIcon = iconName
+        } label: {
+            HStack {
+                Text(title)
+                Spacer()
+                if alternateIcon == iconName {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(Color.accentColor)
+                }
+            }
+        }
+        .tint(.primary)
     }
 
     private func linkRow(_ link: SchoolLink) -> some View {

@@ -200,10 +200,15 @@ proven themselves on real devices.
 
 1. ~~Wave 1 order?~~ Settled 01.09.2026: registry → quick links →
    mensa-optional; news parser deferred (RSS-only, if ever).
-2. Is the paid developer account happening? (Gates 2.4 and clean device
-   installs/TestFlight for the family; everything else works without it.)
-3. Digest and reminder times are fixed (18:00 / 17:00) — good enough, or
-   make them configurable while in that code anyway?
+2. ~~Is the paid developer account happening?~~ Answered 01.09.2026:
+   not yet, planned soon. 2.4 stays parked until it exists; the free
+   Ko-fi/Sponsors README link can happen anytime. Nothing else waits.
+3. ~~Digest and reminder times fixed (18:00 / 17:00)?~~ Settled
+   01.09.2026: make them configurable — but only opportunistically,
+   next time that notification code is open (e.g. the 2.2 mensa
+   warning), never as its own task. Two time pickers in settings,
+   current times as defaults. Rationale: timing varies per family, and
+   a wrong-time notification gets notifications disabled wholesale.
 4. ~~News card also tracking Elternbeirat/Förderverein page changes?~~
    Moot for now — news is a quick link in v1; revisit only if the RSS
    card ever ships.

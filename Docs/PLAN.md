@@ -241,6 +241,21 @@ simulator.
 
 ---
 
+### 3.4 Apple Watch — parked pending the free path's verdict (01.09.2026)
+
+Asked by Dima; the answer, recorded: **watchOS 11 mirrors iPhone Live
+Activities into the watch Smart Stack automatically**, so the shipped
+Live Activity already puts "Mathe bis 09:30, danach Englisch" on a
+paired wrist with zero watch code — test that first. A dedicated watch
+app is the costliest add-on anything here has proposed: the watch does
+not share the iPhone's App Group, so the snapshot would need a
+WatchConnectivity sync layer, plus a new app target and complication
+extension through every future change, testable only on real hardware.
+If the mirrored Live Activity proves used *and* the school allows
+watches in class (many ban them alongside phones — check Eli's rules),
+the first increment is a minimal watch app with one "next lesson"
+complication, not a lesson browser. Nothing before that verdict.
+
 ## Decided against (kept here so the discussion is not re-had)
 
 - **Flohmarkt in the app**: children's user-generated content needs a

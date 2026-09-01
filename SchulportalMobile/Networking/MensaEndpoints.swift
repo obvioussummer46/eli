@@ -1,24 +1,32 @@
 import Foundation
 
 /// `menuebestellung.de` is multi-tenant: every caterer lives under its own path
-/// segment and the whole API hangs off it. Ours is `asb-heserv`.
+/// segment and the whole API hangs off it. Which one is the school's comes
+/// from the registry (Eli: `asb-heserv`), overridable in the settings — so
+/// everything here is computed off `tenant` rather than baked in.
 enum MensaEndpoints {
     static let host = "www.menuebestellung.de"
-    static let tenant = "asb-heserv"
 
-    static let base = URL(string: "https://\(host)/\(tenant)/")!
+    /// The hard-coded value from before the registry stays as the last
+    /// fallback: installs that set up the mensa back then keep working even
+    /// if their school id resolves to nothing.
+    static var tenant: String {
+        Settings.storedMensaTenant ?? "asb-heserv"
+    }
+
+    static var base: URL { URL(string: "https://\(host)/\(tenant)/")! }
     static let origin = "https://\(host)"
 
     /// The login the site's own form posts to. There is a newer
     /// `api/v1/auth/login` alongside it, but this is the one the website
     /// actually uses, and the one whose answer shape we handle.
-    static let login = flag("login_api.php", "loginWithUsernameAndPassword")
-    static let loginSecondFactor = base.appendingPathComponent("api/v1/auth/login/2fa")
+    static var login: URL { flag("login_api.php", "loginWithUsernameAndPassword") }
+    static var loginSecondFactor: URL { base.appendingPathComponent("api/v1/auth/login/2fa") }
 
     /// Balance and statement metadata.
-    static let accountOverview = flag("berichte_api.php", "getPageData")
+    static var accountOverview: URL { flag("berichte_api.php", "getPageData") }
     /// Paged account statement.
-    static let transactions = flag("berichte_api.php", "searchTransactions")
+    static var transactions: URL { flag("berichte_api.php", "searchTransactions") }
 
     /// The plan itself — server-rendered, and the one page that carries the
     /// week's menus, what is ordered and the balance all at once.
@@ -29,7 +37,7 @@ enum MensaEndpoints {
     }
 
     /// Where the site bounces us when the session is gone.
-    static let loginPagePath = "/\(tenant)/login"
+    static var loginPagePath: String { "/\(tenant)/login" }
 
     static func isSignedOutURL(_ url: URL?) -> Bool {
         guard let url else { return false }

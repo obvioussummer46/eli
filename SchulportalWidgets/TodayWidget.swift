@@ -51,10 +51,10 @@ struct TodayView: View {
             } else {
                 ForEach(lessons, id: \.self) { lesson in
                     HStack(spacing: 6) {
-                        Text(lesson.startLabel)
+                        Text("\(lesson.startLabel)–\(lesson.endLabel)")
                             .font(.caption2.monospacedDigit())
                             .foregroundStyle(.secondary)
-                            .frame(width: 34, alignment: .leading)
+                            .frame(width: 72, alignment: .leading)
                         RoundedRectangle(cornerRadius: 1.5)
                             .fill(Color(hex: lesson.colorHex))
                             .frame(width: 3, height: 12)

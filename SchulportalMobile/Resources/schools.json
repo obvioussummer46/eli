@@ -1,0 +1,12 @@
+{
+  "5102": {
+    "name": "Elisabethenschule Frankfurt",
+    "mensaTenant": "asb-heserv",
+    "links": [
+      { "title": "Neues von der Schule", "url": "https://www.elisabethenschule.net/eli-news.html" },
+      { "title": "Termine", "url": "https://www.elisabethenschule.net/termine.html" },
+      { "title": "Elternbeirat", "url": "https://www.elisabethenschule.net/schulelternbeirat.html" },
+      { "title": "Förderverein", "url": "https://www.elisabethenschule.net/foerderverein.html" }
+    ]
+  }
+}

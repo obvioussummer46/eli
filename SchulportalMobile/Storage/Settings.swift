@@ -22,6 +22,10 @@ final class Settings {
         var notifiesLowBalance: Bool
         var notifiesDigest: Bool
         var syncsEventsToCalendar: Bool
+        var mensaTenantOverride: String
+        /// `nil` = automatic: the tab is shown exactly when a tenant is known.
+        var showsMensaTabOverride: Bool?
+        var customLinks: [SchoolLink]
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -41,7 +45,10 @@ final class Settings {
             notifiesHomework: defaults.object(forKey: Keys.notifiesHomework) as? Bool ?? false,
             notifiesLowBalance: defaults.object(forKey: Keys.notifiesLowBalance) as? Bool ?? false,
             notifiesDigest: defaults.object(forKey: Keys.notifiesDigest) as? Bool ?? false,
-            syncsEventsToCalendar: defaults.object(forKey: Keys.syncsEventsToCalendar) as? Bool ?? false
+            syncsEventsToCalendar: defaults.object(forKey: Keys.syncsEventsToCalendar) as? Bool ?? false,
+            mensaTenantOverride: defaults.string(forKey: Keys.mensaTenantOverride) ?? "",
+            showsMensaTabOverride: defaults.object(forKey: Keys.showsMensaTab) as? Bool,
+            customLinks: Self.decodeLinks(defaults.data(forKey: Keys.customLinks))
         )
     }
 
@@ -116,6 +123,55 @@ final class Settings {
         set { values.syncsEventsToCalendar = newValue; defaults.set(newValue, forKey: Keys.syncsEventsToCalendar) }
     }
 
+    // MARK: - Per-school configuration (registry + overrides)
+
+    /// The bundled registry's entry for the configured school, if any.
+    var registryConfig: SchoolConfig? {
+        SchoolRegistry.entry(for: values.schoolID)
+    }
+
+    /// Empty means "use the registry"; anything else wins over it — for
+    /// menuebestellung.de schools the registry does not know.
+    var mensaTenantOverride: String {
+        get { values.mensaTenantOverride }
+        set { values.mensaTenantOverride = newValue; defaults.set(newValue, forKey: Keys.mensaTenantOverride) }
+    }
+
+    /// Override first, registry second, nothing third. `nil` means this
+    /// school has no known caterer — and therefore no Essen tab.
+    var effectiveMensaTenant: String? {
+        let override = values.mensaTenantOverride.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !override.isEmpty { return override }
+        return registryConfig?.mensaTenant
+    }
+
+    /// A school without a caterer must not carry a permanently dead tab, so
+    /// the default follows the configuration; the user's explicit choice wins.
+    var showsMensaTab: Bool {
+        get { values.showsMensaTabOverride ?? (effectiveMensaTenant != nil) }
+        set { values.showsMensaTabOverride = newValue; defaults.set(newValue, forKey: Keys.showsMensaTab) }
+    }
+
+    /// What the registry ships for this school, e.g. Elternbeirat and
+    /// Förderverein pages for Eli.
+    var registryLinks: [SchoolLink] {
+        registryConfig?.links ?? []
+    }
+
+    /// Links the user added themselves (Hort, Schulwohnung, …).
+    var customLinks: [SchoolLink] {
+        get { values.customLinks }
+        set {
+            values.customLinks = newValue
+            defaults.set(try? JSONEncoder().encode(newValue), forKey: Keys.customLinks)
+        }
+    }
+
+    private static func decodeLinks(_ data: Data?) -> [SchoolLink] {
+        guard let data else { return [] }
+        return (try? JSONDecoder().decode([SchoolLink].self, from: data)) ?? []
+    }
+
     private enum Keys {
         static let schoolID = "school.id"
         static let schoolName = "school.name"
@@ -129,6 +185,9 @@ final class Settings {
         static let notifiesLowBalance = "notify.lowBalance"
         static let notifiesDigest = "notify.digest"
         static let syncsEventsToCalendar = "calendar.events"
+        static let mensaTenantOverride = "mensa.tenant"
+        static let showsMensaTab = "mensa.showsTab"
+        static let customLinks = "school.customLinks"
     }
 
     /// `MensaModel` lives in the other half of the app and owns no `Settings`;
@@ -140,5 +199,16 @@ final class Settings {
 
     static var digestNotificationsEnabled: Bool {
         UserDefaults.standard.bool(forKey: Keys.notifiesDigest)
+    }
+
+    /// `MensaClient` builds its URLs off the main actor and owns no
+    /// `Settings`, so the tenant resolution is repeated here straight from
+    /// `UserDefaults` — same pattern as the notification flags above.
+    static var storedMensaTenant: String? {
+        let override = (UserDefaults.standard.string(forKey: Keys.mensaTenantOverride) ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !override.isEmpty { return override }
+        let schoolID = UserDefaults.standard.string(forKey: Keys.schoolID) ?? ""
+        return SchoolRegistry.entry(for: schoolID)?.mensaTenant
     }
 }

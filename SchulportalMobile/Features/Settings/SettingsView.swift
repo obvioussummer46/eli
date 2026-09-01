@@ -5,6 +5,10 @@ struct SettingsView: View {
     @State private var isConfirmingSignOut = false
     @State private var isShowingCalendarSheet = false
     @State private var isShowingSchoolPicker = false
+    @State private var presentedLink: SchoolLink?
+    @State private var isAddingLink = false
+    @State private var newLinkTitle = ""
+    @State private var newLinkURL = ""
 
     /// The name when the school was picked from the directory, otherwise the
     /// bare number — which is all older installs ever stored.
@@ -29,6 +33,34 @@ struct SettingsView: View {
                     }
                 } footer: {
                     Text("Nachrichten, Vertretungsplan, Kalender & Co. — das ganze Portal im mobilen Design.")
+                }
+
+                // Links from the registry plus the user's own — the v1 answer
+                // to "school news": the school's website, one tap away,
+                // rendered by the school itself and therefore never broken.
+                Section {
+                    ForEach(model.settings.registryLinks) { link in
+                        linkRow(link)
+                    }
+                    ForEach(model.settings.customLinks) { link in
+                        linkRow(link)
+                    }
+                    .onDelete { offsets in
+                        model.settings.customLinks.remove(atOffsets: offsets)
+                    }
+                    Button {
+                        newLinkTitle = ""
+                        newLinkURL = ""
+                        isAddingLink = true
+                    } label: {
+                        Label("Link hinzufügen", systemImage: "plus")
+                    }
+                } header: {
+                    Text("Meine Schule")
+                } footer: {
+                    if model.settings.customLinks.isEmpty {
+                        Text("Eigene Links (Hort, Schulwohnung …) lassen sich hinzufügen und nach links wischen zum Löschen.")
+                    }
                 }
 
                 Section("Konto") {
@@ -65,6 +97,40 @@ struct SettingsView: View {
                         Label("Jetzt aktualisieren", systemImage: "arrow.clockwise")
                     }
                     .disabled(model.isRefreshing)
+                }
+
+                Section {
+                    Toggle("Essen-Tab anzeigen", isOn: Binding(
+                        get: { model.settings.showsMensaTab },
+                        set: { shown in
+                            model.settings.showsMensaTab = shown
+                            if !shown {
+                                // The widgets and the digest degrade with the
+                                // tab: no balance, no dish — instead of stale
+                                // numbers nobody refreshes any more.
+                                SharedSnapshotStore.update { snapshot in
+                                    snapshot.balanceText = nil
+                                    snapshot.orderedDishes = [:]
+                                }
+                            }
+                        }
+                    ))
+                    if model.settings.showsMensaTab {
+                        LabeledContent("Kennung") {
+                            TextField(model.settings.registryConfig?.mensaTenant ?? "z. B. asb-heserv",
+                                      text: Binding(
+                                        get: { model.settings.mensaTenantOverride },
+                                        set: { model.settings.mensaTenantOverride = $0 }
+                                      ))
+                            .multilineTextAlignment(.trailing)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                        }
+                    }
+                } header: {
+                    Text("Essen")
+                } footer: {
+                    Text("Die Kennung ist der Namensteil in der Adresse deiner Schule auf menuebestellung.de (…/kennung/). Leer lassen, wenn die Schule schon eingetragen ist.")
                 }
 
                 Section {
@@ -146,6 +212,19 @@ struct SettingsView: View {
             .sheet(isPresented: $isShowingCalendarSheet) {
                 CalendarSyncView().environment(model)
             }
+            .sheet(item: $presentedLink) { link in
+                SafariView(url: link.url)
+                    .ignoresSafeArea()
+            }
+            .alert("Link hinzufügen", isPresented: $isAddingLink) {
+                TextField("Titel", text: $newLinkTitle)
+                TextField("Adresse (z. B. schule.de/hort)", text: $newLinkURL)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.URL)
+                Button("Hinzufügen") { addCustomLink() }
+                Button("Abbrechen", role: .cancel) {}
+            }
             .sheet(isPresented: $isShowingSchoolPicker) {
                 // Changing it here only preselects the *next* sign-in; the
                 // session that is running belongs to whichever school it was
@@ -156,5 +235,23 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private func linkRow(_ link: SchoolLink) -> some View {
+        Button {
+            presentedLink = link
+        } label: {
+            Label(link.title, systemImage: "link")
+        }
+        .tint(.primary)
+    }
+
+    private func addCustomLink() {
+        let title = newLinkTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        var address = newLinkURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty, !address.isEmpty else { return }
+        if !address.contains("://") { address = "https://" + address }
+        guard let url = URL(string: address), url.host != nil else { return }
+        model.settings.customLinks.append(SchoolLink(title: title, url: url))
     }
 }

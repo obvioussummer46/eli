@@ -34,8 +34,13 @@ struct MainTabView: View {
             TimetableView()
                 .tabItem { Label("Plan", systemImage: "calendar") }
 
-            MensaTabView()
-                .tabItem { Label("Essen", systemImage: "fork.knife") }
+            // Hidden, not broken: a school without a known caterer gets no
+            // permanently dead Essen tab. Configured via registry/override
+            // under „Mehr".
+            if model.settings.showsMensaTab {
+                MensaTabView()
+                    .tabItem { Label("Essen", systemImage: "fork.knife") }
+            }
 
             // Five tabs, deliberately: a sixth would push iOS into its
             // automatic "Mehr" overflow screen and bury this one behind it.

@@ -27,7 +27,10 @@ enum BackgroundRefresh {
                 if appModel.phase == .ready {
                     await appModel.refresh()
                 }
-                if mensaModel.phase == .ready {
+                // The tab toggle also silences the background half, or a
+                // switched-off mensa would keep writing balance and dishes
+                // back into the widget snapshot.
+                if mensaModel.phase == .ready, appModel.settings.showsMensaTab {
                     await mensaModel.refresh()
                 }
                 schedule()

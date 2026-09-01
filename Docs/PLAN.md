@@ -41,23 +41,30 @@ feature after it:
 Build order: **1.1 registry → 1.2 quick links → 1.3 mensa optional.**
 News-as-a-parsed-feed was demoted out of Wave 1 (see "Deferred" below).
 
+**Wave 1 shipped 01.09.2026** (all three items below, plus lesson end
+times in the Heute-widget rows). Still worth doing when convenient:
+Eli's Jahresterminplan link — left out of the registry because the plan
+never recorded its URL and a guessed link would be a dead one; verify
+the real address on the site, then add the entry to `schools.json`.
+
 ### 1.1 Per-school configuration registry  *(foundation — build first)*
 
-- [ ] `Resources/schools.json`: `{ "5102": { mensaTenant, newsSource, links } }`
-- [ ] `SchoolConfig` loader: registry entry for `settings.schoolID`,
+- [x] `Resources/schools.json`: `{ "5102": { mensaTenant, newsSource, links } }`
+- [x] `SchoolConfig` loader: registry entry for `settings.schoolID`,
       falling back to user-entered values, falling back to nothing.
-- [ ] Settings UI: show what the registry provided; allow overrides.
+- [x] Settings UI: show what the registry provided; allow overrides.
 - Effort: small. No network, no parsing — plumbing and one JSON file.
 
 ### 1.2 „Meine Schule" quick links  *(the v1 answer to school news)*
 
-- [ ] Configurable link list in Mehr — Eli's registry entry ships
+- [x] Configurable link list in Mehr — Eli's registry entry ships
       Elternbeirat (`schulelternbeirat.html`), Förderverein
       (`foerderverein.html`), Termine (`termine.html`),
-      Jahresterminplan, **and „Neues von der Schule" (`eli-news.html`)**;
-      users can add their own (Hort, Schulwohnung …).
-- [ ] Opens in the styled in-app browser — the school's own site is
-      always correctly rendered and can never break in the app.
+      **and „Neues von der Schule" (`eli-news.html`)**; users can add
+      their own (Hort, Schulwohnung …). (Jahresterminplan: URL still to
+      verify, see above.)
+- [x] Opens in an in-app browser (`SFSafariViewController` — school
+      sites are not the portal and get no restyle injected).
 - Why this replaces the news parser: school sites post 1–3×/month; news
   is a nice-to-have, not a retention feature. A link delivers ~90 % of
   the value for ~5 % of the work and zero maintenance risk.
@@ -65,14 +72,16 @@ News-as-a-parsed-feed was demoted out of Wave 1 (see "Deferred" below).
 
 ### 1.3 Mensa optional + tenant from registry
 
-- [ ] `MensaEndpoints.tenant` comes from `SchoolConfig` (Eli's entry:
-      `asb-heserv`), user-overridable for other menuebestellung.de schools
-      (tenant list is public on the Systemauswahl page).
-- [ ] "Essen-Tab anzeigen" toggle (default: on when a tenant is known,
+- [x] `MensaEndpoints.tenant` comes from the registry (Eli:
+      `asb-heserv`), user-overridable for other menuebestellung.de
+      schools; the old hard-coded value stays as last fallback for
+      pre-registry installs.
+- [x] "Essen-Tab anzeigen" toggle (default: on when a tenant is known,
       off otherwise) — a school without a caterer must not have a
       permanently dead tab that makes the app feel broken.
-- [ ] Widgets + digest degrade cleanly when mensa is off (balance/dish
-      fields simply absent from the shared snapshot).
+- [x] Widgets + digest degrade cleanly when mensa is off (balance/dish
+      fields cleared from the shared snapshot; scene-active and
+      background refreshes gated on the toggle too).
 - Effort: small-medium. Watch: `MensaEndpoints` is currently `enum` with
   statics — becomes config-driven.
 
@@ -100,33 +109,47 @@ If a news card on Heute ever earns its way back:
 
 ## Wave 2 — daily-life features
 
-### 2.1 Own tasks (manual homework)
+Focus decided 01.09.2026: **widgets (2.1) and Unterstützer (2.4)**, with
+the Sunday mensa warning (2.2) alongside. Manual homework is *pending* —
+Dima is unconvinced; the PM case is recorded under 2.3 and awaits his
+verdict, so don't build it without one.
 
-- [ ] Plus button on Aufgaben: subject picker (from known subjects +
-      free text), text, optional deadline.
-- [ ] Stored in `Snapshot` beside `doneOverrides`; same tick-off, same
-      deadline logic, same widget/digest inclusion. **Never** pushed to
-      the portal.
-- Why: teachers don't put everything in SPH ("2 € für den Ausflug
-  mitbringen", "Sportbeutel!").
-- Effort: medium.
-
-### 2.2 Mensa „nichts bestellt" warning
-
-- [ ] `MenuDay` already knows order state and `isLocked`; find the actual
-      lock *time* per day on `speiseplan.php` first.
-- [ ] Notification the evening before the ordering deadline: „Für
-      Donnerstag ist nichts bestellt." Off by default, like all
-      notifications.
-- Why: prevents the real failure mode — a hungry kid.
-- Effort: small once the deadline time is understood.
-
-### 2.3 Widget deep links
+### 2.1 Widget deep links  *(part of the widget focus)*
 
 - [ ] Tiny URL scheme + programmatic tab selection in `RootView` (tabs
       currently have no selection state), `widgetURL` per widget:
       Heute-widget → Aufgaben, Mensa-widget → Essen.
 - Effort: small.
+
+### 2.2 Mensa „nichts bestellt" warning — Sunday evening
+
+- [ ] Decided 01.09.2026: the warning fires **Sunday evening**, looking
+      at the coming week — the moment families actually plan, and safely
+      before Monday's lock whatever the exact per-day lock times turn
+      out to be. Still verify the lock *time* on `speiseplan.php` before
+      relying on it for any finer-grained warning.
+- [ ] „Für nächste Woche ist noch nichts bestellt." Off by default,
+      like all notifications.
+- Why: prevents the real failure mode — a hungry kid.
+- Effort: small.
+
+### 2.3 Own tasks (manual homework) — PENDING Dima's verdict
+
+Dima is not convinced this earns its place. The PM case, for the
+record: the Aufgaben list is only trustworthy if it is *complete*, and
+teachers put maybe 80 % of obligations into SPH — the "2 € für den
+Ausflug", "Sportbeutel!" items live in the parent group chat and on
+paper slips. A list that is almost complete still forces a second
+system (memory, Post-its), and the app's core promise — "tick this list
+and you're done" — quietly breaks. Counter-argument (Dima's bloat
+concern): Reminders/Notes already exist for this. The differentiator is
+*one* list with the same deadline logic, badge, widget and digest —
+a task in Reminders doesn't show up in the 17:00 reminder.
+
+- [ ] If approved: plus button on Aufgaben, subject picker, text,
+      optional deadline; stored in `Snapshot` beside `doneOverrides`;
+      same tick-off/widget/digest path. **Never** pushed to the portal.
+- Effort: medium.
 
 ### 2.4 Unterstützer (the chosen monetisation — decided, awaiting go)
 
@@ -137,6 +160,12 @@ paying is gratitude, not access.
       tiers (3/5/10 €, optionally yearly), StoreKit 2.
 - [ ] Gratitude bundle: alternate app icons, accent-colour themes,
       supporter quote pack, confetti when the last homework is ticked.
+- [ ] Alternate app icons (Dima, 01.09.2026): wanted regardless of the
+      supporter bundle — e.g. an Eli icon instead of the generic school
+      cap. Free vs. supporter split to be decided when built. Note: the
+      school's actual logo needs the school's okay before shipping it in
+      an app store binary; a school-coloured original design needs
+      nobody's.
 - [ ] Family Sharing ON — one parent purchase covers the kid's phone.
 - Prerequisites (Dima's call): paid developer account ($99/yr), App
   Store Connect banking/tax setup. A Ko-fi/GitHub-Sponsors link in the
@@ -150,32 +179,39 @@ paying is gratitude, not access.
 
 ## Wave 3 — the big lifts
 
-### 3.1 Nachrichten (portal messages)
+### 3.1 Nachrichten (portal messages) — undecided, case on file
 
-E2E-encrypted, but the AES handshake is reverse-engineered and shipped in
-lanis-mobile (`liblanis/lib/src/session/cryptor.dart` + conversations
-parser) — provably doable, largest item on this list. Parents get teacher
-messages natively, with notifications.
+Dima's challenge (01.09.2026): "people are already in WhatsApp." The
+answer for the record: WhatsApp is where *parents talk to parents*.
+Teacher→parent and school→parent communication legally and practically
+runs through SPH Nachrichten — teachers are generally not allowed to
+use WhatsApp with pupils' families (data-protection rules), so the
+messages that actually matter (teacher is ill, trip details changed,
+grade conference) land in the portal, unread until someone remembers to
+log in. The feature's value is one thing only: a push notification when
+a teacher writes. Until then the portal browser under Mehr covers
+reading them. Biggest lift on the list (E2E AES handshake,
+reverse-engineered in lanis-mobile's `cryptor.dart`) — so it needs a
+felt pain, not just an argument, before it's worth the build.
 
-### 3.2 Fehlzeiten / attendance
+### 3.2 Fehlzeiten / attendance — undecided, clarified
 
-The per-course pages (`meinunterricht.php?a=sus_view&id=…`) carry
-attendance records the app doesn't read. Exactly what a parent account is
-for. First step: a masked structure dump of one `sus_view` page
-(`Tools/dump-structure.user.js`).
+What it actually is: SPH records absences per course ("Max fehlte am
+12.3. in Mathe, unentschuldigt"), visible on the per-course pages
+(`meinunterricht.php?a=sus_view&id=…`) that the app already visits for
+homework but doesn't read. The feature: a parent sees missed lessons
+and their entschuldigt/unentschuldigt status without digging through
+course pages — useful mainly at report-card time and when an
+unexcused absence would otherwise surprise. Cheap-ish (same parser
+family as homework). First step if wanted: a masked structure dump of
+one `sus_view` page (`Tools/dump-structure.user.js`).
 
-### 3.3 Multi-account switching
-
-Pupil + parent (or two kids) in one app: per-account cookie jars,
-keychain entries, snapshots. Also *prevents* the SPH
-one-session-per-account fights documented in
-`SPHClient.looksLikeErrorPage`. Model on lanis-mobile's account switcher.
-
-### 3.4 Live Activity
+### 3.3 Live Activity — maybe (unchanged)
 
 Current lesson ticking through the school day. Fun, low practical value;
 needs ActivityKit in the widget target. Only after the widgets have
-proven themselves on real devices.
+proven themselves on real devices. Dima 01.09.2026: "maybe" — stays
+parked behind the widget focus of Wave 2.
 
 ---
 
@@ -189,6 +225,11 @@ proven themselves on real devices.
 - **A separate Eli app**: double maintenance through every Hessen HTML
   change, zero user-visible gain over the registry (Wave 1).
 - **Paid widgets / subscriptions**: see 2.4.
+- **Multi-account switching** (Dima, 01.09.2026): not needed for this
+  household. The old rationale (per-account cookie jars would prevent
+  the SPH one-session-per-account fights in
+  `SPHClient.looksLikeErrorPage`) is noted in case the pain ever
+  returns, but the feature is off the roadmap.
 - **Scraping school websites** (01.09.2026): the news feature as
   originally speced — per-CMS selectors, Contao parser for Eli. Breaks
   silently on any school-site redesign, scales into a parser-request

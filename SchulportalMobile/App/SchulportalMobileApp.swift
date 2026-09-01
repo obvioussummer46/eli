@@ -29,7 +29,9 @@ struct SchulportalMobileApp: App {
                           model.settings.refreshesOnLaunch else { return }
                     if model.phase == .ready { Task { await model.refresh() } }
                     // The balance is the one number that must never be stale.
-                    if mensa.phase == .ready { Task { await mensa.refresh() } }
+                    if mensa.phase == .ready, model.settings.showsMensaTab {
+                        Task { await mensa.refresh() }
+                    }
                 }
         }
     }

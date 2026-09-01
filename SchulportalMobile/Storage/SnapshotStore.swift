@@ -20,6 +20,11 @@ struct Snapshot: Codable, Equatable {
     /// The school calendar, same deal: optional for old snapshots, and past
     /// events fall out of every view by date.
     var events: [SchoolEvent]?
+    /// Per-course attendance counts from the „Anwesenheiten" table on
+    /// *Mein Unterricht*. Optional for old snapshots; `nil` also when the
+    /// account's page shows no such table — the Fehlzeiten screen only
+    /// exists while this holds data.
+    var attendance: [CourseAttendance]?
 }
 
 /// A locally set done-flag, remembered even when the portal round-trip failed.

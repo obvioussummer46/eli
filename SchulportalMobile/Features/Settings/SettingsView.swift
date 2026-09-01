@@ -63,6 +63,20 @@ struct SettingsView: View {
                     }
                 }
 
+                // Only while the portal reports any attendance data for this
+                // account — no data, no row: hidden, not broken.
+                if model.snapshot.attendance?.isEmpty == false {
+                    Section {
+                        NavigationLink {
+                            AttendanceView()
+                        } label: {
+                            Label("Fehlzeiten", systemImage: "person.crop.circle.badge.clock")
+                        }
+                    } footer: {
+                        Text("Fehlend, entschuldigt, unentschuldigt — je Kurs, wie im Portal erfasst.")
+                    }
+                }
+
                 Section("Konto") {
                     Button {
                         isShowingSchoolPicker = true

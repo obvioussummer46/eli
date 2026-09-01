@@ -133,7 +133,7 @@ verdict, so don't build it without one.
 - Why: prevents the real failure mode — a hungry kid.
 - Effort: small.
 
-### 2.3 Own tasks (manual homework) — PENDING Dima's verdict
+### 2.3 Own tasks (manual homework) — PAUSED (Dima, 01.09.2026)
 
 Dima is not convinced this earns its place. The PM case, for the
 record: the Aufgaben list is only trustworthy if it is *complete*, and
@@ -179,7 +179,7 @@ paying is gratitude, not access.
 
 ## Wave 3 — the big lifts
 
-### 3.1 Nachrichten (portal messages) — undecided, case on file
+### 3.1 Nachrichten (portal messages) — PAUSED (Dima, 01.09.2026), case on file
 
 Dima's challenge (01.09.2026): "people are already in WhatsApp." The
 answer for the record: WhatsApp is where *parents talk to parents*.
@@ -194,17 +194,23 @@ reading them. Biggest lift on the list (E2E AES handshake,
 reverse-engineered in lanis-mobile's `cryptor.dart`) — so it needs a
 felt pain, not just an argument, before it's worth the build.
 
-### 3.2 Fehlzeiten / attendance — undecided, clarified
+### 3.2 Fehlzeiten / attendance — v1 SHIPPED 01.09.2026
 
-What it actually is: SPH records absences per course ("Max fehlte am
-12.3. in Mathe, unentschuldigt"), visible on the per-course pages
-(`meinunterricht.php?a=sus_view&id=…`) that the app already visits for
-homework but doesn't read. The feature: a parent sees missed lessons
-and their entschuldigt/unentschuldigt status without digging through
-course pages — useful mainly at report-card time and when an
-unexcused absence would otherwise surprise. Cheap-ish (same parser
-family as homework). First step if wanted: a masked structure dump of
-one `sus_view` page (`Tools/dump-structure.user.js`).
+Turned out cheaper than planned: the *summary* (counts per course —
+fehlend/entschuldigt/unentschuldigt, categories are per-school data)
+sits in the `#anwesend` table on `meinunterricht.php`, which the app
+already fetches — zero extra requests. Structure confirmed against
+lanis-mobile's `student_parser.dart` (reads identical markup) and a
+fixture test; **not yet verified against a live Eli page** — after the
+next refresh, „Mehr" should show a „Fehlzeiten" row; if it doesn't or
+shows nonsense, capture a masked dump of `meinunterricht.php`
+(`Tools/dump-structure.user.js`) and fix the selectors against it.
+The row is hidden until the portal reports any attendance data.
+
+Not built (deliberately): the per-*date* detail on the per-course
+`sus_view` pages — that would multiply requests by the number of
+courses. If the counts ever aren't enough, that's the follow-up, loaded
+on demand per course, and it starts with a masked `sus_view` dump.
 
 ### 3.3 Live Activity — maybe (unchanged)
 

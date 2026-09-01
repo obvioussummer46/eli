@@ -294,6 +294,7 @@ final class AppModel {
         let previous = snapshot.entries.compactMap(\.homework) + snapshot.archivedHomework
         snapshot.courses = result.courses
         snapshot.entries = result.entries
+        snapshot.attendance = result.attendance.isEmpty ? nil : result.attendance
 
         let currentIDs = Set(result.homework.map(\.id))
         // Content identity, independent of the id scheme: an id format

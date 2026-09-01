@@ -83,6 +83,24 @@ Each lesson entry is a table row carrying the portal's own ids:
 These are exactly the selectors the Safari userscript already targets, so if the
 userscript still works, the parser should too — and vice versa.
 
+### The „Anwesenheiten" box (`#anwesend`)
+
+The same page carries per-course attendance counts in `#anwesend`: a table
+whose `thead` names the columns (`Kurs`, `Lehrkraft`, then the school's own
+category set — `fehlend`, `entschuldigt`, `unentschuldigt`, …) and whose
+`tbody` has one row per course, the course linked via `a[href*=sus_view]`.
+Two things to know, both learned from lanis-mobile's `student_parser.dart`
+(which reads the identical markup) rather than from a live dump:
+
+* cells hide encoded twins of their content in `div.hidden.hidden_encoded` —
+  strip those before reading the text, or every value doubles;
+* an empty cell means zero.
+
+**Not yet verified against a live Eli page.** The categories are treated as
+data (the header's own words), so a school with different columns parses
+fine. The per-*date* records live on the per-course `sus_view` pages, which
+the app deliberately does not fetch.
+
 **Done-state detection** has to read *two* renderings of the same flag,
 depending on whose account is looking.
 

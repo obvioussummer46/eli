@@ -4,6 +4,7 @@ import SwiftSoup
 struct MeinUnterrichtResult: Equatable {
     var courses: [Course] = []
     var entries: [LessonEntry] = []
+    var attendance: [CourseAttendance] = []
 
     var homework: [Homework] { entries.compactMap(\.homework) }
 }
@@ -52,6 +53,7 @@ enum MeinUnterrichtParser {
 
         result.courses = coursesByID.values.sorted { $0.displayName.localizedCompare($1.displayName) == .orderedAscending }
         result.entries.sort { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
+        result.attendance = parseAttendance(in: document)
 
         if result.entries.isEmpty && result.courses.isEmpty {
             throw SPHError.emptyPage("Mein Unterricht")
@@ -181,6 +183,59 @@ enum MeinUnterrichtParser {
         let element = row.firstMatch(".teacher .btn") ?? row.firstMatch(".teacher")
         let value = HTMLText.inline(element)
         return value.isEmpty ? nil : value
+    }
+
+    // MARK: - Anwesenheiten
+
+    /// The „Anwesenheiten" box on the same page: `#anwesend` holds a table
+    /// with one row per course and one column per attendance category, the
+    /// categories named only by the table's own header (fehlend,
+    /// entschuldigt, unentschuldigt, …the set is per-school). Structure
+    /// per lanis-mobile's `student_parser.dart`, which reads the identical
+    /// markup. A page without the table — or with one we cannot read —
+    /// yields an empty list and the feature stays invisible: hidden, not
+    /// broken.
+    private static func parseAttendance(in document: Document) -> [CourseAttendance] {
+        guard let box = document.firstMatch("#anwesend"),
+              let headerRow = box.firstMatch("thead tr") else { return [] }
+
+        let keys = headerRow.childElements(["th", "td"]).map { HTMLText.inline($0) }
+        guard !keys.isEmpty else { return [] }
+        // Everything that is not a count column.
+        let labelColumns: Set<String> = ["kurs", "lehrkraft"]
+
+        var seen = Set<String>()
+        var result: [CourseAttendance] = []
+        for row in box.allMatches("tbody tr") {
+            let cells = row.childElements(["td", "th"])
+            guard !cells.isEmpty else { continue }
+
+            // The portal hides base64-encoded twins of some cell contents in
+            // `div.hidden_encoded`; they must not leak into the visible text.
+            for cell in cells {
+                for encoded in cell.allMatches("div.hidden_encoded") { try? encoded.remove() }
+            }
+
+            var title = ""
+            var counts: [AttendanceCount] = []
+            for (index, key) in keys.enumerated() where index < cells.count {
+                let text = HTMLText.inline(cells[index])
+                if labelColumns.contains(key.lowercased()) {
+                    if title.isEmpty { title = text }
+                    continue
+                }
+                counts.append(AttendanceCount(category: key, value: text.isEmpty ? "0" : text))
+            }
+
+            if title.isEmpty { title = HTMLText.inline(row.firstMatch("a")) }
+            guard !title.isEmpty, !counts.isEmpty else { continue }
+
+            let href = row.firstMatch("a[href*=sus_view]")?.attribute("href")
+            let id = href.flatMap(courseID(fromHref:)) ?? StableHash.string(title)
+            guard seen.insert(id).inserted else { continue }
+            result.append(CourseAttendance(courseID: id, courseTitle: title, counts: counts))
+        }
+        return result
     }
 
     /// `meinunterricht.php?a=sus_view&id=12345`

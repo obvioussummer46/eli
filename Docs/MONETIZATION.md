@@ -185,6 +185,33 @@ Shortlist to check (none verified yet):
 Recommendation: shortlist two, run the DPMA and App Store checks, then
 pick the one that still looks fine as an icon label at 11 pt.
 
+
+### Wider brainstorm (04.09.2026)
+
+**Hessian flavour** — unique, no generic-word problem:
+- ★ **Gude** — the Hessian "hi". Kids say it daily, parents smile, "Gude Pro" works. App is Hessen-only, so the regionalism is a feature.
+- Ei Gude — playful, too long for an icon label.
+
+**Kids' slang** — feels like their app, not the school's:
+- ★ **Hausi** — what every pupil calls Hausaufgaben. Likely taken; check first.
+- Spicker — cheat sheet. Kids love it, teachers do not. Risky.
+- Freistunde — great promise, three syllables.
+
+**Sounds of school:**
+- ★ **Gong** — one syllable, "Gong Pro". Check class 42 (a US software company).
+- Klingel — reads like a doorbell app.
+- Pause — perfect meaning, impossible to own.
+
+**Objects:**
+- Ranzen (still solid), Kreide (chalk, short, probably free), Mäppchen
+  (umlaut hurts in URLs and ids), Tornister (distinctive, slightly
+  military), Zettel (neutral, generic).
+
+**Invented, only if every real word fails:** Schulio, Stundo, Plani, Ranzo.
+
+**Narrowing:** shortlist Gude, Hausi, Gong, Ranzen, Kreide → App Store,
+DPMA, `name.app` domain → ask ten pupils which they would say out loud.
+
 ## Build TODO
 
 **Foundation**

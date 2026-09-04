@@ -73,7 +73,7 @@ Die App ist ein privates, inoffizielles Angebot und kein Produkt des
 Hessischen Kultusministeriums. Sie nutzt ausschließlich die Zugänge, die
 Ihre Schülerinnen und Schüler ohnehin haben.
 
-Kontakt: *[Name, E-Mail]*
+Kontakt: Dmitry Baklashev, *[E-Mail]*
 
 ---
 

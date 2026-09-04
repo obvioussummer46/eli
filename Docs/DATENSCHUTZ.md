@@ -13,7 +13,8 @@ und — für Käufe — Apples App Store.
 
 ## 1. Verantwortlicher
 
-*[Name, Anschrift, E-Mail des Entwicklers — vor Veröffentlichung eintragen.]*
+Dmitry Baklashev
+*[Anschrift und E-Mail — vor Veröffentlichung eintragen; beides ist nach DSGVO Pflicht.]*
 
 ## 2. Welche Daten die App verarbeitet
 

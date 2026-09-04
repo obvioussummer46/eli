@@ -3,8 +3,15 @@ import SwiftUI
 /// The screen you open in the morning: what's next, and what you still owe.
 struct TodayView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selection: Homework?
     @State private var isShowingEvents = false
+    /// The clock the screen is drawn against. SwiftUI only redraws when
+    /// state changes, so an app left open overnight kept saying "Guten
+    /// Abend" and "Morgen" at seven in the morning: nothing in the model
+    /// had moved. Bumped on foreground and once a minute.
+    @State private var now = Date()
+    private let minuteTick = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     var body: some View {
         NavigationStack {
@@ -30,6 +37,11 @@ struct TodayView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle(greeting)
             .refreshable { await model.refresh() }
+            .onAppear { now = Date() }
+            .onReceive(minuteTick) { now = $0 }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { now = Date() }
+            }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -50,7 +62,7 @@ struct TodayView: View {
     }
 
     private var greeting: String {
-        let hour = GermanDate.calendar.component(.hour, from: Date())
+        let hour = GermanDate.calendar.component(.hour, from: now)
         switch hour {
         case 0..<11: return "Guten Morgen"
         case 11..<18: return "Hallo"
@@ -77,17 +89,19 @@ struct TodayView: View {
         }
     }
 
-    /// The next few school events — and the door to the full list.
+    /// The next few school events — exams first, because those are what a
+    /// pupil actually needs to see coming — and the door to the full list.
     @ViewBuilder
     private var eventsCard: some View {
         let upcoming = model.upcomingEvents
         if !upcoming.isEmpty {
+            let shown = Array(model.upcomingExams.prefix(3)) + upcoming.filter { !$0.isExam }
             Card {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Termine")
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)
-                    ForEach(upcoming.prefix(4)) { event in
+                    ForEach(shown.prefix(4)) { event in
                         EventRow(event: event)
                     }
                     if upcoming.count > 4 {
@@ -230,8 +244,8 @@ struct TodayView: View {
     }
 
     private func isOngoing(_ lesson: TimetableEntry) -> Bool {
-        let now = GermanDate.calendar.dateComponents([.hour, .minute], from: Date())
-        let minutes = (now.hour ?? 0) * 60 + (now.minute ?? 0)
+        let clock = GermanDate.calendar.dateComponents([.hour, .minute], from: now)
+        let minutes = (clock.hour ?? 0) * 60 + (clock.minute ?? 0)
         return lesson.start.minutesFromMidnight <= minutes && minutes < lesson.end.minutesFromMidnight
     }
 }
@@ -255,7 +269,7 @@ private struct SubstitutionsCard: View {
                             .foregroundStyle(.secondary)
                         VStack(alignment: .leading, spacing: 2) {
                             HStack(spacing: 6) {
-                                if let subject = entry.subject ?? entry.previousSubject {
+                                if let subject = entry.subjectName {
                                     Text(subject).font(.subheadline.weight(.semibold))
                                 }
                                 if let kind = entry.kind, !kind.isEmpty {
@@ -311,9 +325,17 @@ struct EventRow: View {
                 .fill(event.color)
                 .frame(width: 4, height: 30)
             VStack(alignment: .leading, spacing: 2) {
-                Text(event.title)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(2)
+                HStack(spacing: 6) {
+                    Text(event.displayTitle)
+                        .font(.subheadline.weight(.medium))
+                        .lineLimit(2)
+                    if event.isExam {
+                        Image(systemName: "pencil.and.list.clipboard")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .accessibilityLabel("Arbeit")
+                    }
+                }
                 HStack(spacing: 6) {
                     Text(event.dateLabel)
                     if let place = event.place, !place.isEmpty {

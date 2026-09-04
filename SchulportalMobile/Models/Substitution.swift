@@ -22,6 +22,14 @@ struct Substitution: Codable, Equatable, Hashable, Identifiable {
     var previousRoom: String?
     var note: String?
 
+    /// The subject as a full name — the plan prints the course code ("D",
+    /// "NAWI"), the card should read "Deutsch". Falls back to the raw text
+    /// when the code is unknown.
+    var subjectName: String? {
+        guard let raw = subject ?? previousSubject, !raw.isEmpty else { return nil }
+        return Subject.resolve(fromCourseTitle: raw).name
+    }
+
     /// One compact line for small cards: what changed, where. The `kind`
     /// deliberately stays out — the card renders it as its own badge.
     var summary: String {

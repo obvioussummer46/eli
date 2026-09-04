@@ -234,7 +234,7 @@ final class AppModel {
                 shared.append(SharedSubstitution(date: day.date,
                                                  period: entry.period,
                                                  kind: entry.kind,
-                                                 subject: entry.subject ?? entry.previousSubject,
+                                                 subject: entry.subjectName,
                                                  summary: entry.summary))
             }
         }
@@ -556,6 +556,9 @@ final class AppModel {
         let now = Date()
         return (snapshot.events ?? []).filter { $0.isCurrent(at: now) }
     }
+
+    /// The Klassenarbeiten, Klausuren and Tests among them, soonest first.
+    var upcomingExams: [SchoolEvent] { upcomingEvents.filter(\.isExam) }
 
     // MARK: - Today
 

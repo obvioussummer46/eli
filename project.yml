@@ -35,3 +35,14 @@ targets:
         INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: "Damit dein Stundenplan als Termine in deinen iOS-Kalender geschrieben werden kann."
         INFOPLIST_KEY_NSCalendarsUsageDescription: "Damit dein Stundenplan als Termine in deinen iOS-Kalender geschrieben werden kann."
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+  SchulportalMobileTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: SchulportalMobileTests
+    dependencies:
+      - target: SchulportalMobile
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.schulportalmobile.app.tests
+        GENERATE_INFOPLIST_FILE: YES

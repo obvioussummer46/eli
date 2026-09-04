@@ -12,3 +12,7 @@ SchulportalMobile.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
 node_modules/
 package-lock.json
 .schulportal-profile/
+
+# Never in a public repo: real portal dumps, signed consent forms.
+samples/*.html
+Docs/consent/

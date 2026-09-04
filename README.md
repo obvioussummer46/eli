@@ -67,6 +67,13 @@ via the [Schulpaket](Docs/SCHULPAKET.md). Strategy and reasoning:
 [Docs/MONETIZATION.md](Docs/MONETIZATION.md). Privacy:
 [Docs/DATENSCHUTZ.md](Docs/DATENSCHUTZ.md).
 
+## License
+
+PolyForm Noncommercial 1.0.0 (`LICENSE`): read it, build it for yourself,
+contribute — but no selling and no re-publishing on any app store. The
+official App Store build is the maintainer's. Contributions:
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Building
 
 Requirements: **Xcode 16 or newer**, iOS 17 deployment target.

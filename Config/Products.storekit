@@ -1,0 +1,167 @@
+{
+  "identifier" : "3A1F7C2E-5B64-4D0F-9E1A-7C2B3D4E5F60",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "1001",
+      "localizations" : [
+        {
+          "description" : "Ein Kaffee für die Weiterentwicklung.",
+          "displayName" : "Kaffee",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.tip.small",
+      "referenceName" : "Tip Kaffee",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "1002",
+      "localizations" : [
+        {
+          "description" : "Ein Mittagessen für die Weiterentwicklung.",
+          "displayName" : "Mittagessen",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.tip.medium",
+      "referenceName" : "Tip Mittagessen",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "1003",
+      "localizations" : [
+        {
+          "description" : "Eine Mensa-Woche für die Weiterentwicklung.",
+          "displayName" : "Mensa-Woche",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.tip.large",
+      "referenceName" : "Tip Mensa-Woche",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "3.99",
+      "familyShareable" : true,
+      "internalID" : "2001",
+      "localizations" : [
+        {
+          "description" : "Aufgaben-, Tagesplan- und Countdown-Widget.",
+          "displayName" : "Widget-Paket",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.widgets.pack",
+      "referenceName" : "Widget-Paket",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : true,
+      "internalID" : "2002",
+      "localizations" : [
+        {
+          "description" : "Sechs Farbvarianten des App-Symbols.",
+          "displayName" : "Symbole: Klassisch",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.icons.classic",
+      "referenceName" : "Icons Klassisch",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : true,
+      "internalID" : "2003",
+      "localizations" : [
+        {
+          "description" : "Saisonale App-Symbole, jedes Jahr mehr.",
+          "displayName" : "Symbole: Saison",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.icons.seasonal",
+      "referenceName" : "Icons Saison",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "7.99",
+      "familyShareable" : true,
+      "internalID" : "3001",
+      "localizations" : [
+        {
+          "description" : "Alle Widgets, alle Symbole, alle Extras. Für immer.",
+          "displayName" : "Pro",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.pro.lifetime",
+      "referenceName" : "Pro Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "",
+    "_developerTeamID" : "42436Y52QF",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "de_DE",
+    "_storefront" : "DEU",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "4001",
+      "localizations" : [
+
+      ],
+      "name" : "Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : true,
+          "groupNumber" : 1,
+          "internalID" : "4002",
+          "introductoryOffer" : {
+            "internalID" : "4003",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Alle Widgets, alle Symbole, alle Extras. Jährlich.",
+              "displayName" : "Pro (Jahr)",
+              "locale" : "de_DE"
+            }
+          ],
+          "productID" : "de.schulportalmobile.app.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Pro Jahr",
+          "subscriptionGroupID" : "4001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

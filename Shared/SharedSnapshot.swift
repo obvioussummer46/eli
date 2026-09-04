@@ -38,6 +38,29 @@ struct SharedDeadline: Codable, Hashable {
     var subject: String
 }
 
+/// One open homework, as the interactive widget lists it. The id is the
+/// app's own stable homework id, so a tick on the widget maps back exactly.
+struct SharedHomework: Codable, Hashable, Identifiable {
+    var id: String
+    var subject: String
+    var colorHex: String
+    var text: String
+    var deadline: Date?
+}
+
+/// One upcoming entry of the school calendar — what the countdown widget
+/// counts down to.
+struct SharedEvent: Codable, Hashable, Identifiable {
+    var id: String
+    var title: String
+    var start: Date
+    var end: Date
+    var isAllDay: Bool
+    var isExam: Bool
+    var isHoliday: Bool
+    var colorHex: String
+}
+
 struct SharedSnapshot: Codable {
     var updatedAt: Date?
     /// Weekday (1 = Montag … 7 = Sonntag, the app's own numbering) → the
@@ -54,6 +77,11 @@ struct SharedSnapshot: Codable {
     /// have no order yet — what the Sunday "nichts bestellt" warning reads.
     /// Optional so snapshots written before this field existed still decode.
     var openOrderDays: [String]?
+    /// Open homework, soonest deadline first, capped by the app. Optional so
+    /// snapshots written before the premium widgets existed still decode.
+    var homework: [SharedHomework]?
+    /// Upcoming school events, soonest first, capped by the app.
+    var events: [SharedEvent]?
 
     // MARK: - Reading (used by widgets and the digest alike)
 
@@ -108,6 +136,36 @@ struct SharedSnapshot: Codable {
         return nil
     }
 
+    /// Open homework minus the ticks made on the widget itself, so a tapped
+    /// row disappears immediately — before the app has absorbed the tick.
+    func openHomework(excluding ticked: Set<String> = Set(SharedHomeworkTicks.load().keys)) -> [SharedHomework] {
+        (homework ?? []).filter { !ticked.contains($0.id) }
+    }
+
+    /// Homework due on `date` (deadline day) among the open ones.
+    func homework(dueOn date: Date, excluding ticked: Set<String> = Set(SharedHomeworkTicks.load().keys)) -> [SharedHomework] {
+        openHomework(excluding: ticked).filter { item in
+            guard let deadline = item.deadline else { return false }
+            return Self.calendar.isDate(deadline, inSameDayAs: date)
+        }
+    }
+
+    /// The next event of a kind that has not started yet — `nil` when the
+    /// calendar holds none. Holidays first for the countdown, exams second.
+    func nextEvent(after date: Date, where matches: (SharedEvent) -> Bool) -> SharedEvent? {
+        let today = Self.calendar.startOfDay(for: date)
+        return (events ?? [])
+            .filter { matches($0) && Self.calendar.startOfDay(for: $0.start) >= today }
+            .min { $0.start < $1.start }
+    }
+
+    /// Whole days from `date` to the event's first day: 0 = today.
+    static func daysUntil(_ event: SharedEvent, from date: Date) -> Int {
+        calendar.dateComponents([.day],
+                                from: calendar.startOfDay(for: date),
+                                to: calendar.startOfDay(for: event.start)).day ?? 0
+    }
+
     /// The lesson running at `date`, or the next one that day.
     func currentOrNextLesson(at date: Date) -> SharedLesson? {
         let minutes = Self.calendar.component(.hour, from: date) * 60
@@ -125,9 +183,12 @@ struct SharedSnapshot: Codable {
 /// containing app's `onOpenURL`, and nothing outside the app should be able
 /// to steer its tabs anyway.
 enum WidgetLink {
+    static let heute = URL(string: "schulportalmobile://tab/heute")!
     static let aufgaben = URL(string: "schulportalmobile://tab/aufgaben")!
     static let plan = URL(string: "schulportalmobile://tab/plan")!
     static let essen = URL(string: "schulportalmobile://tab/essen")!
+    /// A locked premium widget lands on the paywall, not on a tab.
+    static let paywall = URL(string: "schulportalmobile://paywall")!
 }
 
 /// Atomic JSON in the App Group container — the same pattern as

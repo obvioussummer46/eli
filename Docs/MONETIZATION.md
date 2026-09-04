@@ -31,11 +31,14 @@ then the build order. Numbers are starting points, not research.
 Consumable IAPs, shown once in Mehr › „App unterstützen", never as a
 popup. Thank-you state stored locally, no receipt server needed.
 
-| Product ID | Name | Price |
+| Product ID (`de.schulportalmobile.app.` +) | Name | Price |
 |---|---|---|
 | `tip.small` | Kaffee ☕ | 1,99 € |
 | `tip.medium` | Mittagessen 🥪 | 4,99 € |
 | `tip.large` | Mensa-Woche 🍝 | 9,99 € |
+
+All ids in `Shared/Entitlements.swift` (`ProductID`); the local test
+config is `Config/Products.storekit`, wired into the run scheme.
 
 - Copy: "Kein Abo, keine Werbung, kein Tracking. Die App bleibt kostenlos."
 - After a tip: small badge in Mehr, optional "Unterstützer" alt-icon
@@ -149,36 +152,69 @@ want to support recurring will use it. Never link from the app.
 Launch order: **tips → Pro (with widgets + icons inside) → school packs
 on request → Schulpaket once 3+ schools are in the registry.**
 
+## Picking the paid-tier name
+
+The paid tier needs its own name because "Schulportal Hessen" belongs to
+the Kultusministerium and "Pro" alone is not a brand. Rules, in order:
+
+1. **Not a portal name.** No "Schulportal", "SPH", "Hessen", "Lanis".
+   The free app can keep describing itself as "für das Schulportal
+   Hessen"; the paid thing must not look official.
+2. **A German school word, one or two syllables, that a 12-year-old
+   says without embarrassment.** It appears in the App Store receipt on
+   the parents' phone and in the widget gallery.
+3. **Free on the App Store, free at DPMA.** Search apps.apple.com and
+   register.dpma.de (Klasse 9 and 42) for the exact word. A domain is
+   nice, not required.
+4. **Works as "X" and "X Pro".** The app itself can later be renamed to
+   X; the tier is X Pro. Do not name the tier something the app is not.
+5. **Unambiguous when spoken.** Test: say it on the phone to a
+   grandparent buying a gift card.
+
+Shortlist to check (none verified yet):
+
+| Name | Why | Risk |
+|---|---|---|
+| **Ranzen** | The bag every pupil carries. Short, warm. | Common word, check trademarks in Klasse 9. |
+| **Pausenhof** | Where school actually happens. | Three syllables, long on a widget. |
+| **Tafel** | Blackboard. Very short. | Generic, harder to own. |
+| **Schulheft** | Notebook, fits the Notizbuch icon. | Two existing apps use it in some form. |
+| **Klingel** | The bell, and the app rings you. | Sounds like a doorbell app. |
+| **Hefter** | Folder for homework. | Regional word. |
+
+Recommendation: shortlist two, run the DPMA and App Store checks, then
+pick the one that still looks fine as an icon label at 11 pt.
+
 ## Build TODO
 
 **Foundation**
 - [ ] Enrol in App Store Small Business Program.
 - [ ] Pick the paid-tier brand name (not "Schulportal …").
-- [ ] Add `StoreKit` framework + `Products.storekit` config for local testing.
-- [ ] `Store` actor (StoreKit 2): load products, purchase, `Transaction.currentEntitlements`, restore, observe `Transaction.updates`.
-- [ ] `Entitlements` model (`isPro`, `hasWidgetPack`, `ownedIconPacks`, `hasTipped`) persisted in the App Group so widgets can read it.
-- [ ] Paywall view (one screen, features list, lifetime + yearly, restore, Terms/Privacy links — required by 3.1.2).
-- [ ] "App unterstützen" screen in Mehr with the three tips + thank-you state.
+- [x] Add `StoreKit` framework + `Products.storekit` config for local testing.
+- [x] `Store` (StoreKit 2): load products, purchase, `Transaction.currentEntitlements`, restore, observe `Transaction.updates`.
+- [x] `Entitlements` model (`isPro`, `hasWidgetPack`, `ownedIconPacks`, `hasTipped`) persisted in the App Group so widgets can read it.
+- [x] Paywall view (one screen, features list, lifetime + yearly, restore, Terms/Privacy links — required by 3.1.2).
+- [x] "App unterstützen" screen in Mehr with the three tips + thank-you state.
 - [ ] Privacy nutrition label update (purchases are "Purchase history", not linked to identity).
 
 **Widgets**
-- [ ] Lock-screen widgets (3 families).
-- [ ] Interactive homework widget (`AppIntent` toggle → existing `sus_homeworkDone` path).
-- [ ] Gate premium widgets on the App Group entitlement; show a "Pro" placeholder that opens the paywall, never an empty widget.
+- [x] Lock-screen widgets — Aufgaben and Countdown in circular, rectangular and inline; the three free widgets keep theirs.
+- [x] Interactive homework widget (`AppIntent` toggle → existing `sus_homeworkDone` path).
+- [x] Gate premium widgets on the App Group entitlement; show a "Pro" placeholder that opens the paywall, never an empty widget.
 
 **Icons**
-- [ ] Draw 6 generic variants + 2 seasonal at 1024 px; add to asset catalog + `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES` in `project.yml`.
-- [ ] Icon picker in Mehr, gated per pack; school icon auto-unlocked by `schoolID`.
-- [ ] One-page consent template for school crests (DE), stored in `Docs/`.
-- [ ] Add `iconName` field to `schools.json` entries.
+- [x] Draw 6 generic variants + 2 seasonal (+ Unterstützer), generated by `Tools/make-icons.py` at 1024 px; add to asset catalog + `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES` in `project.yml`.
+- [x] Icon picker in Mehr, gated per pack; school icon auto-unlocked by `schoolID`.
+- [x] One-page consent template (`Docs/SCHULLOGO-EINWILLIGUNG.md`) for school crests (DE), stored in `Docs/`.
+- [x] Add `iconName` field to `schools.json` entries.
 
-**Pro features (pick 2 for launch)**
+**Pro features (two shipped for launch)**
 - [ ] Multi-account switcher.
-- [ ] Custom notification times / quiet hours.
-- [ ] Homework export.
+- [x] Custom notification times (digest and homework reminder; Pro).
+- [x] Homework export (text and CSV, share sheet; Pro).
 - [ ] Shortcuts actions.
 
-**Schulpaket**
+**Schulpaket** *(explained separately, not started)*
 - [ ] One-page offer (DE) + price, link from README.
 - [ ] Generate offer codes in App Store Connect per school batch.
 

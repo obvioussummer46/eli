@@ -3,10 +3,11 @@ import UIKit
 
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
+    @Environment(Store.self) private var store
     @State private var isConfirmingSignOut = false
+    @State private var isShowingPaywall = false
     @State private var isShowingCalendarSheet = false
     @State private var isShowingSchoolPicker = false
-    @State private var alternateIcon: String? = UIApplication.shared.alternateIconName
     @State private var presentedLink: SchoolLink?
     @State private var isAddingLink = false
     @State private var newLinkTitle = ""
@@ -173,6 +174,32 @@ struct SettingsView: View {
                             if enabled { Task { _ = await NotificationScheduler.requestAuthorization() } }
                         }
                     ))
+                    if store.entitlements.isPro {
+                        if model.settings.notifiesDigest {
+                            timeRow("Überblick um", minutes: Binding(
+                                get: { model.settings.digestMinutes },
+                                set: { minutes in
+                                    model.settings.digestMinutes = minutes
+                                    NotificationScheduler.rescheduleDigest()
+                                }
+                            ))
+                        }
+                        if model.settings.notifiesHomework {
+                            timeRow("Aufgaben-Erinnerung um", minutes: Binding(
+                                get: { model.settings.homeworkReminderMinutes },
+                                set: { minutes in
+                                    model.settings.homeworkReminderMinutes = minutes
+                                    // The reminders are rebuilt on the next
+                                    // refresh from the live homework list.
+                                    Task { await model.refresh() }
+                                }
+                            ))
+                        }
+                    } else if model.settings.notifiesDigest || model.settings.notifiesHomework {
+                        LockedRow(title: "Uhrzeiten anpassen", systemImage: "clock") {
+                            isShowingPaywall = true
+                        }
+                    }
                     if model.settings.showsMensaTab {
                         Toggle("Warnen, wenn das Mensa-Guthaben knapp wird", isOn: Binding(
                             get: { model.settings.notifiesLowBalance },
@@ -199,9 +226,11 @@ struct SettingsView: View {
                 } header: {
                     Text("Mitteilungen")
                 } footer: {
+                    let digest = Settings.timeLabel(minutes: Settings.effectiveDigestMinutes)
+                    let reminder = Settings.timeLabel(minutes: Settings.effectiveHomeworkReminderMinutes)
                     Text(model.settings.showsMensaTab
-                         ? "Der Überblick kommt um 18 Uhr: Stunden, fällige Aufgaben, Vertretungen und das bestellte Essen für morgen. Die Aufgaben-Erinnerung kommt um 17 Uhr am Vortag, die Bestell-Erinnerung sonntags um 17 Uhr für die kommende Woche. Alles bleibt auf dem Gerät."
-                         : "Der Überblick kommt um 18 Uhr: Stunden, fällige Aufgaben und Vertretungen für morgen. Die Aufgaben-Erinnerung kommt um 17 Uhr am Vortag. Alles bleibt auf dem Gerät.")
+                         ? "Der Überblick kommt um \(digest) Uhr: Stunden, fällige Aufgaben, Vertretungen und das bestellte Essen für morgen. Die Aufgaben-Erinnerung kommt um \(reminder) Uhr am Vortag, die Bestell-Erinnerung sonntags um 17 Uhr für die kommende Woche. Alles bleibt auf dem Gerät."
+                         : "Der Überblick kommt um \(digest) Uhr: Stunden, fällige Aufgaben und Vertretungen für morgen. Die Aufgaben-Erinnerung kommt um \(reminder) Uhr am Vortag. Alles bleibt auf dem Gerät.")
                 }
 
                 Section {
@@ -236,19 +265,47 @@ struct SettingsView: View {
                          : "Ein eigener Kalender ist angelegt. Beim erneuten Übertragen wird er aktualisiert.")
                 }
 
-                // The Eli icon is an own design in the school's colours, not
-                // the official school logo — shipping *that* would need the
-                // school's okay. Free for now; may become part of the
-                // Unterstützer bundle once IAP exists (2.4).
-                if UIApplication.shared.supportsAlternateIcons {
-                    Section {
-                        iconRow("Klassisch", iconName: nil)
-                        iconRow("Eli", iconName: "AppIconEli")
-                    } header: {
-                        Text("App-Symbol")
-                    } footer: {
-                        Text("„Eli\u{201C} ist ein eigenes Design in den Schulfarben.")
+                // Pro and the tip jar, side by side: the extras and the
+                // thank-you. Neither ever pops up on its own.
+                Section {
+                    if store.entitlements.isPro {
+                        NavigationLink {
+                            PaywallView()
+                        } label: {
+                            LabeledContent {
+                                Text("Aktiv").foregroundStyle(.green)
+                            } label: {
+                                Label("Pro", systemImage: "sparkles")
+                            }
+                        }
+                    } else {
+                        Button {
+                            isShowingPaywall = true
+                        } label: {
+                            HStack {
+                                Label("Pro freischalten", systemImage: "sparkles")
+                                Spacer()
+                                ProBadge()
+                            }
+                        }
+                        .tint(.primary)
                     }
+                    NavigationLink {
+                        SupportView()
+                    } label: {
+                        Label("App unterstützen", systemImage: store.entitlements.hasTipped ? "heart.fill" : "heart")
+                    }
+                    if UIApplication.shared.supportsAlternateIcons {
+                        NavigationLink {
+                            AppIconPickerView()
+                        } label: {
+                            Label("App-Symbol", systemImage: "app.badge")
+                        }
+                    }
+                } footer: {
+                    Text(store.entitlements.isPro
+                         ? "Danke! Widgets, Symbole und Extras sind freigeschaltet."
+                         : "Mehr Widgets, alle Symbole, eigene Erinnerungszeiten. Die App selbst bleibt kostenlos.")
                 }
 
                 Section("Statistik") {
@@ -270,6 +327,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Einstellungen")
+            .paywall(isPresented: $isShowingPaywall)
             .confirmationDialog("Wirklich abmelden?", isPresented: $isConfirmingSignOut, titleVisibility: .visible) {
                 Button("Abmelden", role: .destructive) {
                     Task { await model.signOut() }
@@ -306,22 +364,19 @@ struct SettingsView: View {
         }
     }
 
-    private func iconRow(_ title: String, iconName: String?) -> some View {
-        Button {
-            guard alternateIcon != iconName else { return }
-            UIApplication.shared.setAlternateIconName(iconName)
-            alternateIcon = iconName
-        } label: {
-            HStack {
-                Text(title)
-                Spacer()
-                if alternateIcon == iconName {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(Color.accentColor)
-                }
+    /// A time-of-day picker bound to minutes-from-midnight — the unit the
+    /// scheduler and the settings speak.
+    private func timeRow(_ title: String, minutes: Binding<Int>) -> some View {
+        let cal = GermanDate.calendar
+        let date = Binding<Date>(
+            get: {
+                cal.date(bySettingHour: minutes.wrappedValue / 60, minute: minutes.wrappedValue % 60, second: 0, of: Date()) ?? Date()
+            },
+            set: { newValue in
+                minutes.wrappedValue = cal.component(.hour, from: newValue) * 60 + cal.component(.minute, from: newValue)
             }
-        }
-        .tint(.primary)
+        )
+        return DatePicker(title, selection: date, displayedComponents: .hourAndMinute)
     }
 
     private func linkRow(_ link: SchoolLink) -> some View {

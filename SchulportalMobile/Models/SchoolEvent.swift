@@ -33,6 +33,13 @@ struct SchoolEvent: Codable, Equatable, Hashable, Identifiable {
         return SchoolEventText.mentionsExam(title)
     }
 
+    /// Ferien, Feiertage, bewegliche Ferientage, unterrichtsfreie Tage —
+    /// what the countdown widget counts down to.
+    var isHoliday: Bool {
+        if let categoryName, SchoolEventText.mentionsHoliday(categoryName) { return true }
+        return SchoolEventText.mentionsHoliday(title)
+    }
+
     /// Whether the event is still running or ahead at `reference`.
     func isCurrent(at reference: Date = Date()) -> Bool {
         end >= GermanDate.calendar.startOfDay(for: reference)
@@ -89,6 +96,13 @@ enum SchoolEventText {
     static func isExamWord(_ word: String) -> Bool {
         examWords.contains(word.lowercased())
     }
+
+    static func mentionsHoliday(_ text: String) -> Bool {
+        let lowered = text.lowercased()
+        return holidayStems.contains { lowered.contains($0) }
+    }
+
+    private static let holidayStems = ["ferien", "feiertag", "schulfrei", "unterrichtsfrei"]
 
     static func mentionsExam(_ text: String) -> Bool {
         text.split(whereSeparator: { !$0.isLetter }).contains { isExamWord(String($0)) }

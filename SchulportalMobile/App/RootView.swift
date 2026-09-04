@@ -24,6 +24,7 @@ enum AppTab: String {
 struct MainTabView: View {
     @Environment(AppModel.self) private var model
     @State private var selectedTab: AppTab = .heute
+    @State private var isShowingPaywall = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -60,9 +61,15 @@ struct MainTabView: View {
         }
         // Widget taps: `schulportalmobile://tab/<name>`, straight from
         // `widgetURL` — see `WidgetLink`.
+        .paywall(isPresented: $isShowingPaywall)
         .onOpenURL { url in
-            guard url.scheme == "schulportalmobile", url.host == "tab",
-                  let tab = AppTab(rawValue: url.lastPathComponent) else { return }
+            guard url.scheme == "schulportalmobile" else { return }
+            // A locked premium widget: straight to the paywall.
+            if url.host == "paywall" {
+                isShowingPaywall = true
+                return
+            }
+            guard url.host == "tab", let tab = AppTab(rawValue: url.lastPathComponent) else { return }
             // A hidden tab must not be selectable, or the TabView lands on
             // nothing renderable.
             if tab == .essen, !model.settings.showsMensaTab { return }

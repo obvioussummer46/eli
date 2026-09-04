@@ -28,7 +28,14 @@ final class Settings {
         /// `nil` = automatic: the tab is shown exactly when a tenant is known.
         var showsMensaTabOverride: Bool?
         var customLinks: [SchoolLink]
+        /// Minutes from midnight. Pro only — without Pro the scheduler
+        /// ignores these and uses the defaults below.
+        var homeworkReminderMinutes: Int
+        var digestMinutes: Int
     }
+
+    static let defaultHomeworkReminderMinutes = 17 * 60
+    static let defaultDigestMinutes = 18 * 60
 
     @ObservationIgnored private let defaults: UserDefaults
     private var values: Values
@@ -52,7 +59,9 @@ final class Settings {
             showsLiveActivity: defaults.object(forKey: Keys.showsLiveActivity) as? Bool ?? false,
             mensaTenantOverride: defaults.string(forKey: Keys.mensaTenantOverride) ?? "",
             showsMensaTabOverride: defaults.object(forKey: Keys.showsMensaTab) as? Bool,
-            customLinks: Self.decodeLinks(defaults.data(forKey: Keys.customLinks))
+            customLinks: Self.decodeLinks(defaults.data(forKey: Keys.customLinks)),
+            homeworkReminderMinutes: defaults.object(forKey: Keys.homeworkReminderMinutes) as? Int ?? Self.defaultHomeworkReminderMinutes,
+            digestMinutes: defaults.object(forKey: Keys.digestMinutes) as? Int ?? Self.defaultDigestMinutes
         )
     }
 
@@ -181,6 +190,18 @@ final class Settings {
         }
     }
 
+    // MARK: - Reminder times (Pro)
+
+    var homeworkReminderMinutes: Int {
+        get { values.homeworkReminderMinutes }
+        set { values.homeworkReminderMinutes = newValue; defaults.set(newValue, forKey: Keys.homeworkReminderMinutes) }
+    }
+
+    var digestMinutes: Int {
+        get { values.digestMinutes }
+        set { values.digestMinutes = newValue; defaults.set(newValue, forKey: Keys.digestMinutes) }
+    }
+
     private static func decodeLinks(_ data: Data?) -> [SchoolLink] {
         guard let data else { return [] }
         return (try? JSONDecoder().decode([SchoolLink].self, from: data)) ?? []
@@ -204,6 +225,25 @@ final class Settings {
         static let mensaTenantOverride = "mensa.tenant"
         static let showsMensaTab = "mensa.showsTab"
         static let customLinks = "school.customLinks"
+        static let homeworkReminderMinutes = "notify.homework.minutes"
+        static let digestMinutes = "notify.digest.minutes"
+    }
+
+    /// The times the scheduler actually uses: the user's own with Pro, the
+    /// defaults otherwise — so a lapsed subscription falls back on its own
+    /// the next time anything is rescheduled, with no cleanup code.
+    static var effectiveHomeworkReminderMinutes: Int {
+        guard EntitlementStore.load().isPro else { return defaultHomeworkReminderMinutes }
+        return UserDefaults.standard.object(forKey: Keys.homeworkReminderMinutes) as? Int ?? defaultHomeworkReminderMinutes
+    }
+
+    static var effectiveDigestMinutes: Int {
+        guard EntitlementStore.load().isPro else { return defaultDigestMinutes }
+        return UserDefaults.standard.object(forKey: Keys.digestMinutes) as? Int ?? defaultDigestMinutes
+    }
+
+    static func timeLabel(minutes: Int) -> String {
+        String(format: "%02d:%02d", minutes / 60, minutes % 60)
     }
 
     /// `MensaModel` lives in the other half of the app and owns no `Settings`;

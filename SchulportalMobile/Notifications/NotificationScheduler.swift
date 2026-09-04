@@ -46,11 +46,13 @@ enum NotificationScheduler {
         }
     }
 
-    /// 17:00 the evening before — after school, before the bag is packed.
+    /// The evening before — 17:00 by default, after school and before the
+    /// bag is packed; Pro users pick their own time.
     private static func eveningBefore(_ deadline: Date) -> Date? {
         let cal = GermanDate.calendar
         guard let dayBefore = cal.date(byAdding: .day, value: -1, to: deadline) else { return nil }
-        return cal.date(bySettingHour: 17, minute: 0, second: 0, of: dayBefore)
+        let minutes = Settings.effectiveHomeworkReminderMinutes
+        return cal.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0, of: dayBefore)
     }
 
     // MARK: - Evening digest
@@ -62,7 +64,8 @@ enum NotificationScheduler {
             .removePendingNotificationRequests(withIdentifiers: [digestIdentifier])
     }
 
-    /// One notification at 18:00 that answers the bag-packing question for
+    /// One notification at 18:00 (or the Pro user's own time) that answers
+    /// the bag-packing question for
     /// the next day: lessons, due homework, Vertretungen, the ordered dish.
     /// Built from the same `SharedSnapshot` the widgets read — whichever
     /// half refreshes last (portal or mensa) reschedules with fresh data.
@@ -73,7 +76,8 @@ enum NotificationScheduler {
         guard let snapshot = SharedSnapshotStore.load() else { return }
 
         let cal = SharedSnapshot.calendar
-        var evening = cal.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+        let minutes = Settings.effectiveDigestMinutes
+        var evening = cal.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0, of: now) ?? now
         if evening <= now {
             evening = cal.date(byAdding: .day, value: 1, to: evening) ?? evening
         }

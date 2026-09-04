@@ -3,7 +3,10 @@ import SwiftUI
 /// The list the whole app exists for: every open homework, one tap to tick off.
 struct HomeworkListView: View {
     @Environment(AppModel.self) private var model
+    @Environment(Store.self) private var store
     @State private var searchText = ""
+    @State private var shareFile: ShareFile?
+    @State private var isShowingPaywall = false
     @State private var subjectFilter: String?
     @State private var selection: Homework?
 
@@ -68,6 +71,10 @@ struct HomeworkListView: View {
             .searchable(text: $searchText, prompt: "Aufgabe oder Fach suchen")
             .refreshable { await model.refresh() }
             .toolbar { toolbar(settings: settings) }
+            .sheet(item: $shareFile) { file in
+                ShareSheet(items: [file.url])
+            }
+            .paywall(isPresented: $isShowingPaywall)
             .sheet(item: $selection) { item in
                 HomeworkDetailView(homework: item)
                     .environment(model)
@@ -112,6 +119,31 @@ struct HomeworkListView: View {
                     Task { await model.refresh() }
                 } label: {
                     Label("Aktualisieren", systemImage: "arrow.clockwise")
+                }
+                Divider()
+                // Export is Pro. Shown to everyone, so it can be found;
+                // locked, the tap explains itself on the paywall.
+                if store.entitlements.isPro {
+                    Menu {
+                        ForEach(HomeworkExport.Format.allCases) { format in
+                            Button {
+                                let items = open + (settings.hidesDoneHomework ? [] : done)
+                                if let url = HomeworkExport.file(format, items: items, model: model) {
+                                    shareFile = ShareFile(url: url)
+                                }
+                            } label: {
+                                Label(format.title, systemImage: format.systemImage)
+                            }
+                        }
+                    } label: {
+                        Label("Exportieren", systemImage: "square.and.arrow.up")
+                    }
+                } else {
+                    Button {
+                        isShowingPaywall = true
+                    } label: {
+                        Label("Exportieren (Pro)", systemImage: "lock")
+                    }
                 }
             } label: {
                 Image(systemName: subjectFilter == nil ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")

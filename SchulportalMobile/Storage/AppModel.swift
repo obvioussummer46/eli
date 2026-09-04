@@ -130,6 +130,7 @@ final class AppModel {
         isRefreshing = true
         lastErrorMessage = nil
         defer { isRefreshing = false }
+        absorbWidgetTicks()
 
         // Hoisted out of the child tasks so they capture a plain value rather
         // than a main-actor-isolated property.
@@ -244,13 +245,59 @@ final class AppModel {
             return SharedDeadline(date: deadline, subject: homework.subject.name)
         }
 
+        // The premium widgets' halves. Capped: a widget shows a handful,
+        // and the file is rewritten on every refresh.
+        let homework = openHomework.prefix(40).map { item in
+            SharedHomework(id: item.id,
+                           subject: item.subject.name,
+                           colorHex: item.subject.colorHex,
+                           text: item.text,
+                           deadline: deadline(for: item))
+        }
+        let events = upcomingEvents.prefix(40).map { event in
+            SharedEvent(id: event.id,
+                        title: event.displayTitle,
+                        start: event.start,
+                        end: event.end,
+                        isAllDay: event.isAllDay,
+                        isExam: event.isExam,
+                        isHoliday: event.isHoliday,
+                        colorHex: event.colorHex)
+        }
+
         SharedSnapshotStore.update { store in
             store.weekdayLessons = weekdayLessons
             store.substitutions = shared
             store.deadlines = deadlines
+            store.homework = Array(homework)
+            store.events = Array(events)
+        }
+        // Ticks the widget made and the app has since taken over (or that
+        // point at homework nobody can see any more) are done with.
+        let known = Dictionary(allHomework.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let settled = SharedHomeworkTicks.load().keys.filter { id in
+            guard let item = known[id] else { return true }
+            return isDone(item)
+        }
+        if !settled.isEmpty {
+            SharedHomeworkTicks.remove(settled)
         }
         if settings.notifiesDigest {
             NotificationScheduler.rescheduleDigest()
+        }
+    }
+
+    /// Ticks made on the interactive widget while the app was closed: the
+    /// extension has no portal session, so it only recorded them. Here they
+    /// become ordinary `setDone` calls — local flag first, portal push in
+    /// the background, retry on the next refresh if that fails.
+    func absorbWidgetTicks() {
+        let ticks = SharedHomeworkTicks.load()
+        guard !ticks.isEmpty else { return }
+        let lookup = Dictionary(allHomework.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        for id in ticks.keys {
+            guard let item = lookup[id], !isDone(item) else { continue }
+            setDone(item, true)
         }
     }
 

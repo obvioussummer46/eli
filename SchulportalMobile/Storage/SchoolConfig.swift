@@ -18,6 +18,11 @@ struct SchoolConfig: Codable {
     /// whole mensa API hangs off. No tenant, no Essen tab.
     var mensaTenant: String?
     var links: [SchoolLink]?
+    /// The school's own app icon — an appiconset bundled in the app, listed
+    /// in `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES`. Only ever a design
+    /// the school agreed to (`Docs/SCHULLOGO-EINWILLIGUNG.md`); unlocked for
+    /// free for everyone at that school.
+    var iconName: String?
 }
 
 /// The per-school registry: everything school-specific is *data, not code*,

@@ -342,7 +342,7 @@
 		AA0000000000000000000071 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = AppIconEli;
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIconEli AppIconMitternacht AppIconMinze AppIconLila AppIconAbendrot AppIconMono AppIconNotizbuch AppIconWeihnachten AppIconSommer AppIconUnterstuetzer";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Config/SchulportalMobile.entitlements;
@@ -376,7 +376,7 @@
 		AA0000000000000000000072 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = AppIconEli;
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIconEli AppIconMitternacht AppIconMinze AppIconLila AppIconAbendrot AppIconMono AppIconNotizbuch AppIconWeihnachten AppIconSommer AppIconUnterstuetzer";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Config/SchulportalMobile.entitlements;

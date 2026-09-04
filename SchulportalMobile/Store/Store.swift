@@ -56,12 +56,18 @@ final class Store {
             // App Store Connect returns them in arbitrary order; keep ours.
             let order = Dictionary(uniqueKeysWithValues: ProductID.allCases.enumerated().map { ($1.rawValue, $0) })
             products = loaded.sorted { (order[$0.id] ?? 99) < (order[$1.id] ?? 99) }
-            lastErrorMessage = nil
+            // StoreKit answers an unknown app (no App Store Connect record,
+            // no local configuration) with an empty list rather than an
+            // error; without this the paywall would show no offers and no
+            // explanation.
+            lastErrorMessage = products.isEmpty ? Self.unavailableMessage : nil
         } catch {
             logger.error("Produkte konnten nicht geladen werden: \(error.localizedDescription, privacy: .public)")
-            lastErrorMessage = "Die Angebote konnten gerade nicht geladen werden. Bitte später noch einmal versuchen."
+            lastErrorMessage = Self.unavailableMessage
         }
     }
+
+    private static let unavailableMessage = "Die Angebote konnten gerade nicht geladen werden. Bitte später noch einmal versuchen."
 
     func product(_ id: ProductID) -> Product? {
         products.first { $0.id == id.rawValue }

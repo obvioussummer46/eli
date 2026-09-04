@@ -199,5 +199,5 @@ final class Store {
 /// first paid build goes to review — both must resolve.
 enum StoreLinks {
     static let terms = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
-    static let privacy = URL(string: "https://github.com/obvioussummer46/eli#datenschutz")!
+    static let privacy = URL(string: "https://github.com/obvioussummer46/eli/blob/main/Docs/DATENSCHUTZ.md")!
 }

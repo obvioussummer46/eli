@@ -22,7 +22,8 @@ struct PaywallView: View {
         Feature(icon: "hourglass", title: "Countdown-Widget", detail: "Tage bis zu den Ferien oder zur nächsten Arbeit — auch auf dem Sperrbildschirm."),
         Feature(icon: "paintpalette", title: "Alle App-Symbole", detail: "Jedes Symbol-Paket, auch die künftigen."),
         Feature(icon: "bell.badge", title: "Eigene Erinnerungszeiten", detail: "Aufgaben-Erinnerung und Abend-Überblick, wann du willst."),
-        Feature(icon: "square.and.arrow.up", title: "Aufgaben exportieren", detail: "Als Text oder Tabelle teilen.")
+        Feature(icon: "square.and.arrow.up", title: "Aufgaben exportieren", detail: "Als Text oder Tabelle teilen."),
+        Feature(icon: "waveform", title: "Siri: „Was habe ich morgen?“", detail: "Stunden, Aufgaben und Vertretungen, ohne die App zu öffnen.")
     ]
 
     var body: some View {
@@ -41,7 +42,7 @@ struct PaywallView: View {
                 .padding(20)
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Pro")
+            .navigationTitle(Brand.pro)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -62,7 +63,7 @@ struct PaywallView: View {
                 .foregroundStyle(Color.accentColor)
             Text("Mehr Widgets, mehr Symbole, mehr Ruhe.")
                 .font(.title2.bold())
-            Text("Die App bleibt kostenlos — Hausaufgaben, Stundenplan, Kalender, Mensa und die drei Widgets gehören allen. Pro ist das Extra obendrauf und finanziert die Weiterentwicklung.")
+            Text("Die App bleibt kostenlos — Hausaufgaben, Stundenplan, Kalender, Mensa und die drei Widgets gehören allen. \(Brand.pro) ist das Extra obendrauf und finanziert die Weiterentwicklung.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -157,7 +158,7 @@ struct PaywallView: View {
                 .font(.title2)
                 .foregroundStyle(.green)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Pro ist aktiv").font(.headline)
+                Text("\(Brand.pro) ist aktiv").font(.headline)
                 Text("Danke! Alle Extras sind freigeschaltet.").font(.footnote).foregroundStyle(.secondary)
             }
             Spacer()

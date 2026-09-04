@@ -216,13 +216,13 @@ DPMA, `name.app` domain → ask ten pupils which they would say out loud.
 
 **Foundation**
 - [ ] Enrol in App Store Small Business Program.
-- [ ] Pick the paid-tier brand name (not "Schulportal …").
+- [x] Pick the paid-tier brand name — **Ranzen Pro** for now (`Shared/Brand.swift`, one place to change).
 - [x] Add `StoreKit` framework + `Products.storekit` config for local testing.
 - [x] `Store` (StoreKit 2): load products, purchase, `Transaction.currentEntitlements`, restore, observe `Transaction.updates`.
 - [x] `Entitlements` model (`isPro`, `hasWidgetPack`, `ownedIconPacks`, `hasTipped`) persisted in the App Group so widgets can read it.
 - [x] Paywall view (one screen, features list, lifetime + yearly, restore, Terms/Privacy links — required by 3.1.2).
 - [x] "App unterstützen" screen in Mehr with the three tips + thank-you state.
-- [ ] Privacy nutrition label update (purchases are "Purchase history", not linked to identity).
+- [x] Privacy nutrition label answers, App Store texts and review notes: `Docs/APP-STORE.md`. Privacy policy: `Docs/DATENSCHUTZ.md` (fill in contact details).
 
 **Widgets**
 - [x] Lock-screen widgets — Aufgaben and Countdown in circular, rectangular and inline; the three free widgets keep theirs.
@@ -239,12 +239,12 @@ DPMA, `name.app` domain → ask ten pupils which they would say out loud.
 - [ ] Multi-account switcher.
 - [x] Custom notification times (digest and homework reminder; Pro).
 - [x] Homework export (text and CSV, share sheet; Pro).
-- [ ] Shortcuts actions.
+- [x] Siri shortcut „Was habe ich morgen?“ (`Shortcuts/TomorrowIntent.swift`, Pro).
 
-**Schulpaket** *(explained separately, not started)*
-- [ ] One-page offer (DE) + price, link from README.
+**Schulpaket** (`Docs/SCHULPAKET.md`)
+- [x] One-page offer (DE) + price, link from README.
 - [ ] Generate offer codes in App Store Connect per school batch.
 
 **Release**
-- [ ] App Review notes: demo account, explain what is free, that tips are voluntary.
+- [x] App Review notes drafted in `Docs/APP-STORE.md` — fill in the demo account.
 - [ ] Test: purchase, restore, Family Sharing, refund (sandbox `Transaction.updates` revocation), widgets after entitlement change.

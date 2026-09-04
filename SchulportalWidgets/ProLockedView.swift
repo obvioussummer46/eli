@@ -14,7 +14,7 @@ struct ProLockedView: View {
             case .accessoryCircular:
                 Image(systemName: "lock.fill")
             case .accessoryInline:
-                Label("\(title) · Pro", systemImage: "lock.fill")
+                Label("\(title) · \(Brand.proShort)", systemImage: "lock.fill")
             case .accessoryRectangular:
                 HStack(spacing: 6) {
                     Image(systemName: "lock.fill")
@@ -30,7 +30,7 @@ struct ProLockedView: View {
                         .foregroundStyle(.secondary)
                     Text(title)
                         .font(.caption.weight(.semibold))
-                    Text("Teil von Pro —\nin der App freischalten")
+                    Text("Teil von \(Brand.pro) —\nin der App freischalten")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

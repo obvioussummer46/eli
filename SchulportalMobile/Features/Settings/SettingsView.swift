@@ -275,7 +275,7 @@ struct SettingsView: View {
                             LabeledContent {
                                 Text("Aktiv").foregroundStyle(.green)
                             } label: {
-                                Label("Pro", systemImage: "sparkles")
+                                Label(Brand.pro, systemImage: "sparkles")
                             }
                         }
                     } else {
@@ -283,7 +283,7 @@ struct SettingsView: View {
                             isShowingPaywall = true
                         } label: {
                             HStack {
-                                Label("Pro freischalten", systemImage: "sparkles")
+                                Label("\(Brand.pro) freischalten", systemImage: "sparkles")
                                 Spacer()
                                 ProBadge()
                             }

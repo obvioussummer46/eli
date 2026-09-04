@@ -101,7 +101,7 @@
       "localizations" : [
         {
           "description" : "Alle Widgets, alle Symbole, alle Extras. Für immer.",
-          "displayName" : "Pro",
+          "displayName" : "Ranzen Pro",
           "locale" : "de_DE"
         }
       ],
@@ -126,7 +126,7 @@
       "localizations" : [
 
       ],
-      "name" : "Pro",
+      "name" : "Ranzen Pro",
       "subscriptions" : [
         {
           "adHocOffers" : [
@@ -147,7 +147,7 @@
           "localizations" : [
             {
               "description" : "Alle Widgets, alle Symbole, alle Extras. Jährlich.",
-              "displayName" : "Pro (Jahr)",
+              "displayName" : "Ranzen Pro (Jahr)",
               "locale" : "de_DE"
             }
           ],

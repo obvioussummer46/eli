@@ -142,7 +142,7 @@ struct HomeworkListView: View {
                     Button {
                         isShowingPaywall = true
                     } label: {
-                        Label("Exportieren (Pro)", systemImage: "lock")
+                        Label("Exportieren (\(Brand.proShort))", systemImage: "lock")
                     }
                 }
             } label: {

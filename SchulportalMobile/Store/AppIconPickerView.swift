@@ -127,7 +127,7 @@ struct AppIconPickerView: View {
         Button {
             isShowingPaywall = true
         } label: {
-            Label("Oder alle Symbole mit Pro", systemImage: "sparkles")
+            Label("Oder alle Symbole mit \(Brand.pro)", systemImage: "sparkles")
         }
         .tint(.primary)
     }

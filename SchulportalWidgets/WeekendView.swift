@@ -55,9 +55,10 @@ struct WeekendView: View {
                 Text("Wochenende 🎉 · \(WidgetFormat.weekdayDayMonth.string(from: date))")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
-                Text(open.isEmpty ? "Alles erledigt — genieß die zwei Tage." : "\(countLine). \(nudge)")
+                Text(open.isEmpty ? "Alles erledigt — genieß die zwei Tage." : "\(countLine) — heute erledigen, Sonntag frei.")
                     .font(.subheadline.weight(.medium))
                     .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 ForEach(open.prefix(family == .systemLarge ? 6 : 2)) { item in
                     HStack(spacing: 6) {
                         Text(item.subject)

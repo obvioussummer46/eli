@@ -53,24 +53,28 @@ struct TimetableWeekGrid: View {
     private func dayColumn(_ day: Weekday) -> some View {
         VStack(spacing: 6) {
             header(Text(day.shortName).font(.subheadline.weight(.semibold)))
-            ForEach(slots(for: day), id: \.period) { slot in
-                if !slot.entries.isEmpty {
-                    // Parallel courses (Religion/Ethik, second languages)
-                    // share the slot side by side instead of the first one
-                    // silently swallowing the rest.
-                    HStack(spacing: 3) {
-                        ForEach(slot.entries) { entry in
-                            LessonBlock(entry: entry)
-                        }
+            ZStack(alignment: .topLeading) {
+                // Empty cells only where nothing is scheduled — the blocks
+                // are translucent, so a cell underneath would shine through.
+                let covered = coveredPeriods(for: day)
+                VStack(spacing: 6) {
+                    ForEach(periods, id: \.self) { period in
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(covered.contains(period) ? Color.clear : Color(.secondarySystemGroupedBackground).opacity(0.5))
+                            .frame(width: columnWidth, height: rowHeight)
                     }
-                    .frame(width: columnWidth,
-                           height: rowHeight * CGFloat(slot.span) + 6 * CGFloat(slot.span - 1))
-                } else if !slot.isCovered {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(.secondarySystemGroupedBackground).opacity(0.5))
-                        .frame(width: columnWidth, height: rowHeight)
+                }
+                // Overlapping entries — parallel courses, or an AG running
+                // into the afternoon lessons — share the width in lanes
+                // instead of the first one swallowing the rest.
+                ForEach(placements(for: day)) { placed in
+                    LessonBlock(entry: placed.entry)
+                        .frame(width: laneWidth(lanes: placed.lanes), height: height(spanning: placed.entry))
+                        .offset(x: CGFloat(placed.lane) * (laneWidth(lanes: placed.lanes) + laneSpacing),
+                                y: rowOffset(of: placed.entry.firstPeriod))
                 }
             }
+            .frame(width: columnWidth, height: columnHeight, alignment: .topLeading)
         }
     }
 
@@ -87,34 +91,82 @@ struct TimetableWeekGrid: View {
 
     // MARK: - Layout
 
-    private struct Slot {
-        var period: Int
-        /// Everything starting in this period — more than one when courses
-        /// run in parallel.
-        var entries: [TimetableEntry]
-        var span: Int
-        /// A row swallowed by the block above it — renders nothing at all.
-        var isCovered: Bool
+    private let laneSpacing: CGFloat = 3
+
+    private var columnHeight: CGFloat {
+        guard !periods.isEmpty else { return 0 }
+        return rowHeight * CGFloat(periods.count) + 6 * CGFloat(periods.count - 1)
     }
 
-    private func slots(for day: Weekday) -> [Slot] {
-        let lessons = timetable.entries(on: day)
-        var result: [Slot] = []
-        var coveredUntil = Int.min
+    private func rowOffset(of period: Int) -> CGFloat {
+        guard let row = periods.firstIndex(of: period) else { return 0 }
+        return CGFloat(row) * (rowHeight + 6)
+    }
 
-        for period in periods {
-            if period <= coveredUntil {
-                result.append(Slot(period: period, entries: [], span: 1, isCovered: true))
-                continue
-            }
-            let starting = lessons.filter { $0.firstPeriod == period }
-            if let longest = starting.map(\.lastPeriod).max() {
-                let span = max(1, longest - period + 1)
-                coveredUntil = longest
-                result.append(Slot(period: period, entries: starting, span: span, isCovered: false))
+    private func height(spanning entry: TimetableEntry) -> CGFloat {
+        let span = max(1, entry.lastPeriod - entry.firstPeriod + 1)
+        return rowHeight * CGFloat(span) + 6 * CGFloat(span - 1)
+    }
+
+    private func laneWidth(lanes: Int) -> CGFloat {
+        (columnWidth - laneSpacing * CGFloat(max(0, lanes - 1))) / CGFloat(max(1, lanes))
+    }
+
+    /// One entry placed in a lane. Entries whose periods overlap form a
+    /// cluster and split that cluster's width evenly; everything else keeps
+    /// the full column.
+    private struct Placement: Identifiable {
+        var entry: TimetableEntry
+        var lane: Int
+        var lanes: Int
+        var id: String { entry.id }
+    }
+
+    private func coveredPeriods(for day: Weekday) -> Set<Int> {
+        var covered = Set<Int>()
+        for entry in timetable.entries(on: day) {
+            covered.formUnion(entry.firstPeriod...max(entry.firstPeriod, entry.lastPeriod))
+        }
+        return covered
+    }
+
+    private func placements(for day: Weekday) -> [Placement] {
+        // Lessons before activities, then the longer block first, so the
+        // portal's plan keeps the left lane and an AG sits beside it.
+        let lessons = timetable.entries(on: day).sorted {
+            ($0.firstPeriod, $0.isActivity ? 1 : 0, -$0.lastPeriod) < ($1.firstPeriod, $1.isActivity ? 1 : 0, -$1.lastPeriod)
+        }
+        var clusters: [[TimetableEntry]] = []
+        var current: [TimetableEntry] = []
+        var currentEnd = Int.min
+        for entry in lessons {
+            if current.isEmpty || entry.firstPeriod <= currentEnd {
+                current.append(entry)
+                currentEnd = max(currentEnd, entry.lastPeriod)
             } else {
-                result.append(Slot(period: period, entries: [], span: 1, isCovered: false))
+                clusters.append(current)
+                current = [entry]
+                currentEnd = entry.lastPeriod
             }
+        }
+        if !current.isEmpty { clusters.append(current) }
+
+        var result: [Placement] = []
+        for cluster in clusters {
+            // Greedy: the first lane that is free again by the time the
+            // entry starts, otherwise a new one.
+            var laneEnds: [Int] = []
+            var assigned: [(TimetableEntry, Int)] = []
+            for entry in cluster {
+                if let lane = laneEnds.firstIndex(where: { $0 < entry.firstPeriod }) {
+                    laneEnds[lane] = entry.lastPeriod
+                    assigned.append((entry, lane))
+                } else {
+                    laneEnds.append(entry.lastPeriod)
+                    assigned.append((entry, laneEnds.count - 1))
+                }
+            }
+            result += assigned.map { Placement(entry: $0.0, lane: $0.1, lanes: laneEnds.count) }
         }
         return result
     }
@@ -129,6 +181,11 @@ private struct LessonBlock: View {
                 .font(.caption.weight(.bold))
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
+            if entry.isActivity {
+                Text("\(SchoolActivity.subjectCode) · \(entry.start.description)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
             if let room = entry.room, !room.isEmpty {
                 Text(room)
                     .font(.caption2)

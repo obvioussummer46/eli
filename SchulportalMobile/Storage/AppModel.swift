@@ -215,12 +215,28 @@ final class AppModel {
         exportSharedSnapshot()
     }
 
+    /// The plan every surface shows: the portal's timetable plus the user's
+    /// own AGs. Read this, not `snapshot.timetable`, unless the portal's
+    /// bare data is the point (the parser, the "Stunden im Plan" count).
+    var timetable: Timetable {
+        snapshot.timetable.merging(settings.activities)
+    }
+
+    /// After the user added, edited or removed an activity: the widgets and
+    /// the digest read the shared snapshot, so it has to be rewritten now,
+    /// not on the next portal refresh.
+    func activitiesDidChange() {
+        exportSharedSnapshot()
+        LessonActivityController.sync(model: self, canStart: true)
+    }
+
     /// Hands the widgets (and the evening digest) their copy of the world —
     /// display-ready, class-filtered, no app types.
     private func exportSharedSnapshot() {
         var weekdayLessons: [Int: [SharedLesson]] = [:]
-        for weekday in snapshot.timetable.weekdaysInUse {
-            weekdayLessons[weekday.rawValue] = snapshot.timetable.entries(on: weekday).map { entry in
+        let plan = timetable
+        for weekday in plan.weekdaysInUse {
+            weekdayLessons[weekday.rawValue] = plan.entries(on: weekday).map { entry in
                 SharedLesson(startMinutes: entry.start.minutesFromMidnight,
                              endMinutes: entry.end.minutesFromMidnight,
                              subject: entry.subject.name,
@@ -615,7 +631,7 @@ final class AppModel {
 
     var todaysLessons: [TimetableEntry] {
         guard let today else { return [] }
-        return snapshot.timetable.entries(on: today)
+        return timetable.entries(on: today)
     }
 
     /// The lesson happening right now, or the next one today.
@@ -663,6 +679,6 @@ final class AppModel {
 
     private func lessons(on date: Date) -> [TimetableEntry] {
         guard let weekday = Weekday.fromCalendarWeekday(GermanDate.calendar.component(.weekday, from: date)) else { return [] }
-        return snapshot.timetable.entries(on: weekday)
+        return timetable.entries(on: weekday)
     }
 }

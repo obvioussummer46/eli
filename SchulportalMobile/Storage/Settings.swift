@@ -28,6 +28,8 @@ final class Settings {
         /// `nil` = automatic: the tab is shown exactly when a tenant is known.
         var showsMensaTabOverride: Bool?
         var customLinks: [SchoolLink]
+        /// The user's own AGs and fixed appointments, merged into the plan.
+        var activities: [SchoolActivity]
         /// Minutes from midnight. Pro only — without Pro the scheduler
         /// ignores these and uses the defaults below.
         var homeworkReminderMinutes: Int
@@ -60,6 +62,7 @@ final class Settings {
             mensaTenantOverride: defaults.string(forKey: Keys.mensaTenantOverride) ?? "",
             showsMensaTabOverride: defaults.object(forKey: Keys.showsMensaTab) as? Bool,
             customLinks: Self.decodeLinks(defaults.data(forKey: Keys.customLinks)),
+            activities: Self.decodeActivities(defaults.data(forKey: Keys.activities)),
             homeworkReminderMinutes: defaults.object(forKey: Keys.homeworkReminderMinutes) as? Int ?? Self.defaultHomeworkReminderMinutes,
             digestMinutes: defaults.object(forKey: Keys.digestMinutes) as? Int ?? Self.defaultDigestMinutes
         )
@@ -190,6 +193,24 @@ final class Settings {
         }
     }
 
+    // MARK: - Activities (AGs)
+
+    /// The user's own weekly appointments — an AG, the Hort, a Förderkurs.
+    /// Per device like the custom links: they belong to whoever holds the
+    /// phone, not to the portal account.
+    var activities: [SchoolActivity] {
+        get { values.activities }
+        set {
+            values.activities = newValue
+            defaults.set(try? JSONEncoder().encode(newValue), forKey: Keys.activities)
+        }
+    }
+
+    private static func decodeActivities(_ data: Data?) -> [SchoolActivity] {
+        guard let data else { return [] }
+        return (try? JSONDecoder().decode([SchoolActivity].self, from: data)) ?? []
+    }
+
     // MARK: - Reminder times (Pro)
 
     var homeworkReminderMinutes: Int {
@@ -225,6 +246,7 @@ final class Settings {
         static let mensaTenantOverride = "mensa.tenant"
         static let showsMensaTab = "mensa.showsTab"
         static let customLinks = "school.customLinks"
+        static let activities = "timetable.activities"
         static let homeworkReminderMinutes = "notify.homework.minutes"
         static let digestMinutes = "notify.digest.minutes"
     }

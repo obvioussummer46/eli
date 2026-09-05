@@ -66,6 +66,25 @@ struct SettingsView: View {
                     }
                 }
 
+                // What the portal's plan lacks: the afternoon. Entered by
+                // hand for every school alike — no school publishes its AGs
+                // in a form a program could read.
+                Section {
+                    NavigationLink {
+                        ActivitiesView()
+                    } label: {
+                        LabeledContent {
+                            if !model.settings.activities.isEmpty {
+                                Text("\(model.settings.activities.count)")
+                            }
+                        } label: {
+                            Label("AGs & Termine", systemImage: "figure.run")
+                        }
+                    }
+                } footer: {
+                    Text("Nachmittags-AG, Förderkurs, Hort — einmal eintragen, dann steht es im Stundenplan, auf Heute, im Widget und im Kalender-Export.")
+                }
+
                 // Only while the portal reports any attendance data for this
                 // account — no data, no row: hidden, not broken.
                 if model.snapshot.attendance?.isEmpty == false {

@@ -76,9 +76,21 @@ struct TimetableEntry: Identifiable, Codable, Hashable {
     var subject: Subject
     var room: String?
     var teacher: String?
+    /// Set when the entry is one of the user's own activities (see
+    /// `Activity`), not a lesson from the portal. Optional so timetables
+    /// cached before the field existed still decode.
+    var activityID: String?
+
+    var isActivity: Bool { activityID != nil }
 
     var periodLabel: String {
         firstPeriod == lastPeriod ? "\(firstPeriod)." : "\(firstPeriod).–\(lastPeriod)."
+    }
+
+    /// "3.–4. Stunde" for a lesson; an activity's period is only derived
+    /// from its times, so it shows those instead.
+    var slotLabel: String {
+        isActivity ? "\(start.description)–\(end.description)" : "\(periodLabel) Stunde"
     }
 }
 
@@ -99,7 +111,9 @@ struct Timetable: Codable, Hashable {
     var isEmpty: Bool { entries.isEmpty }
 
     func entries(on weekday: Weekday) -> [TimetableEntry] {
-        entries.filter { $0.weekday == weekday }.sorted { $0.firstPeriod < $1.firstPeriod }
+        entries.filter { $0.weekday == weekday }.sorted {
+            ($0.firstPeriod, $0.start.minutesFromMidnight) < ($1.firstPeriod, $1.start.minutesFromMidnight)
+        }
     }
 
     var weekdaysInUse: [Weekday] {

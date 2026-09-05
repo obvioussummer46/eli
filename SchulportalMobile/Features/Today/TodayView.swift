@@ -168,6 +168,9 @@ struct TodayView: View {
                                 .foregroundStyle(.secondary)
                                 .frame(width: 44, alignment: .leading)
                             SubjectChip(subject: lesson.subject, compact: true)
+                            if lesson.isActivity {
+                                ActivityTag()
+                            }
                             Text(lesson.room ?? "")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)

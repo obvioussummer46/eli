@@ -46,7 +46,7 @@ struct CalendarSyncView: View {
                             if isWorking { ProgressView() }
                         }
                     }
-                    .disabled(isWorking || model.snapshot.timetable.isEmpty)
+                    .disabled(isWorking || model.timetable.isEmpty)
                 }
 
                 if let summary {
@@ -102,7 +102,7 @@ struct CalendarSyncView: View {
         errorMessage = nil
         defer { isWorking = false }
         do {
-            summary = try await sync.sync(timetable: model.snapshot.timetable,
+            summary = try await sync.sync(timetable: model.timetable,
                                           homework: model.openHomework,
                                           events: model.upcomingEvents,
                                           settings: model.settings)

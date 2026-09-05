@@ -12,7 +12,7 @@ struct TimetableView: View {
     @State private var selectedDay: Weekday = .monday
     @State private var isShowingCalendarSheet = false
 
-    private var timetable: Timetable { model.snapshot.timetable }
+    private var timetable: Timetable { model.timetable }
 
     var body: some View {
         NavigationStack {
@@ -31,7 +31,14 @@ struct TimetableView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Stundenplan")
             .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    NavigationLink {
+                        ActivitiesView()
+                            .environment(model)
+                    } label: {
+                        Image(systemName: "figure.run")
+                    }
+                    .accessibilityLabel("AGs & Termine")
                     Button {
                         isShowingCalendarSheet = true
                     } label: {
@@ -140,6 +147,9 @@ struct LessonRow: View {
                 HStack(spacing: 6) {
                     Text(entry.subject.name)
                         .font(.headline)
+                    if entry.isActivity {
+                        ActivityTag()
+                    }
                     if isNow {
                         Text("jetzt")
                             .font(.caption2.weight(.bold))
@@ -150,7 +160,7 @@ struct LessonRow: View {
                     }
                 }
                 HStack(spacing: 8) {
-                    Text("\(entry.periodLabel) Stunde")
+                    Text(entry.slotLabel)
                     if let room = entry.room, !room.isEmpty {
                         Label(room, systemImage: "mappin.and.ellipse")
                     }
@@ -165,5 +175,18 @@ struct LessonRow: View {
         }
         .padding(.vertical, 6)
         .listRowBackground(isNow ? Color.accentColor.opacity(0.08) : Color(.secondarySystemGroupedBackground))
+    }
+}
+
+/// The small "AG" mark on an entry the user added — so nobody wonders why
+/// the portal's plan has a lesson the portal never mentioned.
+struct ActivityTag: View {
+    var body: some View {
+        Text(SchoolActivity.subjectCode)
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .overlay(Capsule().strokeBorder(.secondary.opacity(0.5), lineWidth: 1))
     }
 }

@@ -671,10 +671,23 @@ final class AppModel {
         lessons(on: heuteDay.date)
     }
 
-    /// Saturday without lessons — the Heute tab talks about the weekend and
-    /// the homework, not about Monday. Same rule as the widgets.
+    /// Friday after the last lesson, and Saturday — the Heute tab talks
+    /// about the weekend and the homework, not about Monday. Same rule as
+    /// `SharedSnapshot.isWeekendPause`, on the app's own types.
     var isWeekendPause: Bool {
-        today == .saturday && todaysLessons.isEmpty
+        let cal = GermanDate.calendar
+        let now = Date()
+        switch today {
+        case .saturday:
+            return todaysLessons.isEmpty
+        case .friday:
+            let minutes = cal.component(.hour, from: now) * 60 + cal.component(.minute, from: now)
+            let fridayDone = !todaysLessons.contains { $0.end.minutesFromMidnight > minutes }
+            guard fridayDone, let saturday = cal.date(byAdding: .day, value: 1, to: now) else { return false }
+            return lessons(on: saturday).isEmpty
+        default:
+            return false
+        }
     }
 
     /// What the "Als Nächstes" card shows: the running/next lesson while the

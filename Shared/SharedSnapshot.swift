@@ -126,12 +126,24 @@ struct SharedSnapshot: Codable {
         orderedDishes[Self.isoDay.string(from: date)]
     }
 
-    /// Saturday, with no lessons on it: the one day nobody wants to see
-    /// Monday's plan. The widgets and the Heute tab talk about the weekend
-    /// instead — and about the homework that would free up Sunday. Sunday
-    /// itself rolls over to Monday as usual: that is bag-packing evening.
+    /// The stretch nobody wants Monday's plan in: Friday once the last
+    /// lesson is over, and Saturday — provided Saturday has no lessons. The
+    /// widgets and the Heute tab talk about the weekend instead, and about
+    /// the homework that would free up Sunday. Sunday itself rolls over to
+    /// Monday as usual: that is bag-packing evening.
     func isWeekendPause(at date: Date) -> Bool {
-        Self.calendar.component(.weekday, from: date) == 7 && lessons(on: date).isEmpty
+        let cal = Self.calendar
+        switch cal.component(.weekday, from: date) {
+        case 7:
+            return lessons(on: date).isEmpty
+        case 6:
+            let minutes = cal.component(.hour, from: date) * 60 + cal.component(.minute, from: date)
+            let fridayDone = !lessons(on: date).contains { $0.endMinutes > minutes }
+            guard fridayDone, let saturday = cal.date(byAdding: .day, value: 1, to: date) else { return false }
+            return lessons(on: saturday).isEmpty
+        default:
+            return false
+        }
     }
 
     /// The next day with lessons after `date`, up to a week out — tomorrow

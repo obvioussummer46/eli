@@ -49,11 +49,24 @@ final class SharedSnapshotTests: XCTestCase {
         XCTAssertTrue(snapshot.isWeekendPause(at: date(2026, 9, 5)), "Saturday")
         XCTAssertTrue(snapshot.isWeekendPause(at: date(2026, 9, 5, 23, 30)), "still Saturday in Berlin")
         XCTAssertFalse(snapshot.isWeekendPause(at: date(2026, 9, 6)), "Sunday rolls over to Monday as usual")
-        XCTAssertFalse(snapshot.isWeekendPause(at: date(2026, 9, 4)), "Friday")
+        XCTAssertFalse(snapshot.isWeekendPause(at: date(2026, 9, 3)), "Thursday")
 
         var saturdaySchool = snapshot
         saturdaySchool.weekdayLessons[6] = [mathe]
         XCTAssertFalse(saturdaySchool.isWeekendPause(at: date(2026, 9, 5)), "a school with Saturday lessons has no weekend pause")
+    }
+
+    func testWeekendPauseStartsAfterFridaysLastLesson() {
+        var snapshot = weekSnapshot
+        snapshot.weekdayLessons[5] = [mathe, deutsch]   // Friday ends 11:30
+        XCTAssertFalse(snapshot.isWeekendPause(at: date(2026, 9, 4, 9, 0)), "Friday morning is school")
+        XCTAssertFalse(snapshot.isWeekendPause(at: date(2026, 9, 4, 11, 29)), "last lesson still running")
+        XCTAssertTrue(snapshot.isWeekendPause(at: date(2026, 9, 4, 11, 30)), "the minute it ends, the weekend starts")
+        XCTAssertTrue(snapshot.isWeekendPause(at: date(2026, 9, 4, 20, 0)), "Friday evening")
+
+        var saturdaySchool = snapshot
+        saturdaySchool.weekdayLessons[6] = [mathe]
+        XCTAssertFalse(saturdaySchool.isWeekendPause(at: date(2026, 9, 4, 20, 0)), "Friday evening before a school Saturday is a school night")
     }
 
     func testNextSchoolDayIsNilWithoutAnyLessons() {

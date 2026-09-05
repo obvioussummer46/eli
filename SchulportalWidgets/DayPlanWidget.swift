@@ -21,15 +21,23 @@ struct DayPlanWidget: Widget {
 struct DayPlanView: View {
     let entry: SnapshotEntry
 
+    private var isWeekend: Bool {
+        entry.snapshot?.isWeekendPause(at: entry.date) ?? false
+    }
+
     var body: some View {
         Group {
             if let snapshot = entry.snapshot {
-                content(snapshot)
+                if isWeekend {
+                    WeekendView(snapshot: snapshot, date: entry.date)
+                } else {
+                    content(snapshot)
+                }
             } else {
                 OpenAppHint()
             }
         }
-        .widgetURL(WidgetLink.plan)
+        .widgetURL(isWeekend ? WidgetLink.aufgaben : WidgetLink.plan)
     }
 
     private func content(_ snapshot: SharedSnapshot) -> some View {

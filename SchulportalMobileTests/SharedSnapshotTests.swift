@@ -44,6 +44,18 @@ final class SharedSnapshotTests: XCTestCase {
         XCTAssertTrue(cal.isDate(next!, inSameDayAs: date(2026, 9, 9)), "Tuesday has no lessons, Wednesday does")
     }
 
+    func testWeekendPauseIsSaturdayWithoutLessons() {
+        let snapshot = weekSnapshot
+        XCTAssertTrue(snapshot.isWeekendPause(at: date(2026, 9, 5)), "Saturday")
+        XCTAssertTrue(snapshot.isWeekendPause(at: date(2026, 9, 5, 23, 30)), "still Saturday in Berlin")
+        XCTAssertFalse(snapshot.isWeekendPause(at: date(2026, 9, 6)), "Sunday rolls over to Monday as usual")
+        XCTAssertFalse(snapshot.isWeekendPause(at: date(2026, 9, 4)), "Friday")
+
+        var saturdaySchool = snapshot
+        saturdaySchool.weekdayLessons[6] = [mathe]
+        XCTAssertFalse(saturdaySchool.isWeekendPause(at: date(2026, 9, 5)), "a school with Saturday lessons has no weekend pause")
+    }
+
     func testNextSchoolDayIsNilWithoutAnyLessons() {
         XCTAssertNil(SharedSnapshot().nextSchoolDay(after: date(2026, 9, 4)))
     }

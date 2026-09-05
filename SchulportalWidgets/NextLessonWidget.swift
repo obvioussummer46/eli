@@ -18,16 +18,25 @@ struct NextLessonView: View {
     @Environment(\.widgetFamily) private var family
     let entry: SnapshotEntry
 
+    private var isWeekend: Bool {
+        entry.snapshot?.isWeekendPause(at: entry.date) ?? false
+    }
+
     var body: some View {
         Group {
             if let snapshot = entry.snapshot {
-                content(snapshot)
+                if isWeekend {
+                    WeekendView(snapshot: snapshot, date: entry.date)
+                } else {
+                    content(snapshot)
+                }
             } else {
                 OpenAppHint()
             }
         }
-        // "What now, and where" continues on the timetable.
-        .widgetURL(WidgetLink.plan)
+        // "What now, and where" continues on the timetable; the weekend
+        // nudge continues on the homework it is about.
+        .widgetURL(isWeekend ? WidgetLink.aufgaben : WidgetLink.plan)
     }
 
     @ViewBuilder

@@ -671,6 +671,12 @@ final class AppModel {
         lessons(on: heuteDay.date)
     }
 
+    /// Saturday without lessons — the Heute tab talks about the weekend and
+    /// the homework, not about Monday. Same rule as the widgets.
+    var isWeekendPause: Bool {
+        today == .saturday && todaysLessons.isEmpty
+    }
+
     /// What the "Als Nächstes" card shows: the running/next lesson while the
     /// tab is about today, the day's first lesson once it rolled over.
     var heuteNextLesson: TimetableEntry? {

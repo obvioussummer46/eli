@@ -26,8 +26,12 @@ struct TodayView: View {
                         InlineInfoBanner(message: notice)
                     }
                     substitutionsCard
-                    nextLessonCard
-                    todaysLessonsCard
+                    if model.isWeekendPause {
+                        weekendCard
+                    } else {
+                        nextLessonCard
+                        todaysLessonsCard
+                    }
                     homeworkCard
                     eventsCard
                     footer
@@ -142,6 +146,29 @@ struct TodayView: View {
                         }
                         Spacer()
                     }
+                }
+            }
+        }
+    }
+
+    /// Saturday: nobody wants Monday's plan yet. The nudge is the homework
+    /// that would free up Sunday; Monday's first lesson is one line at the
+    /// bottom for whoever wants to know anyway.
+    private var weekendCard: some View {
+        let open = model.openHomework
+        return Card {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Wochenende 🎉")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Text(open.isEmpty
+                     ? "Alles erledigt. Genieß die zwei Tage."
+                     : "\(open.count) Aufgabe\(open.count == 1 ? "" : "n") offen — heute erledigen, dann ist der Sonntag frei.")
+                    .font(.headline)
+                if let first = model.heuteLessons.first, !model.heuteDay.isToday {
+                    Text("\(GermanDate.weekdayName.string(from: model.heuteDay.date)) geht's um \(first.start.description) mit \(first.subject.name) los.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
             }
         }

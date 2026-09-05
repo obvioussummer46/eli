@@ -21,7 +21,11 @@ struct TodayView: View {
     var body: some View {
         Group {
             if let snapshot = entry.snapshot {
-                content(snapshot)
+                if snapshot.isWeekendPause(at: entry.date) {
+                    WeekendView(snapshot: snapshot, date: entry.date)
+                } else {
+                    content(snapshot)
+                }
             } else {
                 OpenAppHint()
             }

@@ -213,7 +213,7 @@
 				};
 			};
 			buildConfigurationList = AA0000000000000000000061 /* Build configuration list for PBXProject "SchulportalMobile" */;
-			developmentRegion = en;
+			developmentRegion = de;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,

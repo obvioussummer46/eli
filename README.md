@@ -68,6 +68,16 @@ via the [Schulpaket](Docs/SCHULPAKET.md). Strategy and reasoning:
 [Docs/DATENSCHUTZ.md](Docs/DATENSCHUTZ.md). Feedback:
 [Docs/FEEDBACK.md](Docs/FEEDBACK.md).
 
+## App Store release
+
+Everything to paste into App Store Connect — texts, products, review
+notes, privacy answers, the submission checklist — is in
+[Docs/APP-STORE.md](Docs/APP-STORE.md). The screenshots in
+`Docs/AppStore/screenshots/` come from the app's own screenshot mode:
+launched with `-demo` the app shows an invented school and pupil and
+never touches the network, so no real account can end up on the store
+page (`SchulportalMobile/App/DemoMode.swift`, `Tools/screenshots.sh`).
+
 ## License
 
 PolyForm Noncommercial 1.0.0 (`LICENSE`): read it, build it for yourself,

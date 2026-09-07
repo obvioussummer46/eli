@@ -48,6 +48,26 @@ final class MensaModel {
     // MARK: - Lifecycle
 
     func bootstrap() async {
+        // Screenshot mode: an invented week and balance, no site, no Keychain.
+        if DemoMode.isActive {
+            account = DemoData.mensaAccount
+            week = DemoData.mensaWeek
+            statement = DemoData.mensaStatement
+            selectedWeekKey = week.key
+            lastRefresh = Date()
+            phase = .ready
+            var dishes: [String: String] = [:]
+            for day in week.days {
+                guard let date = day.date, let ordered = day.orderedOption else { continue }
+                dishes[SharedSnapshot.isoDay.string(from: date)] = ordered.title
+            }
+            SharedSnapshotStore.update { store in
+                store.balanceText = account.balanceDisplay
+                store.orderedDishes = dishes
+                store.openOrderDays = []
+            }
+            return
+        }
         guard let credentials = MensaKeychain.load() else {
             phase = .signedOut
             return
@@ -99,7 +119,7 @@ final class MensaModel {
     // MARK: - Refresh
 
     func refresh() async {
-        guard phase == .ready, !isLoading else { return }
+        guard phase == .ready, !isLoading, !DemoMode.isActive else { return }
         isLoading = true
         weekErrorMessage = nil
         statementErrorMessage = nil

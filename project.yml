@@ -2,6 +2,9 @@
 name: SchulportalMobile
 options:
   bundleIdPrefix: de.schulportalmobile
+  # The app speaks German only; without this the system formatters inside
+  # the app fall back to English ("7. Sep 2026 at 21:58").
+  developmentLanguage: de
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true

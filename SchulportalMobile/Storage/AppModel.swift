@@ -44,6 +44,14 @@ final class AppModel {
     // MARK: - Lifecycle
 
     func bootstrap() async {
+        // Screenshot mode: an invented week, no portal, no Keychain.
+        if DemoMode.isActive {
+            DemoData.configure(settings)
+            snapshot = DemoData.snapshot
+            phase = .ready
+            exportSharedSnapshot()
+            return
+        }
         snapshot = await store.load()
         let credentials = PortalKeychain.load()
         portalUsername = credentials?.username
@@ -126,7 +134,7 @@ final class AppModel {
     // MARK: - Refresh
 
     func refresh() async {
-        guard !isRefreshing else { return }
+        guard !isRefreshing, !DemoMode.isActive else { return }
         isRefreshing = true
         lastErrorMessage = nil
         defer { isRefreshing = false }
@@ -470,6 +478,10 @@ final class AppModel {
     }
 
     private func pushDoneFlag(for homework: Homework, done: Bool) async {
+        if DemoMode.isActive {
+            markSettled(homework, done: done)
+            return
+        }
         do {
             let outcome = try await service.setHomeworkDone(homework, done: done)
             if outcome == .localOnly {

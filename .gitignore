@@ -16,3 +16,6 @@ package-lock.json
 # Never in a public repo: real portal dumps, signed consent forms.
 samples/*.html
 Docs/consent/
+
+# Raw simulator captures; the framed App Store images next to them are kept.
+Docs/AppStore/raw/

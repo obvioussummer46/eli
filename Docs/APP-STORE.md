@@ -1,7 +1,15 @@
 # App Store Connect — everything to paste
 
-Ready-to-paste texts and settings for the paid release. Character limits
-are Apple's; every text below is under them.
+Ready-to-paste texts and settings for the first release. Character limits
+are Apple's; `Tools/check-app-store-texts.py` verifies every text in this
+file against them, so run it after editing:
+
+```sh
+python3 Tools/check-app-store-texts.py
+```
+
+Primary language: **German (Germany)**. No other localisation — the app
+itself is German only.
 
 ## Products to create (Features › In-App Purchases / Subscriptions)
 
@@ -37,19 +45,42 @@ localisation „Ranzen Pro (Jahr)“.
 
 Review screenshot for each product: the paywall (Pro), the tip screen
 (tips), the icon picker (icon packs), the widget gallery (widget pack).
+Every product must be attached to the version before it is submitted —
+a product submitted on its own is reviewed on its own, without the app.
 
 ## App information
 
-- **Name (30):** Schulportal — Hausaufgaben & Plan
-- **Subtitle (30):** Aufgaben, Stundenplan, Mensa
+- **Name (30):** Schulportal: Aufgaben & Plan
+- **Subtitle (30):** Hausaufgaben, Plan & Mensa
+- **Bundle id:** `de.schulportalmobile.app` — SKU: `schulportalmobile-ios`.
 - **Category:** Education. Secondary: Productivity.
-- **Age rating:** 4+. No ads, no user content, no web access beyond the
-  in-app browser for the portal and school links (declare "Unrestricted
-  Web Access: No" — the browser is limited to the portal and configured
-  school links).
-- **Privacy policy URL:** `Docs/DATENSCHUTZ.md` on GitHub (repo must be
-  public, or host the file elsewhere).
-- **Support URL:** the GitHub repo or a mailto page.
+- **Content rights:** does not contain, show or access third-party
+  content (the portal pages are the user's own account, not licensed
+  content).
+- **Age rating** (the 2025 questionnaire): no violence, no sexual
+  content, no profanity, no horror, no gambling, no contests, no drugs,
+  no medical content. Unrestricted web access: **No** (the browser only
+  opens the portal and the school links the app or the user configured).
+  User-generated content: No. Messaging/chat: No. Advertising: No.
+  Result: **4+**.
+- **Privacy policy URL:**
+  `https://github.com/obvioussummer46/eli/blob/main/Docs/DATENSCHUTZ.md`
+  (the same URL as `StoreLinks.privacy`; the repo is public).
+- **Support URL:** `https://github.com/obvioussummer46/eli#readme`
+- **Marketing URL:** leave empty.
+- **Copyright:** `2026 Dmitry Baklashev`
+- **Version:** 1.0, build from `CURRENT_PROJECT_VERSION` (bump the
+  build number for every upload; Xcode › target › General, or
+  `agvtool new-version -all N`).
+- **Sign-in required:** yes — see App Review notes below.
+
+### On the name
+
+„Schulportal“ is the portal's own name. The description says in the
+first and last paragraph that the app is unofficial, which is what App
+Review looks for (guideline 4.1 / 5.2.1). If review still objects, the
+fallback name is **Ranzen: Schulportal Hessen** (28 characters) — the
+Pro tier already trades under „Ranzen“, so nothing else changes.
 
 ## Promotional text (170)
 
@@ -69,7 +100,8 @@ offline nicht.
 STUNDENPLAN
 Als Tagesliste oder Wochenraster — und mit einem Tipp in deinen
 iOS-Kalender, in einen eigenen Kalender, der deine anderen Termine in
-Ruhe lässt.
+Ruhe lässt. Eigene AGs und Kurse trägst du einmal ein, dann stehen sie
+überall mit im Plan.
 
 HEUTE
 Vertretungen, die aktuelle Stunde, fällige Aufgaben und die nächsten
@@ -106,12 +138,36 @@ Schule.
 
 schulportal,hessen,hausaufgaben,stundenplan,vertretungsplan,mensa,schule,lanis,schüler,eltern
 
-## What's new (first paid release)
+## What's new (1.0)
 
-Neu: Ranzen Pro — Aufgaben-Widget mit Abhaken, Tagesplan-Widget,
-Ferien-Countdown, App-Symbole, eigene Erinnerungszeiten, Export und
-Siri. Die App bleibt kostenlos; wer mag, gibt unter „Mehr“ einen Kaffee
-aus.
+Erste Version: Hausaufgaben abhaken, Stundenplan als Tag und Woche und
+im iOS-Kalender, Vertretungen, Termine, Mensa, drei Widgets und
+Erinnerungen. Optional: Ranzen Pro mit mehr Widgets, App-Symbolen,
+eigenen Erinnerungszeiten, Export und Siri. Die App bleibt kostenlos.
+
+## Screenshots
+
+Generated from the app's own screenshot mode, never from a real account
+(`SchulportalMobile/App/DemoMode.swift`: invented school, invented
+pupil, invented teachers). `Tools/screenshots.sh` documents the capture;
+the finished images are in `Docs/AppStore/screenshots/`, the raw
+captures in `Docs/AppStore/raw/`.
+
+| Slot in App Store Connect | Device captured | Size | Files |
+|---|---|---|---|
+| iPhone 6.9" (covers every iPhone) | iPhone 17 Pro Max simulator | 1320 × 2868 | `iphone-01…05` |
+| iPad 13" (covers every iPad) | iPad Pro 13" (M5) simulator | 2064 × 2752 | `ipad-01…05` |
+
+Order and captions (the headline is on the image; nothing to type):
+
+1. **Heute** — Alles für morgen auf einen Blick
+2. **Aufgaben** — Hausaufgaben abhaken
+3. **Plan** (week grid) — Der Stundenplan, endlich lesbar
+4. **Essen** — Mensa und Guthaben
+5. **Mehr** — Deine Schule, deine Links
+
+No app preview video. Uploading the raw captures instead of the framed
+ones is also allowed — same sizes, no alpha channel either way.
 
 ## App Review notes
 
@@ -122,6 +178,12 @@ Demo account
   Password: [password]
   (The account is a real pupil account provided with consent; it sees
   Mein Unterricht, Stundenplan, Vertretungsplan and Kalender.)
+
+Login
+  Mehr › Konto shows the account. On the login screen pick the school
+  by name, then "Mit Zugangsdaten anmelden" and the credentials above.
+  The browser route ("Im Browser anmelden") is for SSO accounts and
+  needs no separate credentials.
 
 Mensa tab
   Only appears for schools with a configured caterer. Demo school has
@@ -134,7 +196,8 @@ Purchases
   functional unlock beyond an alternate app icon. Pro unlocks three
   additional widgets, icon packs, custom reminder times, homework
   export and a Siri shortcut. Restore Purchases is on the paywall
-  (Mehr › Ranzen Pro freischalten).
+  (Mehr › Ranzen Pro freischalten). Terms and privacy are linked on
+  the paywall.
 
 Alternate icons
   Mehr › App-Symbol. "Eli" is our own design in the school's colours,
@@ -142,8 +205,16 @@ Alternate icons
 
 Background
   Uses BGAppRefreshTask to refresh the same pages the user sees; no
-  push, no server.
+  push, no server. Calendar access is only requested when the user
+  taps "In den Kalender schreiben" under Plan.
+
+Unofficial
+  The app is not affiliated with Hessisches Kultusministerium; the
+  description says so. Users log in with their own school account.
 ```
+
+Contact for review: catchr@icloud.com, phone number as in the Apple
+developer account.
 
 ## Privacy nutrition label (App Privacy)
 
@@ -155,10 +226,50 @@ questionnaire pushes back, the only category that could apply is
 *Purchases → Purchase History*, "used for app functionality, not linked
 to identity, not used for tracking".
 
+The privacy manifests (`SchulportalMobile/PrivacyInfo.xcprivacy`,
+`SchulportalWidgets/PrivacyInfo.xcprivacy`) say the same: no tracking,
+no collected data, `UserDefaults` declared with reason `CA92.1`.
+
+## Export compliance
+
+`ITSAppUsesNonExemptEncryption` is `false` in both Info.plists: the app
+uses nothing beyond HTTPS, which is exempt. App Store Connect will not
+ask on upload.
+
 ## Before submitting
 
-- [ ] App Store Small Business Program enrolled.
-- [ ] Paid Applications agreement signed, tax and banking filled.
-- [ ] `StoreLinks.privacy` resolves publicly.
-- [ ] Contact details filled in `Docs/DATENSCHUTZ.md` §1 and §8.
-- [ ] Demo account in review notes works from outside the school network.
+Account and agreements:
+
+- [ ] Paid Applications agreement signed, tax and banking filled (the
+      tip jar alone needs it).
+- [ ] App Store Small Business Program enrolled (15 % instead of 30 %).
+- [ ] App record created with bundle id `de.schulportalmobile.app`; the
+      App Group `group.de.schulportalmobile.app` and the widget bundle id
+      `de.schulportalmobile.app.widgets` exist in the developer portal
+      (Xcode's automatic signing creates them on the first archive).
+
+Content:
+
+- [ ] Postal address filled in `Docs/DATENSCHUTZ.md` §1 (DSGVO
+      requires it; the e-mail is already there). The URL above must
+      resolve publicly.
+- [ ] Demo account in review notes works from outside the school
+      network, with the Mensa credentials.
+- [ ] All eight products created, localised, priced, and attached to
+      the version.
+- [ ] Screenshots uploaded to the 6.9" and 13" slots.
+
+Build:
+
+- [ ] Build number bumped.
+- [ ] Product › Archive on a device destination (any iOS device,
+      arm64), then Distribute › App Store Connect › Upload.
+- [ ] The archive contains `PrivacyInfo.xcprivacy` in both bundles
+      (Xcode's synchronized folders pick the files up automatically;
+      check the archive's Privacy Report under Window › Organizer).
+- [ ] TestFlight: one internal tester run on a real device — widgets,
+      calendar write, a sandbox purchase and Restore Purchases, the
+      Siri shortcut (App Shortcuts only work signed with the team id,
+      not in the simulator).
+- [ ] Version submitted with "Manually release this version" so the
+      release can wait for the products' approval.

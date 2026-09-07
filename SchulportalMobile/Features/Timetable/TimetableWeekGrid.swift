@@ -21,14 +21,21 @@ struct TimetableWeekGrid: View {
     }
 
     var body: some View {
-        ScrollView([.horizontal, .vertical]) {
-            HStack(alignment: .top, spacing: 6) {
-                timeColumn
-                ForEach(days) { day in
-                    dayColumn(day)
+        // On an iPad the whole week fits the screen, and a ScrollView then
+        // centres content smaller than itself — which parks the grid
+        // mid-air. Stretching the content to the viewport keeps it at the
+        // top; on a phone the grid is larger anyway and nothing changes.
+        GeometryReader { proxy in
+            ScrollView([.horizontal, .vertical]) {
+                HStack(alignment: .top, spacing: 6) {
+                    timeColumn
+                    ForEach(days) { day in
+                        dayColumn(day)
+                    }
                 }
+                .padding(16)
+                .frame(minWidth: proxy.size.width, minHeight: proxy.size.height, alignment: .top)
             }
-            .padding(16)
         }
     }
 

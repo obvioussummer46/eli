@@ -14,7 +14,8 @@ und — für Käufe — Apples App Store.
 ## 1. Verantwortlicher
 
 Dmitry Baklashev
-*[Anschrift und E-Mail — vor Veröffentlichung eintragen; beides ist nach DSGVO Pflicht.]*
+*[Anschrift — vor Veröffentlichung eintragen; nach DSGVO Pflicht.]*
+E-Mail: catchr@icloud.com
 
 ## 2. Welche Daten die App verarbeitet
 
@@ -88,7 +89,7 @@ inklusive „Bitten, um zu kaufen“ für Kinder-Accounts.
 Da der Entwickler keine personenbezogenen Daten von dir verarbeitet,
 gibt es nichts, was er herausgeben, berichtigen oder löschen könnte.
 Alles Lokale löschst du mit „Abmelden“ in der App oder durch Löschen
-der App. Bei Fragen: *[E-Mail]*.
+der App. Bei Fragen: catchr@icloud.com.
 
 ## 9. Änderungen
 

@@ -4,6 +4,7 @@ import UIKit
 struct SettingsView: View {
     @Environment(AppModel.self) private var model
     @Environment(Store.self) private var store
+    @Environment(\.openURL) private var openURL
     @State private var isConfirmingSignOut = false
     @State private var isShowingPaywall = false
     @State private var isShowingCalendarSheet = false
@@ -58,10 +59,22 @@ struct SettingsView: View {
                     } label: {
                         Label("Link hinzufügen", systemImage: "plus")
                     }
+                    // A school the registry does not know gets the one nudge
+                    // the app makes: tell the developer, so the next version
+                    // ships its links, mensa and icon for everyone there.
+                    if model.settings.registryConfig == nil {
+                        Button {
+                            sendFeedback(.missingSchool)
+                        } label: {
+                            Label("Meine Schule eintragen lassen", systemImage: "envelope")
+                        }
+                    }
                 } header: {
                     Text("Meine Schule")
                 } footer: {
-                    if model.settings.customLinks.isEmpty {
+                    if model.settings.registryConfig == nil {
+                        Text("Deine Schule ist noch nicht hinterlegt. Eine Mail an den Entwickler genügt, dann kommen Links, Mensa und Symbol für alle dort in die nächste Version. Eigene Links lassen sich jederzeit hinzufügen.")
+                    } else if model.settings.customLinks.isEmpty {
                         Text("Eigene Links (Hort, Schulwohnung …) lassen sich hinzufügen und nach links wischen zum Löschen.")
                     }
                 }
@@ -335,6 +348,11 @@ struct SettingsView: View {
                 }
 
                 Section("Über") {
+                    Button {
+                        sendFeedback(.general)
+                    } label: {
+                        Label("Feedback senden", systemImage: "envelope")
+                    }
                     // Precise about the passwords: both accounts *can* live in
                     // the Keychain, but the Schulportal one only when the
                     // native login was used — the browser route never hands
@@ -396,6 +414,14 @@ struct SettingsView: View {
             }
         )
         return DatePicker(title, selection: date, displayedComponents: .hourAndMinute)
+    }
+
+    /// Opens Mail with the draft prefilled; the user reads and sends it, the
+    /// app never mails on its own.
+    private func sendFeedback(_ kind: Feedback.Kind) {
+        let context = Feedback.Context.current(settings: model.settings)
+        guard let url = Feedback.mailURL(for: kind, context: context) else { return }
+        openURL(url)
     }
 
     private func linkRow(_ link: SchoolLink) -> some View {

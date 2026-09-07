@@ -1,7 +1,7 @@
 # Datenschutzerklärung
 
 *Für die iOS-App „Schulportal“ (inoffizielle App für das Schulportal Hessen)
-und die Zusatzfunktionen „Ranzen Pro“. Stand: 4. September 2026.*
+und die Zusatzfunktionen „Ranzen Pro“. Stand: 7. September 2026.*
 
 ## Kurzfassung
 
@@ -45,8 +45,15 @@ erledigt“).
   Zahlungsdaten, keinen Namen.
 - **Websites deiner Schule** (nur wenn du einen Link antippst): öffnet
   sich im In-App-Browser. Es gilt die Datenschutzerklärung der Schule.
+- **Feedback per E-Mail** (nur wenn du „Feedback senden“ oder „Meine
+  Schule eintragen lassen“ antippst): Die App öffnet deine Mail-App mit
+  einem vorbereiteten Entwurf an den Entwickler. Darin stehen Name und
+  Nummer deiner Schule, die App-Version, die iOS-Version und das
+  Gerätemodell — sonst nichts. Du siehst den Entwurf vor dem Senden und
+  kannst alles ändern oder löschen. Die App verschickt selbst nichts.
 
-Sonst nichts. Der Entwickler erhält keine Daten von dir.
+Sonst nichts. Der Entwickler erhält keine Daten von dir, die du ihm nicht
+selbst per E-Mail schickst.
 
 ## 4. Käufe
 

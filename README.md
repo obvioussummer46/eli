@@ -65,7 +65,8 @@ and a Siri shortcut, as a one-time purchase or a yearly subscription
 with Family Sharing. Schools can get everything for all their pupils
 via the [Schulpaket](Docs/SCHULPAKET.md). Strategy and reasoning:
 [Docs/MONETIZATION.md](Docs/MONETIZATION.md). Privacy:
-[Docs/DATENSCHUTZ.md](Docs/DATENSCHUTZ.md).
+[Docs/DATENSCHUTZ.md](Docs/DATENSCHUTZ.md). Feedback:
+[Docs/FEEDBACK.md](Docs/FEEDBACK.md).
 
 ## License
 

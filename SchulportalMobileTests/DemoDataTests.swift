@@ -60,6 +60,14 @@ final class DemoDataTests: XCTestCase {
         XCTAssertEqual(decoded.events, snapshot.events)
     }
 
+    func testReviewCredentialsMatchExactly() {
+        XCTAssertTrue(DemoMode.matches(username: DemoMode.reviewUsername, password: DemoMode.reviewPassword))
+        XCTAssertFalse(DemoMode.matches(username: DemoMode.reviewUsername, password: "wrong"))
+        XCTAssertFalse(DemoMode.matches(username: " apple-review", password: DemoMode.reviewPassword),
+                       "no trimming: a real account must never collide by accident")
+        XCTAssertFalse(DemoMode.matches(username: "", password: ""))
+    }
+
     func testNothingRealLeaksIn() {
         // The registry's real school must not be the demo school, and no
         // real portal id shape (numeric course ids) may appear.

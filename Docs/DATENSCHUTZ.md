@@ -13,8 +13,11 @@ und — für Käufe — Apples App Store.
 
 ## 1. Verantwortlicher
 
-Dmitry Baklashev
-*[Anschrift — vor Veröffentlichung eintragen; nach DSGVO Pflicht.]*
+Bittel UG (haftungsbeschränkt)
+Rendeler Straße 44
+60385 Frankfurt am Main
+Deutschland
+Vertreten durch: Dmitry Baklashev (Geschäftsführer)
 E-Mail: catchr@icloud.com
 
 ## 2. Welche Daten die App verarbeitet

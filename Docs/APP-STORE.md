@@ -68,7 +68,8 @@ a product submitted on its own is reviewed on its own, without the app.
   (the same URL as `StoreLinks.privacy`; the repo is public).
 - **Support URL:** `https://github.com/obvioussummer46/eli#readme`
 - **Marketing URL:** leave empty.
-- **Copyright:** `2026 Dmitry Baklashev`
+- **Copyright:** `2026 Dmitry Baklashev` (the LICENSE holder; use
+  `2026 Bittel UG (haftungsbeschränkt)` if the company publishes).
 - **Version:** 1.0, build from `CURRENT_PROJECT_VERSION` (bump the
   build number for every upload; Xcode › target › General, or
   `agvtool new-version -all N`).
@@ -173,17 +174,17 @@ ones is also allowed — same sizes, no alpha channel either way.
 
 ```
 Demo account
-  School: [Schulname, Schulnummer]
-  Username: [demo user]
-  Password: [password]
-  (The account is a real pupil account provided with consent; it sees
-  Mein Unterricht, Stundenplan, Vertretungsplan and Kalender.)
-
-Login
-  Mehr › Konto shows the account. On the login screen pick the school
-  by name, then "Mit Zugangsdaten anmelden" and the credentials above.
-  The browser route ("Im Browser anmelden") is for SSO accounts and
-  needs no separate credentials.
+  Hessen issues no test accounts for its school portal, so the app
+  ships a fully featured demo mode instead (guideline 2.1):
+    Username: apple-review
+    Password: Demo-Schulportal-2026
+  On the login screen choose "Bildungsserver" (no school needed), enter
+  the credentials, tap "Anmelden". The app then shows an invented
+  school with a full week of data — timetable, homework, substitutions,
+  calendar, mensa — entirely on device; no request leaves the phone.
+  Every feature behaves as with a real account, except that ticking a
+  homework off is not sent to the portal (there is none). "Abmelden"
+  under Mehr returns to the login screen.
 
 Mensa tab
   Only appears for schools with a configured caterer. Demo school has
@@ -215,6 +216,10 @@ Unofficial
 
 Contact for review: catchr@icloud.com, phone number as in the Apple
 developer account.
+
+The review credentials are constants in `DemoMode` and deliberately
+long: they are compared exactly, and no real portal account can be
+called `apple-review`. Changing them means changing this file too.
 
 ## Privacy nutrition label (App Privacy)
 
@@ -250,11 +255,12 @@ Account and agreements:
 
 Content:
 
-- [ ] Postal address filled in `Docs/DATENSCHUTZ.md` §1 (DSGVO
-      requires it; the e-mail is already there). The URL above must
-      resolve publicly.
-- [ ] Demo account in review notes works from outside the school
-      network, with the Mensa credentials.
+- [ ] `Docs/DATENSCHUTZ.md` §1 names Bittel UG, Rendeler Straße 44,
+      60385 Frankfurt — the same Verantwortlicher as the Impressum on
+      bittelecom.de. Change it if the App Store account is the personal
+      one rather than the company's.
+- [ ] The review login (username `apple-review`) still opens the demo
+      data on a fresh install — try it once on the TestFlight build.
 - [ ] All eight products created, localised, priced, and attached to
       the version.
 - [ ] Screenshots uploaded to the 6.9" and 13" slots.

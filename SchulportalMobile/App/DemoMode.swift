@@ -8,10 +8,30 @@ import Foundation
 /// child's account, and nothing from it may end up on the App Store page —
 /// so the screenshots come from here, never from a real session.
 ///
-/// Off by default and unreachable from the UI. `Tools/screenshots.sh` is the
-/// one caller.
+/// Two ways in, both off by default: the launch argument
+/// (`Tools/screenshots.sh`), and the review credentials below — App Review
+/// needs a way past the login screen, and Hessen issues no test accounts,
+/// so guideline 2.1's "fully featured demo mode" is the way to give them
+/// one. The flag persists so the reviewer's session survives a relaunch;
+/// „Abmelden“ clears it.
 enum DemoMode {
-    static let isActive = ProcessInfo.processInfo.arguments.contains("-demo")
+    static let reviewUsername = "apple-review"
+    static let reviewPassword = "Demo-Schulportal-2026"
+    private static let flagKey = "demo.enabled"
+
+    static var isActive: Bool {
+        ProcessInfo.processInfo.arguments.contains("-demo")
+            || UserDefaults.standard.bool(forKey: flagKey)
+    }
+
+    /// Whether these are the review credentials — compared exactly, no
+    /// trimming, so a real account can never collide with them by accident.
+    static func matches(username: String, password: String) -> Bool {
+        username == reviewUsername && password == reviewPassword
+    }
+
+    static func enable() { UserDefaults.standard.set(true, forKey: flagKey) }
+    static func disable() { UserDefaults.standard.removeObject(forKey: flagKey) }
 }
 
 /// The invented data. Everything is relative to "now", so the Heute tab,
@@ -399,5 +419,18 @@ enum DemoData {
         settings.customLinks = links
         settings.activities = activities
         settings.refreshesOnLaunch = false
+    }
+
+    /// Undoes `configure`, so a real login after the review session starts
+    /// from a clean slate.
+    @MainActor
+    static func reset(_ settings: Settings) {
+        settings.schoolID = ""
+        settings.schoolName = ""
+        settings.mensaTenantOverride = ""
+        settings.clearMensaTabOverride()
+        settings.customLinks = []
+        settings.activities = []
+        settings.refreshesOnLaunch = true
     }
 }

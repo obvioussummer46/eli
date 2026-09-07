@@ -178,6 +178,12 @@ final class Settings {
         set { values.showsMensaTabOverride = newValue; defaults.set(newValue, forKey: Keys.showsMensaTab) }
     }
 
+    /// Back to automatic: the tab follows the configuration again.
+    func clearMensaTabOverride() {
+        values.showsMensaTabOverride = nil
+        defaults.removeObject(forKey: Keys.showsMensaTab)
+    }
+
     /// What the registry ships for this school, e.g. Elternbeirat and
     /// Förderverein pages for Eli.
     var registryLinks: [SchoolLink] {

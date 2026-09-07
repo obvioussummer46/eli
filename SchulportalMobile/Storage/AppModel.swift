@@ -44,12 +44,9 @@ final class AppModel {
     // MARK: - Lifecycle
 
     func bootstrap() async {
-        // Screenshot mode: an invented week, no portal, no Keychain.
+        // Screenshot or review mode: an invented week, no portal, no Keychain.
         if DemoMode.isActive {
-            DemoData.configure(settings)
-            snapshot = DemoData.snapshot
-            phase = .ready
-            exportSharedSnapshot()
+            enterDemo()
             return
         }
         snapshot = await store.load()
@@ -98,6 +95,12 @@ final class AppModel {
     /// for Bildungsserver accounts, which have no school in their login.
     func signIn(username: String, password: String, loginID: String) async -> Bool {
         signInErrorMessage = nil
+        // App Review's way in — see `DemoMode`. Nothing is sent anywhere.
+        if DemoMode.matches(username: username, password: password) {
+            DemoMode.enable()
+            enterDemo()
+            return true
+        }
         let credentials = PortalCredentials(username: username, password: password)
         do {
             try await service.signIn(credentials, schoolID: loginID)
@@ -121,6 +124,10 @@ final class AppModel {
     }
 
     func signOut() async {
+        if DemoMode.isActive {
+            DemoMode.disable()
+            DemoData.reset(settings)
+        }
         PortalKeychain.clear()
         portalUsername = nil
         await service.adopt(nil, schoolID: nil)
@@ -129,6 +136,15 @@ final class AppModel {
         snapshot = Snapshot()
         phase = .signedOut
         needsReauthentication = true
+    }
+
+    private func enterDemo() {
+        DemoData.configure(settings)
+        snapshot = DemoData.snapshot
+        needsReauthentication = false
+        signInErrorMessage = nil
+        phase = .ready
+        exportSharedSnapshot()
     }
 
     // MARK: - Refresh

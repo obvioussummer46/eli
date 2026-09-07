@@ -1,4 +1,4 @@
-# Schulportal Hessen — native iOS App
+# Ranzen — Schulportal Hessen als native iOS App
 
 A native SwiftUI app that turns [start.schulportal.hessen.de](https://start.schulportal.hessen.de/index.php)
 into something usable on a phone: **open homework on one list, one tap to tick
@@ -70,6 +70,7 @@ via the [Schulpaket](Docs/SCHULPAKET.md). Strategy and reasoning:
 
 ## App Store release
 
+The app is published as **Ranzen: Schulportal Hessen** by Bittel UG.
 Everything to paste into App Store Connect — texts, products, review
 notes, privacy answers, the submission checklist — is in
 [Docs/APP-STORE.md](Docs/APP-STORE.md). The screenshots in

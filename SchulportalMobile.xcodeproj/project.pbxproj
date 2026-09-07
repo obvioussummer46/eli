@@ -421,7 +421,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/SchulportalMobile-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Schulportal;
+				INFOPLIST_KEY_CFBundleDisplayName = Ranzen;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Damit dein Stundenplan als Termine in deinen iOS-Kalender geschrieben werden kann.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Damit dein Stundenplan als Termine in deinen iOS-Kalender geschrieben werden kann.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
@@ -455,7 +455,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/SchulportalMobile-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Schulportal;
+				INFOPLIST_KEY_CFBundleDisplayName = Ranzen;
 				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "Damit dein Stundenplan als Termine in deinen iOS-Kalender geschrieben werden kann.";
 				INFOPLIST_KEY_NSCalendarsUsageDescription = "Damit dein Stundenplan als Termine in deinen iOS-Kalender geschrieben werden kann.";
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
@@ -484,7 +484,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/SchulportalWidgets-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Schulportal;
+				INFOPLIST_KEY_CFBundleDisplayName = Ranzen;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -507,7 +507,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Config/SchulportalWidgets-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Schulportal;
+				INFOPLIST_KEY_CFBundleDisplayName = Ranzen;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

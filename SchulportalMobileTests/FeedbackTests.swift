@@ -36,7 +36,7 @@ final class FeedbackTests: XCTestCase {
         let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
         XCTAssertEqual(components.path, "catchr@icloud.com")
         let items = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") })
-        XCTAssertEqual(items["subject"], "Feedback zur Schulportal-App")
+        XCTAssertEqual(items["subject"], "Feedback zu Ranzen (Schulportal-App)")
         XCTAssertEqual(items["body"], Feedback.body(for: .general, context: eli))
     }
 

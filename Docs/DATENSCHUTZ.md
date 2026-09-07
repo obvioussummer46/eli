@@ -1,6 +1,6 @@
 # Datenschutzerklärung
 
-*Für die iOS-App „Schulportal“ (inoffizielle App für das Schulportal Hessen)
+*Für die iOS-App „Ranzen“ (inoffizielle App für das Schulportal Hessen)
 und die Zusatzfunktionen „Ranzen Pro“. Stand: 7. September 2026.*
 
 ## Kurzfassung

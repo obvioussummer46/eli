@@ -50,7 +50,7 @@ a product submitted on its own is reviewed on its own, without the app.
 
 ## App information
 
-- **Name (30):** Schulportal: Aufgaben & Plan
+- **Name (30):** Ranzen: Schulportal Hessen
 - **Subtitle (30):** Hausaufgaben, Plan & Mensa
 - **Bundle id:** `de.schulportalmobile.app` — SKU: `schulportalmobile-ios`.
 - **Category:** Education. Secondary: Productivity.
@@ -68,8 +68,9 @@ a product submitted on its own is reviewed on its own, without the app.
   (the same URL as `StoreLinks.privacy`; the repo is public).
 - **Support URL:** `https://github.com/obvioussummer46/eli#readme`
 - **Marketing URL:** leave empty.
-- **Copyright:** `2026 Dmitry Baklashev` (the LICENSE holder; use
-  `2026 Bittel UG (haftungsbeschränkt)` if the company publishes).
+- **Copyright:** `2026 Bittel UG (haftungsbeschränkt)` — the company
+  account publishes. (The source LICENSE stays in Dmitry Baklashev's
+  name; the two need not match.)
 - **Version:** 1.0, build from `CURRENT_PROJECT_VERSION` (bump the
   build number for every upload; Xcode › target › General, or
   `agvtool new-version -all N`).
@@ -77,11 +78,11 @@ a product submitted on its own is reviewed on its own, without the app.
 
 ### On the name
 
-„Schulportal“ is the portal's own name. The description says in the
-first and last paragraph that the app is unofficial, which is what App
-Review looks for (guideline 4.1 / 5.2.1). If review still objects, the
-fallback name is **Ranzen: Schulportal Hessen** (28 characters) — the
-Pro tier already trades under „Ranzen“, so nothing else changes.
+Decided 07.09.2026: **Ranzen** is the brand (home screen, Pro tier),
+„Schulportal Hessen“ in the store name is what people search for. The
+description says in its first and last paragraph that the app is
+unofficial, which is what App Review looks for (guideline 4.1 / 5.2.1).
+The name can be changed with any later version.
 
 ## Promotional text (170)
 
@@ -256,9 +257,8 @@ Account and agreements:
 Content:
 
 - [ ] `Docs/DATENSCHUTZ.md` §1 names Bittel UG, Rendeler Straße 44,
-      60385 Frankfurt — the same Verantwortlicher as the Impressum on
-      bittelecom.de. Change it if the App Store account is the personal
-      one rather than the company's.
+      60385 Frankfurt — the company account publishes, and the
+      Verantwortlicher matches the Impressum on bittelecom.de.
 - [ ] The review login (username `apple-review`) still opens the demo
       data on a fresh install — try it once on the TestFlight build.
 - [ ] All eight products created, localised, priced, and attached to

@@ -17,8 +17,8 @@ enum Feedback {
 
         var subject: String {
             switch self {
-            case .general: return "Feedback zur Schulportal-App"
-            case .missingSchool: return "Meine Schule fehlt in der Schulportal-App"
+            case .general: return "Feedback zu Ranzen (Schulportal-App)"
+            case .missingSchool: return "Meine Schule fehlt in Ranzen (Schulportal-App)"
             }
         }
     }

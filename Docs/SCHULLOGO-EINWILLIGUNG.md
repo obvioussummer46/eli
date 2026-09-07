@@ -11,7 +11,7 @@ der Schule immer.*
 
 **Vertreten durch:** ______________________________ (Schulleitung)
 
-**App:** Schulportal-App für iOS (inoffiziell), Entwickler: ______________________
+**App:** „Ranzen“ – Schulportal-App für iOS (inoffiziell), Entwickler: Bittel UG (haftungsbeschränkt), Frankfurt am Main
 
 ## 1. Gegenstand
 

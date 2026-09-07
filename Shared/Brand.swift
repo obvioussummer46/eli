@@ -1,9 +1,9 @@
 import Foundation
 
-/// The paid tier's name, in one place: it is a placeholder decision
-/// ("Ranzen", 04.09.2026) and may change before launch, so nothing else
-/// spells it out. The free app keeps calling itself what it is — the
-/// Schulportal app — and never trades under this name.
+/// The app's name, in one place. Decided 07.09.2026: the App Store listing
+/// is „Ranzen: Schulportal Hessen“, the home screen says „Ranzen“, and the
+/// paid tier is „Ranzen Pro“ — one word for all three, so a search for the
+/// portal still finds the app and the brand still fits under an icon.
 enum Brand {
     static let pro = "Ranzen Pro"
     static let proShort = "Ranzen"

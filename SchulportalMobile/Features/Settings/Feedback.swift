@@ -6,7 +6,7 @@ import UIKit
 /// iOS version, device, Schulnummer. Nothing is sent by the app itself; the
 /// user sees the draft in Mail and decides what to send.
 enum Feedback {
-    static let address = "catchr@icloud.com"
+    static let address = "hello@bittel.app"
 
     enum Kind {
         /// Free-form: a bug, a wish, a thank-you.

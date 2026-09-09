@@ -180,8 +180,11 @@ Demo account
   ships a fully featured demo mode instead (guideline 2.1):
     Username: apple-review
     Password: Demo-Schulportal-2026
-  On the login screen choose "Bildungsserver" (no school needed), enter
-  the credentials, tap "Anmelden". The app then shows an invented
+  On the login screen first pick any school ("Schule wählen" — the demo
+  ignores the choice; the Anmelden button stays disabled on the default
+  Schulkonto type until a school is set), then enter the credentials and
+  tap "Anmelden". The "Bildungsserver" login type also accepts the
+  credentials without a school. The app then shows an invented
   school with a full week of data — timetable, homework, substitutions,
   calendar, mensa — entirely on device; no request leaves the phone.
   Every feature behaves as with a real account, except that ticking a

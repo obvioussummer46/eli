@@ -63,9 +63,10 @@ a product submitted on its own is reviewed on its own, without the app.
   opens the portal and the school links the app or the user configured).
   User-generated content: No. Messaging/chat: No. Advertising: No.
   Result: **4+**.
-- **Privacy policy URL:**
-  `https://github.com/obvioussummer46/eli/blob/main/Docs/DATENSCHUTZ.md`
-  (the same URL as `StoreLinks.privacy`; the repo is public).
+- **Privacy policy URL:** `https://bittel.app/de/ranzen-datenschutz.html`
+  (the same URL as `StoreLinks.privacy`; the page lives in the
+  `obvioussummer46/bittel` repository, English version at
+  `https://bittel.app/ranzen-privacy.html`).
 - **Support URL:** `https://github.com/obvioussummer46/eli#readme`
 - **Marketing URL:** leave empty.
 - **Copyright:** `2026 Bittel UG (haftungsbeschränkt)` — the company
@@ -277,9 +278,10 @@ Account and agreements:
 
 Content:
 
-- [ ] `Docs/DATENSCHUTZ.md` §1 names Bittel UG, Rendeler Straße 44,
-      60385 Frankfurt — the company account publishes, and the
-      Verantwortlicher matches the Impressum on bittelecom.de.
+- [ ] The privacy page `https://bittel.app/de/ranzen-datenschutz.html`
+      §1 names Bittel UG, Rendeler Straße 44, 60385 Frankfurt — the
+      company account publishes, and the Verantwortlicher matches the
+      Impressum on bittelecom.de.
 - [ ] The review login (username `apple-review`) still opens the demo
       data on a fresh install — try it once on the TestFlight build.
 - [ ] All eight products created, localised, priced, and attached to

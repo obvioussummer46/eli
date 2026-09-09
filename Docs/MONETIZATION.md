@@ -222,7 +222,7 @@ DPMA, `name.app` domain → ask ten pupils which they would say out loud.
 - [x] `Entitlements` model (`isPro`, `hasWidgetPack`, `ownedIconPacks`, `hasTipped`) persisted in the App Group so widgets can read it.
 - [x] Paywall view (one screen, features list, lifetime + yearly, restore, Terms/Privacy links — required by 3.1.2).
 - [x] "App unterstützen" screen in Mehr with the three tips + thank-you state.
-- [x] Privacy nutrition label answers, App Store texts and review notes: `Docs/APP-STORE.md`. Privacy policy: `Docs/DATENSCHUTZ.md` (fill in contact details).
+- [x] Privacy nutrition label answers, App Store texts and review notes: `Docs/APP-STORE.md`. Privacy policy: <https://bittel.app/de/ranzen-datenschutz.html> (source in the `obvioussummer46/bittel` repository).
 
 **Widgets**
 - [x] Lock-screen widgets — Aufgaben and Countdown in circular, rectangular and inline; the three free widgets keep theirs.

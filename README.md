@@ -65,7 +65,7 @@ and a Siri shortcut, as a one-time purchase or a yearly subscription
 with Family Sharing. Schools can get everything for all their pupils
 via the [Schulpaket](Docs/SCHULPAKET.md). Strategy and reasoning:
 [Docs/MONETIZATION.md](Docs/MONETIZATION.md). Privacy:
-[Docs/DATENSCHUTZ.md](Docs/DATENSCHUTZ.md). Feedback:
+[bittel.app](https://bittel.app/de/ranzen-datenschutz.html). Feedback:
 [Docs/FEEDBACK.md](Docs/FEEDBACK.md).
 
 ## App Store release

@@ -246,11 +246,14 @@ ask on upload.
 
 Signing — the project still names the free Personal Team:
 
-- [ ] Xcode › Settings › Accounts: sign in with the Apple ID that owns the
+- [x] Xcode › Settings › Accounts: sign in with the Apple ID that owns the
       paid team, so the team shows up in the list. `42436Y52QF` is
       Dmitry's free Personal Team: it cannot upload to App Store Connect,
       cannot use In-App Purchase, and its profiles expire after a week.
-- [ ] Put the paid team's id into the project. It lives in one place
+- [x] Put the paid team's id into the project (`GKP7686BZ3`, Bittel UG,
+      done 09.09.2026 — note the team was not yet selectable in Xcode's
+      Team dropdown that day; the fresh membership was still activating
+      on Apple's side). It lives in one place
       (the project-level build settings) plus two mirrors:
 
       ```sh

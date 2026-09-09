@@ -67,6 +67,13 @@ a product submitted on its own is reviewed on its own, without the app.
   (the same URL as `StoreLinks.privacy`; the page lives in the
   `obvioussummer46/bittel` repository, English version at
   `https://bittel.app/ranzen-privacy.html`).
+- **Terms of Use (EULA):** Apple's standard EULA — leave the custom
+  EULA field under App Information › License Agreement empty. Because
+  the app sells an auto-renewable subscription, the standard EULA link
+  `https://www.apple.com/legal/internet-services/itunes/dev/stdeula/`
+  (the same URL as `StoreLinks.terms`) must appear in the description;
+  App Review rejected 1.0 on 09.09.2026 for its absence (guideline
+  3.1.2), and the description above now carries it.
 - **Support URL:** `https://github.com/obvioussummer46/eli#readme`
 - **Marketing URL:** leave empty.
 - **Copyright:** `2026 Bittel UG (haftungsbeschränkt)` — the company
@@ -132,6 +139,10 @@ Tagesplan-Widget, ein Ferien-Countdown, alle App-Symbole, eigene
 Erinnerungszeiten, Aufgaben-Export und die Siri-Abfrage „Was habe ich
 morgen?“. Einmal kaufen oder jährlich, mit Familienfreigabe. Die App
 selbst bleibt kostenlos.
+
+Nutzungsbedingungen (Apple-Standard-EULA):
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Datenschutz: https://bittel.app/de/ranzen-datenschutz.html
 
 Inoffizielle App. Kein Angebot des Hessischen Kultusministeriums oder
 des Schulportals Hessen. Du brauchst ein Schulportal-Konto deiner
@@ -305,3 +316,12 @@ Build:
       not in the simulator).
 - [x] Version submitted with "Manually release this version" so the
       release can wait for the products' approval.
+
+Review round 1 (rejected 09.09.2026 — missing Terms of Use link for the
+subscription):
+
+- [ ] Paste the updated description (with the EULA and privacy links at
+      the end of the RANZEN PRO paragraph) into the 1.0 version in App
+      Store Connect. A description edit needs no new build.
+- [ ] Reply in the Resolution Center that the standard Apple EULA is
+      linked in the description, then resubmit for review.

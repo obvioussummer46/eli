@@ -6,6 +6,17 @@
 	<array>
 		<string>de.schulportalmobile.app.refresh</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>de.schulportalmobile.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>schulportalmobile</string>
+			</array>
+		</dict>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>UIBackgroundModes</key>

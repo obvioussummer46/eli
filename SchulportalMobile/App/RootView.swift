@@ -25,6 +25,8 @@ struct MainTabView: View {
     @Environment(AppModel.self) private var model
     @State private var selectedTab: AppTab = .heute
     @State private var isShowingPaywall = false
+    @State private var isShowingTips = false
+    @State private var isShowingIconPicker = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -62,11 +64,36 @@ struct MainTabView: View {
         // Widget taps: `schulportalmobile://tab/<name>`, straight from
         // `widgetURL` — see `WidgetLink`.
         .paywall(isPresented: $isShowingPaywall)
+        // The purchase screens, reachable by URL like the paywall — the App
+        // Store review screenshots are captured this way (`simctl` can open
+        // a URL but cannot tap through „Mehr“).
+        .sheet(isPresented: $isShowingTips) {
+            NavigationStack { SupportView() }
+        }
+        .sheet(isPresented: $isShowingIconPicker) {
+            NavigationStack { AppIconPickerView() }
+        }
+        // `simctl openurl` stalls on a confirmation dialog it cannot tap, so
+        // the capture script opens the purchase screens by launch argument.
+        .onAppear {
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("-shot-paywall") { isShowingPaywall = true }
+            if arguments.contains("-shot-tips") { isShowingTips = true }
+            if arguments.contains("-shot-icons") { isShowingIconPicker = true }
+        }
         .onOpenURL { url in
             guard url.scheme == "schulportalmobile" else { return }
             // A locked premium widget: straight to the paywall.
             if url.host == "paywall" {
                 isShowingPaywall = true
+                return
+            }
+            if url.host == "tips" {
+                isShowingTips = true
+                return
+            }
+            if url.host == "icons" {
+                isShowingIconPicker = true
                 return
             }
             guard url.host == "tab", let tab = AppTab(rawValue: url.lastPathComponent) else { return }

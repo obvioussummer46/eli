@@ -188,8 +188,10 @@ Demo account
   under Mehr returns to the login screen.
 
 Mensa tab
-  Only appears for schools with a configured caterer. Demo school has
-  one; mensa login: [username / password] — read-only, no orders.
+  Only appears for schools with a configured caterer. The demo school
+  has one, and the demo account is already signed in — the tab shows
+  menu, balance and statement without any further login. Read-only,
+  no orders.
 
 Purchases
   All purchases are optional. The complete app (login, homework,

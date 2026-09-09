@@ -244,15 +244,31 @@ ask on upload.
 
 ## Before submitting
 
+Signing — the project still names the free Personal Team:
+
+- [ ] Xcode › Settings › Accounts: sign in with the Apple ID that owns the
+      paid team, so the team shows up in the list. `42436Y52QF` is
+      Dmitry's free Personal Team: it cannot upload to App Store Connect,
+      cannot use In-App Purchase, and its profiles expire after a week.
+- [ ] Put the paid team's id into the project. It lives in one place
+      (the project-level build settings) plus two mirrors:
+
+      ```sh
+      sed -i '' 's/42436Y52QF/NEWTEAMID/g' SchulportalMobile.xcodeproj/project.pbxproj project.yml Config/Products.storekit
+      ```
+
+      Commit that. The first Product › Archive with automatic signing
+      registers the App ID, the widget App ID and the App Group under
+      the new team — nothing to create by hand in the developer portal.
+
 Account and agreements:
 
 - [ ] Paid Applications agreement signed, tax and banking filled (the
       tip jar alone needs it).
 - [ ] App Store Small Business Program enrolled (15 % instead of 30 %).
-- [ ] App record created with bundle id `de.schulportalmobile.app`; the
-      App Group `group.de.schulportalmobile.app` and the widget bundle id
-      `de.schulportalmobile.app.widgets` exist in the developer portal
-      (Xcode's automatic signing creates them on the first archive).
+- [ ] App record created in App Store Connect with bundle id
+      `de.schulportalmobile.app` (the bundle id appears in the list once
+      the first archive has registered it, see Signing above).
 
 Content:
 

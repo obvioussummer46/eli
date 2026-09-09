@@ -272,36 +272,36 @@ Signing — the project still names the free Personal Team:
 
 Account and agreements:
 
-- [ ] Paid Applications agreement signed, tax and banking filled (the
+- [x] Paid Applications agreement signed, tax and banking filled (the
       tip jar alone needs it).
-- [ ] App Store Small Business Program enrolled (15 % instead of 30 %).
-- [ ] App record created in App Store Connect with bundle id
+- [x] App Store Small Business Program enrolled (15 % instead of 30 %).
+- [x] App record created in App Store Connect with bundle id
       `de.schulportalmobile.app` (the bundle id appears in the list once
       the first archive has registered it, see Signing above).
 
 Content:
 
-- [ ] The privacy page `https://bittel.app/de/ranzen-datenschutz.html`
+- [x] The privacy page `https://bittel.app/de/ranzen-datenschutz.html`
       §1 names Bittel UG, Rendeler Straße 44, 60385 Frankfurt — the
       company account publishes, and the Verantwortlicher matches the
       Impressum on bittelecom.de.
-- [ ] The review login (username `apple-review`) still opens the demo
+- [x] The review login (username `apple-review`) still opens the demo
       data on a fresh install — try it once on the TestFlight build.
-- [ ] All eight products created, localised, priced, and attached to
+- [x] All eight products created, localised, priced, and attached to
       the version.
-- [ ] Screenshots uploaded to the 6.9" and 13" slots.
+- [x] Screenshots uploaded to the 6.9" and 13" slots.
 
 Build:
 
-- [ ] Build number bumped.
-- [ ] Product › Archive on a device destination (any iOS device,
+- [x] Build number bumped.
+- [x] Product › Archive on a device destination (any iOS device,
       arm64), then Distribute › App Store Connect › Upload.
-- [ ] The archive contains `PrivacyInfo.xcprivacy` in both bundles
+- [x] The archive contains `PrivacyInfo.xcprivacy` in both bundles
       (Xcode's synchronized folders pick the files up automatically;
       check the archive's Privacy Report under Window › Organizer).
-- [ ] TestFlight: one internal tester run on a real device — widgets,
+- [x] TestFlight: one internal tester run on a real device — widgets,
       calendar write, a sandbox purchase and Restore Purchases, the
       Siri shortcut (App Shortcuts only work signed with the team id,
       not in the simulator).
-- [ ] Version submitted with "Manually release this version" so the
+- [x] Version submitted with "Manually release this version" so the
       release can wait for the products' approval.

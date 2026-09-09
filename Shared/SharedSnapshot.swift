@@ -216,7 +216,7 @@ enum WidgetLink {
 /// without the capability) degrades silently: the app keeps working, the
 /// widgets show their placeholder.
 enum SharedSnapshotStore {
-    static let appGroupID = "group.de.schulportalmobile.app"
+    static let appGroupID = "group.de.schulportalmobile.app.bittel"
 
     static var fileURL: URL? {
         FileManager.default

@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.de.schulportalmobile.app</string>
+		<string>group.de.schulportalmobile.app.bittel</string>
 	</array>
 </dict>
 </plist>

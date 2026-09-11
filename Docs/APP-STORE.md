@@ -24,6 +24,8 @@ Family Sharing on for every non-consumable and the subscription.
 | Widget-Paket | `de.schulportalmobile.app.widgets.pack` | Non-consumable | 3,99 € | on |
 | Icons Klassisch | `de.schulportalmobile.app.icons.classic` | Non-consumable | 1,99 € | on |
 | Icons Saison | `de.schulportalmobile.app.icons.seasonal` | Non-consumable | 1,99 € | on |
+| Icons Stile I | `de.schulportalmobile.app.icons.styles1` | Non-consumable | 1,99 € | on |
+| Icons Stile II | `de.schulportalmobile.app.icons.styles2` | Non-consumable | 1,99 € | on |
 | Pro Lifetime | `de.schulportalmobile.app.pro.lifetime` | Non-consumable | 7,99 € | on |
 | Pro Jahr | `de.schulportalmobile.app.pro.yearly` | Auto-renewable, group „Ranzen Pro“, 1 year, 7-day free trial | 2,99 € | on |
 
@@ -37,6 +39,8 @@ Localised display names (max 30) and descriptions (max 45), German:
 | widgets.pack | Widget-Paket | Aufgaben-, Tagesplan- und Countdown-Widget. |
 | icons.classic | Symbole: Klassisch | Sechs Farbvarianten des App-Symbols. |
 | icons.seasonal | Symbole: Saison | Saisonale App-Symbole, jedes Jahr mehr. |
+| icons.styles1 | Symbole: Stile I | Acht Stile für das App-Symbol. |
+| icons.styles2 | Symbole: Stile II | Sechs weitere Stile für das App-Symbol. |
 | pro.lifetime | Ranzen Pro | Alle Widgets, Symbole und Extras. Für immer. |
 | pro.yearly | Ranzen Pro (Jahr) | Alle Widgets, Symbole und Extras. Jährlich. |
 

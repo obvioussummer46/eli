@@ -1,3 +1,8 @@
+// Draws the plain „Eli" wordmark. The shipped `AppIconEli.png` is newer than
+// this: direction 1g from the logo work (`Ranzen Logos.dc.html`) turns the
+// i-dot into a white disc with a red check, and that version came out of the
+// design export, not out of here. Running this tool would drop the check —
+// port it first, or regenerate from the design.
 import AppKit
 
 func color(_ hex: UInt32) -> NSColor {

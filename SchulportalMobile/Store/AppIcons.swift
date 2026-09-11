@@ -30,7 +30,7 @@ struct AppIconPack: Identifiable {
 /// download them — so the list is code, mirrored 1:1 by the asset catalog
 /// and `ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES` in `project.yml`.
 enum AppIconCatalog {
-    static let primary = AppIconOption(assetName: nil, title: "Klassisch", topHex: "#3b5bdb", bottomHex: "#1e3a8a")
+    static let primary = AppIconOption(assetName: nil, title: "Klassisch", topHex: "#4d8bff", bottomHex: "#1f3fb8", glyph: "bag.fill")
 
     static let classic = AppIconPack(
         id: "classic",
@@ -38,12 +38,42 @@ enum AppIconCatalog {
         footer: "Sechs Farben, ein Symbol.",
         productID: .iconsClassic,
         icons: [
-            AppIconOption(assetName: "AppIconMitternacht", title: "Mitternacht", topHex: "#2a2a5e", bottomHex: "#0b0b1e"),
-            AppIconOption(assetName: "AppIconMinze", title: "Minze", topHex: "#34d3bd", bottomHex: "#0d6e66"),
-            AppIconOption(assetName: "AppIconLila", title: "Lila", topHex: "#b06cf7", bottomHex: "#5b21b6"),
-            AppIconOption(assetName: "AppIconAbendrot", title: "Abendrot", topHex: "#fb923c", bottomHex: "#be185d"),
-            AppIconOption(assetName: "AppIconMono", title: "Mono", topHex: "#fafafa", bottomHex: "#e5e5ea", glyphHex: "#1c1c1e"),
-            AppIconOption(assetName: "AppIconNotizbuch", title: "Notizbuch", topHex: "#fdf6e3", bottomHex: "#f3e9c9", glyphHex: "#1f3a6e")
+            AppIconOption(assetName: "AppIconMitternacht", title: "Mitternacht", topHex: "#2a2a5e", bottomHex: "#0b0b1e", glyph: "bag.fill"),
+            AppIconOption(assetName: "AppIconMinze", title: "Minze", topHex: "#34d3bd", bottomHex: "#0d6e66", glyph: "bag.fill"),
+            AppIconOption(assetName: "AppIconLila", title: "Lila", topHex: "#b06cf7", bottomHex: "#5b21b6", glyph: "bag.fill"),
+            AppIconOption(assetName: "AppIconAbendrot", title: "Abendrot", topHex: "#fb923c", bottomHex: "#be185d", glyph: "bag.fill"),
+            AppIconOption(assetName: "AppIconMono", title: "Mono", topHex: "#fafafa", bottomHex: "#e5e5ea", glyph: "bag.fill", glyphHex: "#1c1c1e"),
+            AppIconOption(assetName: "AppIconNotizbuch", title: "Notizbuch", topHex: "#fdf6e3", bottomHex: "#f3e9c9", glyph: "bag.fill", glyphHex: "#1f3a6e")
+        ])
+
+    static let styles1 = AppIconPack(
+        id: "styles1",
+        title: "Stile I",
+        footer: "Acht Stile, ein Ranzen.",
+        productID: .iconsStyles1,
+        icons: [
+            AppIconOption(assetName: "AppIconComic", title: "Comic", topHex: "#ffd60a", bottomHex: "#ff6b1a", glyph: "bag.fill"),
+            AppIconOption(assetName: "AppIconManga", title: "Manga", topHex: "#ffb8d9", bottomHex: "#a78bfa", glyph: "bag.fill"),
+            AppIconOption(assetName: "AppIconPixel", title: "Pixel", topHex: "#1b1f3a", bottomHex: "#1b1f3a", glyph: "bag.fill", glyphHex: "#5ef2c8"),
+            AppIconOption(assetName: "AppIconNeon", title: "Neon", topHex: "#1a0b2e", bottomHex: "#05030a", glyph: "bag", glyphHex: "#3df2ff"),
+            AppIconOption(assetName: "AppIconKawaii", title: "Kawaii", topHex: "#c9f7ea", bottomHex: "#a3e9d4", glyph: "bag.fill", glyphHex: "#ff8fab"),
+            AppIconOption(assetName: "AppIconGraffiti", title: "Graffiti", topHex: "#6b6f76", bottomHex: "#3b3e44", glyph: "bag.fill", glyphHex: "#ff3d81"),
+            AppIconOption(assetName: "AppIconHandheld", title: "Handheld", topHex: "#9bbc0f", bottomHex: "#9bbc0f", glyph: "bag.fill", glyphHex: "#0f380f"),
+            AppIconOption(assetName: "AppIconHolo", title: "Holo", topHex: "#ffd1f5", bottomHex: "#b8ffe6", glyph: "bag.fill")
+        ])
+
+    static let styles2 = AppIconPack(
+        id: "styles2",
+        title: "Stile II",
+        footer: "Sechs-Sieben, Heldencomic, Farbe, Musik, Kreide.",
+        productID: .iconsStyles2,
+        icons: [
+            AppIconOption(assetName: "AppIconSechsSieben", title: "Sechs-Sieben", topHex: "#d9ff3d", bottomHex: "#7ee62e", glyph: "bag.fill", glyphHex: "#101418"),
+            AppIconOption(assetName: "AppIconHeldencomic", title: "Heldencomic", topHex: "#ff9f0a", bottomHex: "#e0202a", glyph: "bag.fill", glyphHex: "#2b5cff"),
+            AppIconOption(assetName: "AppIconFarbe", title: "Farbe", topHex: "#fffaf0", bottomHex: "#fffaf0", glyph: "paintpalette.fill", glyphHex: "#2b2b2b"),
+            AppIconOption(assetName: "AppIconGeigenkasten", title: "Geigenkasten", topHex: "#6b1e3a", bottomHex: "#2b0a17", glyph: "music.note", glyphHex: "#e0b070"),
+            AppIconOption(assetName: "AppIconNoten", title: "Noten", topHex: "#7c3aed", bottomHex: "#3b1a7a", glyph: "music.note.list"),
+            AppIconOption(assetName: "AppIconKreide", title: "Kreide", topHex: "#2f5d46", bottomHex: "#2f5d46", glyph: "bag")
         ])
 
     static let seasonal = AppIconPack(
@@ -59,7 +89,7 @@ enum AppIconCatalog {
     /// The thank-you for a tip. Not for sale.
     static let supporter = AppIconOption(assetName: "AppIconUnterstuetzer", title: "Unterstützer", topHex: "#f43f5e", bottomHex: "#9f1239", glyph: "heart.fill")
 
-    static let paidPacks: [AppIconPack] = [classic, seasonal]
+    static let paidPacks: [AppIconPack] = [classic, styles1, styles2, seasonal]
 
     /// The school's own icon from the registry, if its entry carries one.
     /// Eli's is an own design in the school colours, not the crest; a real

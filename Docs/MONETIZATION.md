@@ -77,7 +77,12 @@ Two tiers, because of the trademark issue above:
   purple, mono, "Notizbuch", pixel).
 - `icons.seasonal` — Weihnachten, Sommerferien, Abi; add one per year,
   same product ID, buyers get new ones free (good review magnet).
-- Price 1,99 € each, or both in Pro.
+- `icons.styles1` — the satchel in eight drawing styles (Comic, Manga,
+  Pixel, Neon, Kawaii, Graffiti, Handheld, Holo).
+- `icons.styles2` — Sechs-Sieben, Heldencomic, Farbe, Geigenkasten, Noten,
+  Kreide. Genre styling only: no character likeness, logotype or name from
+  any existing franchise goes into an icon.
+- Price 1,99 € each, or all of them in Pro.
 
 **School packs (only with consent):**
 - Do **not** pre-draw crests for every Hessen school. 1 700+ schools,

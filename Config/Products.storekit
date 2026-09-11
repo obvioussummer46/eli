@@ -95,6 +95,36 @@
       "type" : "NonConsumable"
     },
     {
+      "displayPrice" : "1.99",
+      "familyShareable" : true,
+      "internalID" : "2004",
+      "localizations" : [
+        {
+          "description" : "Acht Stile für das App-Symbol.",
+          "displayName" : "Symbole: Stile I",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.icons.styles1",
+      "referenceName" : "Icons Stile I",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : true,
+      "internalID" : "2005",
+      "localizations" : [
+        {
+          "description" : "Sechs weitere Stile für das App-Symbol.",
+          "displayName" : "Symbole: Stile II",
+          "locale" : "de_DE"
+        }
+      ],
+      "productID" : "de.schulportalmobile.app.icons.styles2",
+      "referenceName" : "Icons Stile II",
+      "type" : "NonConsumable"
+    },
+    {
       "displayPrice" : "7.99",
       "familyShareable" : true,
       "internalID" : "3001",

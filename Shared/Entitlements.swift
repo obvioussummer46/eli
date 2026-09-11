@@ -11,6 +11,8 @@ enum ProductID: String, CaseIterable {
     case widgetPack = "de.schulportalmobile.app.widgets.pack"
     case iconsClassic = "de.schulportalmobile.app.icons.classic"
     case iconsSeasonal = "de.schulportalmobile.app.icons.seasonal"
+    case iconsStyles1 = "de.schulportalmobile.app.icons.styles1"
+    case iconsStyles2 = "de.schulportalmobile.app.icons.styles2"
     case proLifetime = "de.schulportalmobile.app.pro.lifetime"
     case proYearly = "de.schulportalmobile.app.pro.yearly"
 
@@ -29,6 +31,8 @@ enum ProductID: String, CaseIterable {
         switch self {
         case .iconsClassic: "classic"
         case .iconsSeasonal: "seasonal"
+        case .iconsStyles1: "styles1"
+        case .iconsStyles2: "styles2"
         default: nil
         }
     }

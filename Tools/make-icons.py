@@ -5,8 +5,10 @@ anywhere, and every icon is reproducible from this file alone.
 
     python3 Tools/make-icons.py
 
-Geometry, not fonts: the glyph is a mortarboard drawn from a diamond, a cap
-body and a tassel, so no machine's font set changes the result.
+Geometry, not fonts: every glyph is drawn from primitives, so no machine's
+font set changes the result. The Klassisch six carry the satchel from the
+logo work (`Ranzen Logos.dc.html`, direction 1a); the seasonal pair still
+carries the mortarboard.
 """
 import json
 import math
@@ -62,6 +64,18 @@ def rect(x0, y0, x1, y1):
     return polygon([(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
 
 
+def round_rect(x0, y0, x1, y1, r):
+    def spans(y):
+        if not (y0 <= y < y1):
+            return []
+        dy = max(y0 + r - y, y - (y1 - r), 0.0)
+        if dy >= r:
+            return []
+        inset = r - math.sqrt(r * r - dy * dy)
+        return [(x0 + inset, x1 - inset)]
+    return spans
+
+
 def union(*shapes):
     def spans(y):
         out = []
@@ -93,6 +107,50 @@ def mortarboard(cx=512, cy=470, scale=1.0):
     tassel = union(thick_line(cx + 350 * s, cy, cx + 350 * s, cy + 150 * s, 14 * s),
                    circle(cx + 350 * s, cy + 165 * s, 24 * s))
     return union(diamond, body, tassel)
+
+
+def stroked_quad(p0, p1, p2, width, steps=24):
+    """A quadratic Bézier with a round-capped stroke, flattened to segments."""
+    points = []
+    for i in range(steps + 1):
+        t = i / steps
+        u = 1 - t
+        points.append((u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0],
+                       u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1]))
+    parts = [thick_line(a[0], a[1], b[0], b[1], width) for a, b in zip(points, points[1:])]
+    parts += [circle(x, y, width / 2) for x, y in points]
+    return union(*parts)
+
+
+# --- the satchel -----------------------------------------------------------
+# Direction 1a from the logo exploration, in its 100-unit design box: a body
+# with a rounded flap, a reflector stripe and a buckle, handle on top. Drawn
+# in four passes because the flap and stripe are translucent over the body.
+
+def u(v):
+    """Design units (0–100) to pixels."""
+    return v * SIZE / 100.0
+
+
+def satchel_body():
+    return union(stroked_quad((u(36), u(24)), (u(50), u(8)), (u(64), u(24)), u(7)),
+                 round_rect(u(14), u(22), u(86), u(88), u(16)))
+
+
+def satchel_flap():
+    return round_rect(u(14), u(22), u(86), u(60), u(16))
+
+
+def satchel_stripe():
+    return rect(u(14), u(52), u(86), u(57))
+
+
+def satchel_buckle():
+    return circle(u(50), u(60), u(8))
+
+
+def satchel_hole():
+    return circle(u(50), u(60), u(3.5))
 
 
 def heart(cx=512, cy=470):
@@ -179,16 +237,29 @@ def sun(canvas):
 
 ICONS = [
     # name,               top,       bottom,    glyph,   glyph colour, decoration
-    ("AppIconMitternacht", "#2a2a5e", "#0b0b1e", "cap", "#ffffff", None),
-    ("AppIconMinze",       "#34d3bd", "#0d6e66", "cap", "#ffffff", None),
-    ("AppIconLila",        "#b06cf7", "#5b21b6", "cap", "#ffffff", None),
-    ("AppIconAbendrot",    "#fb923c", "#be185d", "cap", "#ffffff", None),
-    ("AppIconMono",        "#fafafa", "#e5e5ea", "cap", "#1c1c1e", None),
-    ("AppIconNotizbuch",   "#fdf6e3", "#f3e9c9", "cap", "#1f3a6e", notebook_lines),
+    ("AppIconMitternacht", "#2a2a5e", "#0b0b1e", "bag", "#ffffff", None),
+    ("AppIconMinze",       "#34d3bd", "#0d6e66", "bag", "#ffffff", None),
+    ("AppIconLila",        "#b06cf7", "#5b21b6", "bag", "#ffffff", None),
+    ("AppIconAbendrot",    "#fb923c", "#be185d", "bag", "#ffffff", None),
+    ("AppIconMono",        "#fafafa", "#e5e5ea", "bag", "#1c1c1e", None),
+    ("AppIconNotizbuch",   "#fdf6e3", "#f3e9c9", "bag", "#1f3a6e", notebook_lines),
     ("AppIconWeihnachten", "#1f7a3e", "#052e16", "cap", "#ffffff", snow),
     ("AppIconSommer",      "#fde047", "#f59e0b", "cap", "#ffffff", sun),
     ("AppIconUnterstuetzer", "#f43f5e", "#9f1239", "heart", "#ffffff", None),
 ]
+
+
+def draw_glyph(canvas, glyph, colour):
+    if glyph == "bag":
+        canvas.fill(satchel_body(), colour)
+        canvas.fill(satchel_flap(), "#000000", 0.22)
+        canvas.fill(satchel_stripe(), "#ffffff", 0.55)
+        canvas.fill(satchel_buckle(), colour)
+        canvas.fill(satchel_hole(), "#000000", 0.35)
+    elif glyph == "cap":
+        canvas.fill(mortarboard(), colour)
+    else:
+        canvas.fill(heart(), colour)
 
 
 def write(name, canvas):
@@ -210,6 +281,6 @@ if __name__ == "__main__":
         canvas = Canvas(top, bottom)
         if deco:
             deco(canvas)
-        canvas.fill(mortarboard() if glyph == "cap" else heart(), colour)
+        draw_glyph(canvas, glyph, colour)
         write(name, canvas)
         print("written", name)

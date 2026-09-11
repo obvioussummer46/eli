@@ -6,9 +6,9 @@ anywhere, and every icon is reproducible from this file alone.
     python3 Tools/make-icons.py
 
 Geometry, not fonts: every glyph is drawn from primitives, so no machine's
-font set changes the result. The Klassisch six carry the satchel from the
-logo work (`Ranzen Logos.dc.html`, direction 1a); the seasonal pair still
-carries the mortarboard.
+font set changes the result. Every icon but the supporter's heart carries
+the satchel from the logo work (`Ranzen Logos.dc.html`, direction 1a); the
+seasonal pair adds snow or sun behind it.
 """
 import json
 import math
@@ -97,16 +97,6 @@ def thick_line(x0, y0, x1, y1, w):
     length = math.hypot(dx, dy) or 1
     nx, ny = -dy / length * w / 2, dx / length * w / 2
     return polygon([(x0 + nx, y0 + ny), (x1 + nx, y1 + ny), (x1 - nx, y1 - ny), (x0 - nx, y0 - ny)])
-
-
-def mortarboard(cx=512, cy=470, scale=1.0):
-    s = scale
-    diamond = polygon([(cx, cy - 175 * s), (cx + 350 * s, cy), (cx, cy + 175 * s), (cx - 350 * s, cy)])
-    body = union(rect(cx - 185 * s, cy + 60 * s, cx + 185 * s, cy + 200 * s),
-                 ellipse(cx, cy + 200 * s, 185 * s, 42 * s))
-    tassel = union(thick_line(cx + 350 * s, cy, cx + 350 * s, cy + 150 * s, 14 * s),
-                   circle(cx + 350 * s, cy + 165 * s, 24 * s))
-    return union(diamond, body, tassel)
 
 
 def stroked_quad(p0, p1, p2, width, steps=24):
@@ -243,8 +233,8 @@ ICONS = [
     ("AppIconAbendrot",    "#fb923c", "#be185d", "bag", "#ffffff", None),
     ("AppIconMono",        "#fafafa", "#e5e5ea", "bag", "#1c1c1e", None),
     ("AppIconNotizbuch",   "#fdf6e3", "#f3e9c9", "bag", "#1f3a6e", notebook_lines),
-    ("AppIconWeihnachten", "#1f7a3e", "#052e16", "cap", "#ffffff", snow),
-    ("AppIconSommer",      "#fde047", "#f59e0b", "cap", "#ffffff", sun),
+    ("AppIconWeihnachten", "#1f7a3e", "#052e16", "bag", "#ffffff", snow),
+    ("AppIconSommer",      "#fde047", "#f59e0b", "bag", "#ffffff", sun),
     ("AppIconUnterstuetzer", "#f43f5e", "#9f1239", "heart", "#ffffff", None),
 ]
 
@@ -256,8 +246,6 @@ def draw_glyph(canvas, glyph, colour):
         canvas.fill(satchel_stripe(), "#ffffff", 0.55)
         canvas.fill(satchel_buckle(), colour)
         canvas.fill(satchel_hole(), "#000000", 0.35)
-    elif glyph == "cap":
-        canvas.fill(mortarboard(), colour)
     else:
         canvas.fill(heart(), colour)
 

@@ -23,6 +23,11 @@ struct MensaService {
         await client.forget()
     }
 
+    /// Cookies of a live session, for the top-up web view.
+    func sessionCookies() async throws -> [HTTPCookie] {
+        try await client.webSessionCookies()
+    }
+
     // MARK: - Speiseplan
 
     /// Pass `nil` for whatever week the site considers current.

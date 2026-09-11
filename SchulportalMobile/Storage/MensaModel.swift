@@ -116,6 +116,15 @@ final class MensaModel {
         phase = .signedOut
     }
 
+    // MARK: - Top-up
+
+    /// A live session's cookies for the top-up web view. Empty when there is
+    /// no session to hand over — the web view then lands on the site's login
+    /// page, where the user can still get in by hand.
+    func topUpCookies() async -> [HTTPCookie] {
+        (try? await service.sessionCookies()) ?? []
+    }
+
     // MARK: - Refresh
 
     func refresh() async {

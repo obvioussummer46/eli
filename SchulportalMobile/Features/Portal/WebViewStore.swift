@@ -24,9 +24,12 @@ final class WebViewStore: NSObject, ObservableObject {
     /// the moment the portal lets us in.
     var onNavigationFinished: ((URL?) -> Void)?
 
-    init(injectsMobileStyle: Bool) {
+    /// `dataStore` defaults to the shared one; the mensa top-up sheet passes a
+    /// throwaway store seeded with its own session cookies instead, so the two
+    /// sites' sessions never share a jar.
+    init(injectsMobileStyle: Bool, dataStore: WKWebsiteDataStore = .default()) {
         let configuration = WKWebViewConfiguration()
-        configuration.websiteDataStore = .default()
+        configuration.websiteDataStore = dataStore
         configuration.allowsInlineMediaPlayback = true
 
         if injectsMobileStyle, let source = MobileStyleScript.source {

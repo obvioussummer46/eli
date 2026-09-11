@@ -320,8 +320,12 @@ Build:
 Review round 1 (rejected 09.09.2026 — missing Terms of Use link for the
 subscription):
 
-- [ ] Paste the updated description (with the EULA and privacy links at
+- [x] Paste the updated description (with the EULA and privacy links at
       the end of the RANZEN PRO paragraph) into the 1.0 version in App
       Store Connect. A description edit needs no new build.
-- [ ] Reply in the Resolution Center that the standard Apple EULA is
-      linked in the description, then resubmit for review.
+- [x] Resubmitted 11.09.2026 via the API (WAITING_FOR_REVIEW). The
+      rejected item would not resubmit as-is — the trick is to PATCH the
+      `reviewSubmissionItem` with `resolved: true` first, then PATCH the
+      `reviewSubmission` with `submitted: true`. No Resolution Center
+      reply was sent (the Resolution Center is not in the public API);
+      if the reviewer asked a question, answer it in the web UI.

@@ -64,6 +64,14 @@ actor MensaClient {
 
     var username: String? { credentials?.username }
 
+    /// The private jar's cookies, with a live session behind them — for
+    /// handing the site to a web view already signed in.
+    func webSessionCookies() async throws -> [HTTPCookie] {
+        guard let credentials else { throw MensaError.noCredentials }
+        if !hasSession { try await performSignIn(credentials) }
+        return cookieStorage?.cookies(for: MensaEndpoints.base) ?? []
+    }
+
     // MARK: - Sign in
 
     /// Verifies credentials against the site and keeps them for silent

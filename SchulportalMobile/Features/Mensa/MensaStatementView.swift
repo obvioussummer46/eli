@@ -8,6 +8,7 @@ import SwiftUI
 /// kind gets an amount.
 struct MensaStatementView: View {
     @Environment(MensaModel.self) private var mensa
+    @State private var isToppingUp = false
 
     var body: some View {
         List {
@@ -20,6 +21,13 @@ struct MensaStatementView: View {
                 if let last = mensa.lastRefresh {
                     LabeledContent("Zuletzt geladen",
                                    value: last.formatted(date: .omitted, time: .shortened))
+                }
+                if !DemoMode.isActive {
+                    Button {
+                        isToppingUp = true
+                    } label: {
+                        Label("Guthaben aufladen", systemImage: "plus.circle")
+                    }
                 }
             }
 
@@ -52,6 +60,9 @@ struct MensaStatementView: View {
         .navigationTitle("Kontoauszug")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await mensa.refresh() }
+        .sheet(isPresented: $isToppingUp) {
+            MensaTopUpSheet()
+        }
     }
 }
 

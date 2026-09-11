@@ -28,6 +28,12 @@ enum MensaEndpoints {
     /// Paged account statement.
     static var transactions: URL { flag("berichte_api.php", "searchTransactions") }
 
+    /// The site's own account page — balance, statement, and the caterer's
+    /// top-up options. Opened in the top-up web view, never parsed: what
+    /// "aufladen" means (bank-transfer details or an online payment) is the
+    /// caterer's choice, and the page is the one place that always knows.
+    static var accountPage: URL { base.appendingPathComponent("berichte.php") }
+
     /// The plan itself — server-rendered, and the one page that carries the
     /// week's menus, what is ordered and the balance all at once.
     static func speiseplan(week: String?) -> URL {

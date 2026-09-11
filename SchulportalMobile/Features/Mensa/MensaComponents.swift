@@ -3,6 +3,7 @@ import SwiftUI
 /// The balance, big, at the top of the tab — the number the tab exists for.
 struct MensaBalanceCard: View {
     @Environment(MensaModel.self) private var mensa
+    @State private var isToppingUp = false
 
     var body: some View {
         Card {
@@ -35,13 +36,29 @@ struct MensaBalanceCard: View {
                         .foregroundStyle(.orange)
                 }
 
-                NavigationLink {
-                    MensaStatementView()
-                } label: {
-                    Label("Kontoauszug", systemImage: "list.bullet.rectangle")
-                        .font(.subheadline.weight(.medium))
+                HStack {
+                    NavigationLink {
+                        MensaStatementView()
+                    } label: {
+                        Label("Kontoauszug", systemImage: "list.bullet.rectangle")
+                            .font(.subheadline.weight(.medium))
+                    }
+                    // The demo account has no site behind it, so there is
+                    // nothing the sheet could load.
+                    if !DemoMode.isActive {
+                        Spacer()
+                        Button {
+                            isToppingUp = true
+                        } label: {
+                            Label("Aufladen", systemImage: "plus.circle")
+                                .font(.subheadline.weight(.medium))
+                        }
+                    }
                 }
             }
+        }
+        .sheet(isPresented: $isToppingUp) {
+            MensaTopUpSheet()
         }
     }
 

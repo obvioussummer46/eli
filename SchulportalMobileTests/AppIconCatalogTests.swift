@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import SchulportalMobile
 
 /// Alternate icons only work when the asset catalog, the build setting and
@@ -59,6 +60,18 @@ final class AppIconCatalogTests: XCTestCase {
         config.name = nil
         XCTAssertEqual(AppIconCatalog.schoolIcon(for: config, schoolName: "Meine")?.title, "Meine")
         XCTAssertEqual(AppIconCatalog.schoolIcon(for: config, schoolName: "")?.title, "Meine Schule")
+    }
+
+    /// The picker cannot load an appiconset by name from `Assets.car`, so
+    /// every icon ships a companion `<Name>Preview` imageset whose artwork the
+    /// tile shows. Without it the tile falls back to a drawn stand-in that
+    /// looks nothing like the applied icon — the bug this guards against.
+    func testEveryIconHasALoadablePreviewImage() {
+        for option in everyCatalogueIcon + [AppIconCatalog.primary] {
+            let base = option.assetName ?? "AppIcon"
+            XCTAssertNotNil(UIImage(named: "\(base)Preview"),
+                            "\(option.title) is missing its \(base)Preview imageset")
+        }
     }
 
     func testSupporterIconIsNotForSale() {

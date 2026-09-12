@@ -132,11 +132,15 @@ struct AppIconTile: View {
         }
     }
 
-    /// The asset catalog compiles alternate icons into `<Name>60x60@2x.png`
-    /// and friends; `UIImage(named:)` finds them by the base name plus size.
+    /// Alternate icons compile into `Assets.car` under their set name, which
+    /// `UIImage(named:)` cannot load — so every alternate tile fell back to a
+    /// drawn stand-in that looked nothing like the icon you actually get. Each
+    /// icon therefore ships a companion `<Name>Preview` imageset with the same
+    /// artwork; the tile loads that so the preview matches the applied icon.
+    /// The `60x60`/`76x76` names remain as a fallback for the primary icon.
     private static func bundledImage(for option: AppIconOption) -> UIImage? {
         let base = option.assetName ?? "AppIcon"
-        for candidate in ["\(base)60x60", "\(base)76x76", base] {
+        for candidate in ["\(base)Preview", "\(base)60x60", "\(base)76x76", base] {
             if let image = UIImage(named: candidate) { return image }
         }
         return nil

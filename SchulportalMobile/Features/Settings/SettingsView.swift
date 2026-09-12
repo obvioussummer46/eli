@@ -25,6 +25,12 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // Purchases first and clearly labelled. Buried at the bottom
+                // without a header, App Review could not locate the in-app
+                // purchases (guideline 2.1(b)) — this is now the first thing
+                // under „Mehr“ and the one place to buy anything.
+                storeSection
+
                 // The pages the app does not parse natively — Nachrichten,
                 // Vertretungsplan, Kalender — live behind this one link. It
                 // used to be a tab of its own, but a sixth tab pushes iOS
@@ -297,49 +303,6 @@ struct SettingsView: View {
                          : "Ein eigener Kalender ist angelegt. Beim erneuten Übertragen wird er aktualisiert.")
                 }
 
-                // Pro and the tip jar, side by side: the extras and the
-                // thank-you. Neither ever pops up on its own.
-                Section {
-                    if store.entitlements.isPro {
-                        NavigationLink {
-                            PaywallView()
-                        } label: {
-                            LabeledContent {
-                                Text("Aktiv").foregroundStyle(.green)
-                            } label: {
-                                Label(Brand.pro, systemImage: "sparkles")
-                            }
-                        }
-                    } else {
-                        Button {
-                            isShowingPaywall = true
-                        } label: {
-                            HStack {
-                                Label("\(Brand.pro) freischalten", systemImage: "sparkles")
-                                Spacer()
-                                ProBadge()
-                            }
-                        }
-                        .tint(.primary)
-                    }
-                    NavigationLink {
-                        SupportView()
-                    } label: {
-                        Label("App unterstützen", systemImage: store.entitlements.hasTipped ? "heart.fill" : "heart")
-                    }
-                    if UIApplication.shared.supportsAlternateIcons {
-                        NavigationLink {
-                            AppIconPickerView()
-                        } label: {
-                            Label("App-Symbol", systemImage: "app.badge")
-                        }
-                    }
-                } footer: {
-                    Text(store.entitlements.isPro
-                         ? "Danke! Widgets, Symbole und Extras sind freigeschaltet."
-                         : "Mehr Widgets, alle Symbole, eigene Erinnerungszeiten. Die App selbst bleibt kostenlos.")
-                }
-
                 Section("Statistik") {
                     LabeledContent("Kurse", value: "\(model.snapshot.courses.count)")
                     LabeledContent("Einträge", value: "\(model.snapshot.entries.count)")
@@ -398,6 +361,56 @@ struct SettingsView: View {
                     model.settings.schoolName = school.name
                 }
             }
+        }
+    }
+
+    /// Everything you can buy, in one clearly-labelled place at the top of the
+    /// screen: Ranzen Pro, the tip jar, and the alternate app icons. It used to
+    /// sit near the bottom without a header, which is why App Review could not
+    /// locate the in-app purchases.
+    @ViewBuilder
+    private var storeSection: some View {
+        Section {
+            if store.entitlements.isPro {
+                NavigationLink {
+                    PaywallView()
+                } label: {
+                    LabeledContent {
+                        Text("Aktiv").foregroundStyle(.green)
+                    } label: {
+                        Label(Brand.pro, systemImage: "sparkles")
+                    }
+                }
+            } else {
+                Button {
+                    isShowingPaywall = true
+                } label: {
+                    HStack {
+                        Label("\(Brand.pro) freischalten", systemImage: "sparkles")
+                        Spacer()
+                        ProBadge()
+                    }
+                }
+                .tint(.primary)
+            }
+            NavigationLink {
+                SupportView()
+            } label: {
+                Label("Trinkgeld geben", systemImage: store.entitlements.hasTipped ? "heart.fill" : "heart")
+            }
+            if UIApplication.shared.supportsAlternateIcons {
+                NavigationLink {
+                    AppIconPickerView()
+                } label: {
+                    Label("App-Symbol", systemImage: "app.badge")
+                }
+            }
+        } header: {
+            Text("Ranzen Pro & Unterstützen")
+        } footer: {
+            Text(store.entitlements.isPro
+                 ? "Danke! Widgets, Symbole und Extras sind freigeschaltet."
+                 : "Mehr Widgets, alle Symbole, eigene Erinnerungszeiten. Die App selbst bleibt kostenlos.")
         }
     }
 

@@ -46,6 +46,8 @@ enum LessonActivityController {
         }
         let isOngoing = lesson.start.minutesFromMidnight <= minutes
         let next = lessons.first { $0.start.minutesFromMidnight >= lesson.end.minutesFromMidnight }
+        let change = substitution(for: lesson, in: model.todaysSubstitutions)
+        let task = homework(for: lesson, model: model)
         let state = LessonActivityAttributes.ContentState(
             subject: lesson.subject.name,
             room: lesson.room,
@@ -53,7 +55,13 @@ enum LessonActivityController {
             start: start,
             end: end,
             isOngoing: isOngoing,
-            nextSubject: next?.subject.name)
+            nextSubject: next?.subject.name,
+            isBreak: !isOngoing && lessons.contains { $0.end.minutesFromMidnight <= minutes },
+            substitutionKind: change.map { $0.kind ?? "Änderung" },
+            substitutionDetail: change.flatMap { $0.summary.isEmpty ? nil : $0.summary },
+            homeworkID: task?.id,
+            homeworkText: task?.text.components(separatedBy: .newlines).first,
+            homeworkDone: task == nil ? nil : false)
         let content = ActivityContent(state: state, staleDate: end)
 
         if let activity = Activity<LessonActivityAttributes>.activities.first {
@@ -89,5 +97,36 @@ enum LessonActivityController {
 
     private static func date(on day: Date, at time: TimeOfDay) -> Date? {
         GermanDate.calendar.date(bySettingHour: time.hour, minute: time.minute, second: 0, of: day)
+    }
+
+    /// The Vertretungsplan row that touches the shown lesson, matched by
+    /// period overlap — the plan prints periods as free text ("3 - 4"), so
+    /// the numbers in it become a range. Own activities have no portal
+    /// periods and never match. When several rows overlap, a matching
+    /// subject wins over the first.
+    private static func substitution(for lesson: TimetableEntry,
+                                     in rows: [Substitution]) -> Substitution? {
+        guard !lesson.isActivity else { return nil }
+        let matching = rows.filter { row in
+            guard let range = periodRange(row.period) else { return false }
+            return range.overlaps(lesson.firstPeriod...lesson.lastPeriod)
+        }
+        return matching.first { $0.subjectName == lesson.subject.name } ?? matching.first
+    }
+
+    private static func periodRange(_ raw: String) -> ClosedRange<Int>? {
+        let numbers = raw.matches(of: /\d+/).compactMap { Int($0.output) }
+        guard let low = numbers.min(), let high = numbers.max() else { return nil }
+        return low...high
+    }
+
+    /// The open homework the activity offers to tick: the most urgent one in
+    /// the shown lesson's subject. One with a tick the app has not absorbed
+    /// yet counts as done already and is skipped.
+    private static func homework(for lesson: TimetableEntry, model: AppModel) -> Homework? {
+        let pending = SharedHomeworkTicks.load()
+        return model.openHomework.first {
+            $0.subject.name == lesson.subject.name && pending[$0.id] == nil
+        }
     }
 }

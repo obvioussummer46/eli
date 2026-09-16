@@ -1,3 +1,4 @@
+import ActivityKit
 import AppIntents
 import Foundation
 import WidgetKit
@@ -24,6 +25,38 @@ struct MarkHomeworkDoneIntent: AppIntent {
         SharedHomeworkTicks.record(homeworkID)
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.homework)
         WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.dayPlan)
+        return .result()
+    }
+}
+
+/// The tick on the Live Activity. `LiveActivityIntent` makes the system run
+/// `perform()` in the app's process — the only place a Live Activity can be
+/// updated from — so unlike the widget tick this one also flips the activity
+/// itself to "erledigt" immediately. The portal round-trip stays the same:
+/// the tick lands in the App Group and the app absorbs it on its next run.
+struct MarkActivityHomeworkDoneIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource { "Hausaufgabe abhaken" }
+    static var isDiscoverable: Bool { false }
+
+    @Parameter(title: "Hausaufgabe")
+    var homeworkID: String
+
+    init() {}
+
+    init(homeworkID: String) {
+        self.homeworkID = homeworkID
+    }
+
+    func perform() async throws -> some IntentResult {
+        SharedHomeworkTicks.record(homeworkID)
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.homework)
+        WidgetCenter.shared.reloadTimelines(ofKind: WidgetKind.dayPlan)
+        for activity in Activity<LessonActivityAttributes>.activities
+        where activity.content.state.homeworkID == homeworkID {
+            var state = activity.content.state
+            state.homeworkDone = true
+            await activity.update(ActivityContent(state: state, staleDate: activity.content.staleDate))
+        }
         return .result()
     }
 }

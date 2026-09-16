@@ -4,8 +4,38 @@ import WidgetKit
 /// The widgets are the app for someone who never opens the app: next lesson,
 /// the day at a glance, the lunch balance. Everything renders offline from
 /// the `SharedSnapshot` the app writes — a widget never talks to the portal.
+///
+/// The entry point dispatches by hand because `WidgetBundleBuilder` cannot
+/// express "this widget below iOS 18, that one from 18 on" — which the live
+/// activity needs (see `LessonLiveActivity.swift`): iOS 18 registers the
+/// variant with the watch's small family, iOS 17 the plain one.
 @main
+struct SchulportalWidgetsLaunch {
+    static func main() {
+        if #available(iOSApplicationExtension 18.0, *) {
+            SupplementedWidgetsBundle.main()
+        } else {
+            SchulportalWidgetsBundle.main()
+        }
+    }
+}
+
 struct SchulportalWidgetsBundle: WidgetBundle {
+    var body: some Widget {
+        CommonWidgets().body
+        LessonLiveActivity()
+    }
+}
+
+@available(iOSApplicationExtension 18.0, *)
+struct SupplementedWidgetsBundle: WidgetBundle {
+    var body: some Widget {
+        CommonWidgets().body
+        SupplementedLessonLiveActivity()
+    }
+}
+
+private struct CommonWidgets: WidgetBundle {
     var body: some Widget {
         NextLessonWidget()
         TodayWidget()
@@ -15,7 +45,6 @@ struct SchulportalWidgetsBundle: WidgetBundle {
         HomeworkWidget()
         DayPlanWidget()
         CountdownWidget()
-        LessonLiveActivity()
     }
 }
 

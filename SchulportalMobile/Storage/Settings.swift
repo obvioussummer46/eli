@@ -34,6 +34,7 @@ final class Settings {
         /// ignores these and uses the defaults below.
         var homeworkReminderMinutes: Int
         var digestMinutes: Int
+        var hasSeenIntro: Bool
     }
 
     static let defaultHomeworkReminderMinutes = 17 * 60
@@ -64,7 +65,8 @@ final class Settings {
             customLinks: Self.decodeLinks(defaults.data(forKey: Keys.customLinks)),
             activities: Self.decodeActivities(defaults.data(forKey: Keys.activities)),
             homeworkReminderMinutes: defaults.object(forKey: Keys.homeworkReminderMinutes) as? Int ?? Self.defaultHomeworkReminderMinutes,
-            digestMinutes: defaults.object(forKey: Keys.digestMinutes) as? Int ?? Self.defaultDigestMinutes
+            digestMinutes: defaults.object(forKey: Keys.digestMinutes) as? Int ?? Self.defaultDigestMinutes,
+            hasSeenIntro: defaults.bool(forKey: Keys.hasSeenIntro)
         )
     }
 
@@ -229,6 +231,20 @@ final class Settings {
         set { values.digestMinutes = newValue; defaults.set(newValue, forKey: Keys.digestMinutes) }
     }
 
+    /// Whether the first-launch intro (the satchel opening) has played.
+    /// Set the moment the hand-off starts, not when it ends, so a kill
+    /// mid-animation does not replay it.
+    var hasSeenIntro: Bool {
+        get { values.hasSeenIntro }
+        set { values.hasSeenIntro = newValue; defaults.set(newValue, forKey: Keys.hasSeenIntro) }
+    }
+
+    /// The same flag without a model — `RootView` decides its very first
+    /// frame from it, before anything is in the environment.
+    static var hasSeenIntro: Bool {
+        UserDefaults.standard.bool(forKey: Keys.hasSeenIntro)
+    }
+
     private static func decodeLinks(_ data: Data?) -> [SchoolLink] {
         guard let data else { return [] }
         return (try? JSONDecoder().decode([SchoolLink].self, from: data)) ?? []
@@ -255,6 +271,7 @@ final class Settings {
         static let activities = "timetable.activities"
         static let homeworkReminderMinutes = "notify.homework.minutes"
         static let digestMinutes = "notify.digest.minutes"
+        static let hasSeenIntro = "intro.seen"
     }
 
     /// The times the scheduler actually uses: the user's own with Pro, the

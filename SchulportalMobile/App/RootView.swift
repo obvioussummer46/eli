@@ -2,8 +2,32 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Decided at construction, so the very first frame is already the
+    /// intro and the quote placeholder never flashes underneath it.
+    @State private var showsIntro = FirstLaunchIntroView.shouldPlay
 
     var body: some View {
+        ZStack {
+            content
+                // The screen underneath grows into place as the intro lifts
+                // off — the hand-off in the design, phase 6.
+                .scaleEffect(showsIntro && !reduceMotion ? 0.96 : 1)
+
+            if showsIntro {
+                FirstLaunchIntroView {
+                    withAnimation(.easeInOut(duration: reduceMotion ? 0.3 : 0.35)) {
+                        showsIntro = false
+                    }
+                }
+                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 1.06)))
+                .zIndex(1)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
         switch model.phase {
         case .launching:
             LaunchPlaceholder()

@@ -1,5 +1,6 @@
 import StoreKit
 import SwiftUI
+import UIKit
 
 /// The one paywall. Lifetime first, yearly for people who refuse lifetime,
 /// restore and the two legal links — nothing else. Every feature it lists
@@ -117,11 +118,32 @@ struct PaywallView: View {
             } else if let message = store.lastErrorMessage {
                 InlineErrorBanner(message: message)
             }
-            Button("Käufe wiederherstellen") {
-                Task { await store.restore() }
+            HStack(spacing: 20) {
+                Button("Käufe wiederherstellen") {
+                    Task { await store.restore() }
+                }
+                Button("Code einlösen") {
+                    Task { await redeemCode() }
+                }
             }
             .font(.footnote)
             .padding(.top, 4)
+        }
+    }
+
+    /// Apple's own redeem sheet for subscription offer codes (e.g. a free year
+    /// of Pro). The redeemed subscription arrives through `Transaction.updates`,
+    /// which `Store.start()` already listens to, so Pro unlocks on its own.
+    @MainActor
+    private func redeemCode() async {
+        let scene = UIApplication.shared.connectedScenes
+            .first { $0.activationState == .foregroundActive } as? UIWindowScene
+            ?? UIApplication.shared.connectedScenes.first as? UIWindowScene
+        guard let scene else { return }
+        do {
+            try await AppStore.presentOfferCodeRedeemSheet(in: scene)
+        } catch {
+            // Cancellation and invalid codes are surfaced by Apple's own sheet.
         }
     }
 

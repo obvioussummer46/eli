@@ -7,10 +7,11 @@ import SwiftUI
 /// app can sign itself back in when the short-lived SPH session dies —
 /// exactly what the Essen tab already does for the mensa account.
 ///
-/// The first screen is deliberately three steps a child can follow: school,
-/// name, password. Everything else — what the app does, parent accounts,
-/// SSO, the raw school number, the privacy story — lives behind one info
-/// link so it cannot get in the way of a first login.
+/// The screen works like a messenger's onboarding: one pill for the school,
+/// and only once a school is chosen do the login fields slide in — a child
+/// is never shown more than the one thing to do next. Everything else —
+/// what the app does, parent accounts, SSO, the raw school number, the
+/// privacy story — lives behind one info link at the bottom.
 struct LoginView: View {
     @Environment(AppModel.self) private var model
     @State private var isShowingPortalLogin = false
@@ -39,20 +40,31 @@ struct LoginView: View {
         case bildungsserver
     }
 
+    /// What reveals the login fields. A Bildungsserver account needs no
+    /// school, so switching to it in the info sheet opens the form too.
+    private var hasSchool: Bool {
+        !trimmedID.isEmpty || accountKind == .bildungsserver
+    }
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    header
-                    signInBox
-                    infoLink
+        ScrollView {
+            VStack(spacing: 14) {
+                header
+                schoolPill
+
+                if hasSchool {
+                    credentialFields
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .padding(20)
+
+                infoLink
+                    .padding(.top, 16)
             }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("Willkommen")
-            .navigationBarTitleDisplayMode(.inline)
+            .padding(.horizontal, 28)
+            .padding(.top, 72)
+            .animation(.spring(response: 0.45, dampingFraction: 0.85), value: hasSchool)
         }
+        .background(Color(.systemBackground))
         .onAppear {
             schoolID = model.settings.schoolID
             schoolName = model.settings.schoolName
@@ -62,6 +74,12 @@ struct LoginView: View {
             SchoolPickerView { school in
                 schoolID = school.id
                 schoolName = school.name
+                // Straight into typing, like a messenger — but only after the
+                // sheet is gone and the fields exist, or the focus is dropped.
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(600))
+                    focus = .username
+                }
             }
         }
         .sheet(isPresented: $isShowingInfo, onDismiss: {
@@ -107,53 +125,50 @@ struct LoginView: View {
     }
 
     private var header: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             Image(systemName: "graduationcap.fill")
-                .font(.system(size: 52))
+                .font(.system(size: 56))
                 .foregroundStyle(Color.accentColor)
-            Text("Schulportal, aber fürs Handy")
-                .font(.title2.bold())
-                .multilineTextAlignment(.center)
-            Text("Melde dich mit deinem Schulportal-Zugang an — wie am Computer in der Schule.")
+            Text("Willkommen!")
+                .font(.title.bold())
+            Text(hasSchool
+                 ? "Und jetzt dein Login vom Schulportal."
+                 : "Wähle zuerst deine Schule aus.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
         }
-        .padding(.top, 16)
+        .padding(.bottom, 18)
     }
 
-    private var signInBox: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            stepLabel(1, "Deine Schule")
-
-            Button {
-                isShowingSchoolPicker = true
-            } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(schoolButtonTitle)
-                            .foregroundStyle(schoolName.isEmpty && trimmedID.isEmpty
-                                             ? Color.accentColor : Color.primary)
-                            .multilineTextAlignment(.leading)
-                        if !schoolName.isEmpty {
-                            Text("Schulnummer \(schoolID)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    Spacer(minLength: 8)
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 10)
-                .padding(.horizontal, 12)
-                .background(Color(.tertiarySystemGroupedBackground), in: .rect(cornerRadius: 10))
+    private var schoolPill: some View {
+        Button {
+            isShowingSchoolPicker = true
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: hasPickedSchool ? "checkmark.circle.fill" : "magnifyingglass")
+                    .foregroundStyle(hasPickedSchool ? Color.green : Color.accentColor)
+                Text(schoolPillTitle)
+                    .foregroundStyle(hasPickedSchool ? Color.primary : Color.accentColor)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
             }
-            .buttonStyle(.plain)
+            .pillField()
+        }
+        .buttonStyle(.plain)
+    }
 
-            stepLabel(2, "Dein Login")
-                .padding(.top, 6)
+    private var hasPickedSchool: Bool { !trimmedID.isEmpty }
 
+    private var schoolPillTitle: String {
+        if !schoolName.isEmpty { return schoolName }
+        // A number typed by hand in the info sheet has no name to show.
+        if !trimmedID.isEmpty { return "Schulnummer \(trimmedID)" }
+        return "Schule suchen"
+    }
+
+    private var credentialFields: some View {
+        VStack(spacing: 14) {
             // Switched on from the info sheet; the way back stays in sight so
             // nobody is trapped in a mode they cannot see the origin of.
             if accountKind == .bildungsserver {
@@ -165,6 +180,7 @@ struct LoginView: View {
                     Button("Schulkonto verwenden") { accountKind = .school }
                         .font(.footnote)
                 }
+                .padding(.horizontal, 6)
             }
 
             TextField(accountKind == .school ? "Benutzername (vorname.nachname)" : "Benutzername", text: $username)
@@ -174,65 +190,39 @@ struct LoginView: View {
                 .submitLabel(.next)
                 .focused($focus, equals: .username)
                 .onSubmit { focus = .password }
-                .textFieldStyle(.roundedBorder)
+                .pillField()
 
             RevealablePasswordField("Passwort", text: $password, focus: $focus, focusValue: .password) {
                 submitCredentials()
             }
-            .textFieldStyle(.roundedBorder)
+            .pillField()
 
             if let message = model.signInErrorMessage {
                 Label(message, systemImage: "exclamationmark.triangle.fill")
                     .font(.footnote)
                     .foregroundStyle(.orange)
                     .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
-            // The button quietly refusing to enable is worse than a sentence:
-            // whoever typed name + password deserves to know what is missing.
-            if accountKind == .school, trimmedID.isEmpty, !username.isEmpty, !password.isEmpty {
-                Text("Wähle oben deine Schule aus — die Anmeldung mit einem Schulkonto braucht ihre Schulnummer.")
-                    .font(.footnote)
-                    .foregroundStyle(.orange)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 6)
             }
 
             Button {
                 submitCredentials()
             } label: {
-                if isSigningIn {
-                    ProgressView().frame(maxWidth: .infinity)
-                } else {
-                    Label("Anmelden", systemImage: "lock.open.fill")
-                        .frame(maxWidth: .infinity)
+                Group {
+                    if isSigningIn {
+                        ProgressView().tint(.white)
+                    } else {
+                        Text("Anmelden").font(.headline)
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
             }
             .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
             .controlSize(.large)
             .disabled(!canSubmitCredentials)
             .padding(.top, 4)
-        }
-        .padding(18)
-        .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
-    }
-
-    private var schoolButtonTitle: String {
-        if !schoolName.isEmpty { return schoolName }
-        // A number typed by hand in the info sheet has no name to show.
-        if !trimmedID.isEmpty { return "Schulnummer \(trimmedID)" }
-        return "Schule suchen"
-    }
-
-    private func stepLabel(_ number: Int, _ title: String) -> some View {
-        HStack(spacing: 8) {
-            Text("\(number)")
-                .font(.caption.bold())
-                .foregroundStyle(.white)
-                .frame(width: 20, height: 20)
-                .background(Color.accentColor, in: .circle)
-            Text(title)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
         }
     }
 
@@ -272,6 +262,20 @@ struct LoginView: View {
             isSigningIn = false
         }
     }
+}
+
+/// The messenger-style pill every input on this screen wears.
+private struct PillField: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(.vertical, 15)
+            .padding(.horizontal, 20)
+            .background(Color(.secondarySystemBackground), in: .capsule)
+    }
+}
+
+private extension View {
+    func pillField() -> some View { modifier(PillField()) }
 }
 
 /// Everything the first screen no longer says: what the app does, the

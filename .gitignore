@@ -7,6 +7,7 @@ DerivedData/
 .swiftpm/
 SchulportalMobile.xcodeproj/project.xcworkspace/xcuserdata/
 SchulportalMobile.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+SchulportalMobile.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
 
 # Tooling (nur für Tools/capture-samples.mjs, nicht für die App)
 node_modules/

@@ -7,13 +7,19 @@ import SwiftUI
 /// app can sign itself back in when the short-lived SPH session dies —
 /// exactly what the Essen tab already does for the mensa account.
 ///
-/// The browser route stays for everyone the form cannot serve: SSO, 2FA and
-/// school specific identity providers all work on the portal's own page, and
-/// the app then only ever holds the session cookie, never a password.
+/// The first screen is deliberately three steps a child can follow: school,
+/// name, password. Everything else — what the app does, parent accounts,
+/// SSO, the raw school number, the privacy story — lives behind one info
+/// link so it cannot get in the way of a first login.
 struct LoginView: View {
     @Environment(AppModel.self) private var model
     @State private var isShowingPortalLogin = false
     @State private var isShowingSchoolPicker = false
+    @State private var isShowingInfo = false
+    /// SwiftUI drops a presentation that starts while another sheet is still
+    /// animating away, so the info sheet only *requests* the web login and
+    /// `onDismiss` performs it.
+    @State private var wantsPortalLoginAfterInfo = false
     @State private var schoolID: String = ""
     @State private var schoolName: String = ""
     @State private var username: String = ""
@@ -28,27 +34,18 @@ struct LoginView: View {
     /// (pupils, teachers — the login carries the school number) versus
     /// self-registered Bildungsserver accounts ("ohne Schulbezug", typically
     /// parents — no school in the login at all).
-    private enum AccountKind: String, CaseIterable, Identifiable {
+    private enum AccountKind {
         case school
         case bildungsserver
-        var id: String { rawValue }
-
-        var label: String {
-            switch self {
-            case .school: "Schulkonto"
-            case .bildungsserver: "Bildungsserver"
-            }
-        }
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 28) {
+                VStack(spacing: 24) {
                     header
-                    featureList
                     signInBox
-                    privacyNote
+                    infoLink
                 }
                 .padding(20)
             }
@@ -65,6 +62,18 @@ struct LoginView: View {
             SchoolPickerView { school in
                 schoolID = school.id
                 schoolName = school.name
+            }
+        }
+        .sheet(isPresented: $isShowingInfo, onDismiss: {
+            if wantsPortalLoginAfterInfo {
+                wantsPortalLoginAfterInfo = false
+                isShowingPortalLogin = true
+            }
+        }) {
+            LoginInfoSheet(manualSchoolID: manualID,
+                           isParentAccount: isParentAccount) {
+                wantsPortalLoginAfterInfo = true
+                isShowingInfo = false
             }
         }
         .fullScreenCover(isPresented: $isShowingPortalLogin) {
@@ -92,6 +101,11 @@ struct LoginView: View {
                 set: { schoolID = $0; schoolName = "" })
     }
 
+    private var isParentAccount: Binding<Bool> {
+        Binding(get: { accountKind == .bildungsserver },
+                set: { accountKind = $0 ? .bildungsserver : .school })
+    }
+
     private var header: some View {
         VStack(spacing: 10) {
             Image(systemName: "graduationcap.fill")
@@ -100,7 +114,7 @@ struct LoginView: View {
             Text("Schulportal, aber fürs Handy")
                 .font(.title2.bold())
                 .multilineTextAlignment(.center)
-            Text("Hausaufgaben abhaken, Stundenplan im iOS-Kalender.")
+            Text("Melde dich mit deinem Schulportal-Zugang an — wie am Computer in der Schule.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -108,36 +122,18 @@ struct LoginView: View {
         .padding(.top, 16)
     }
 
-    private var featureList: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            FeatureRow(icon: "checkmark.circle.fill",
-                       title: "Hausaufgaben",
-                       detail: "Alle offenen Aufgaben aus „Mein Unterricht“ auf einer Liste – antippen und erledigt.")
-            FeatureRow(icon: "calendar",
-                       title: "Stundenplan",
-                       detail: "Als echte Termine in deinen iOS-Kalender, mit Raum und Lehrkraft.")
-            FeatureRow(icon: "safari",
-                       title: "Rest des Portals",
-                       detail: "Nachrichten & Co. öffnen sich im mobilen Design unter „Mehr“ › Portal.")
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
-    }
-
     private var signInBox: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Schule")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+            stepLabel(1, "Deine Schule")
 
             Button {
                 isShowingSchoolPicker = true
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(schoolName.isEmpty ? "Schule suchen" : schoolName)
-                            .foregroundStyle(schoolName.isEmpty ? Color.accentColor : Color.primary)
+                        Text(schoolButtonTitle)
+                            .foregroundStyle(schoolName.isEmpty && trimmedID.isEmpty
+                                             ? Color.accentColor : Color.primary)
                             .multilineTextAlignment(.leading)
                         if !schoolName.isEmpty {
                             Text("Schulnummer \(schoolID)")
@@ -155,34 +151,21 @@ struct LoginView: View {
             }
             .buttonStyle(.plain)
 
-            // The number still works on its own: whoever already knows it
-            // should not have to search for a name to get at it.
-            DisclosureGroup("Schulnummer direkt eingeben") {
-                TextField("z. B. 5182", text: manualID)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .padding(.top, 6)
-            }
-            .font(.caption)
-            .tint(.secondary)
-
-            Text("Zugangsdaten")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.secondary)
+            stepLabel(2, "Dein Login")
                 .padding(.top, 6)
 
-            Picker("Konto", selection: $accountKind) {
-                ForEach(AccountKind.allCases) { kind in
-                    Text(kind.label).tag(kind)
+            // Switched on from the info sheet; the way back stays in sight so
+            // nobody is trapped in a mode they cannot see the origin of.
+            if accountKind == .bildungsserver {
+                HStack {
+                    Label("Eltern-Konto (Bildungsserver)", systemImage: "person.2.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 8)
+                    Button("Schulkonto verwenden") { accountKind = .school }
+                        .font(.footnote)
                 }
             }
-            .pickerStyle(.segmented)
-
-            Text(accountKind == .school
-                 ? "Von der Schule ausgegeben — Schüler und Lehrkräfte. Braucht die Schule oben."
-                 : "Selbst registriert, „ohne Schulbezug“ — meist Eltern-Konten.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
 
             TextField(accountKind == .school ? "Benutzername (vorname.nachname)" : "Benutzername", text: $username)
                 .textContentType(.username)
@@ -228,27 +211,39 @@ struct LoginView: View {
             .controlSize(.large)
             .disabled(!canSubmitCredentials)
             .padding(.top, 4)
-
-            // The escape hatch for everything the form cannot do: SSO, 2FA,
-            // school specific identity providers. It needs no school picked —
-            // the portal then asks itself.
-            Button("Über die Portalseite anmelden (SSO / 2FA)") {
-                isShowingPortalLogin = true
-            }
-            .font(.footnote)
-            .frame(maxWidth: .infinity)
-            .disabled(isSigningIn)
         }
         .padding(18)
         .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
     }
 
-    private var privacyNote: some View {
-        Text("Benutzername und Passwort landen im Schlüsselbund deines Geräts, damit die App sich selbst wieder anmelden kann, wenn die Sitzung abläuft. Sie werden weder synchronisiert noch irgendwohin sonst geschickt. Über die Portalseite geht es auch ganz ohne gespeichertes Passwort.")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 8)
+    private var schoolButtonTitle: String {
+        if !schoolName.isEmpty { return schoolName }
+        // A number typed by hand in the info sheet has no name to show.
+        if !trimmedID.isEmpty { return "Schulnummer \(trimmedID)" }
+        return "Schule suchen"
+    }
+
+    private func stepLabel(_ number: Int, _ title: String) -> some View {
+        HStack(spacing: 8) {
+            Text("\(number)")
+                .font(.caption.bold())
+                .foregroundStyle(.white)
+                .frame(width: 20, height: 20)
+                .background(Color.accentColor, in: .circle)
+            Text(title)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var infoLink: some View {
+        Button {
+            isShowingInfo = true
+        } label: {
+            Label("Infos, Eltern-Konto & weitere Anmelde-Optionen", systemImage: "info.circle")
+                .font(.footnote)
+        }
+        .disabled(isSigningIn)
     }
 
     private var canSubmitCredentials: Bool {
@@ -275,6 +270,70 @@ struct LoginView: View {
                 password = ""
             }
             isSigningIn = false
+        }
+    }
+}
+
+/// Everything the first screen no longer says: what the app does, the
+/// less-common ways in, and where the password ends up.
+private struct LoginInfoSheet: View {
+    @Binding var manualSchoolID: String
+    @Binding var isParentAccount: Bool
+    /// The browser route for everything the form cannot do: SSO, 2FA, school
+    /// specific identity providers. Presented by the login screen after this
+    /// sheet is gone — see `wantsPortalLoginAfterInfo`.
+    let onPortalLogin: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Was die App kann") {
+                    FeatureRow(icon: "checkmark.circle.fill",
+                               title: "Hausaufgaben",
+                               detail: "Alle offenen Aufgaben aus „Mein Unterricht“ auf einer Liste – antippen und erledigt.")
+                    FeatureRow(icon: "calendar",
+                               title: "Stundenplan",
+                               detail: "Als echte Termine in deinen iOS-Kalender, mit Raum und Lehrkraft.")
+                    FeatureRow(icon: "safari",
+                               title: "Rest des Portals",
+                               detail: "Nachrichten & Co. öffnen sich im mobilen Design unter „Mehr“ › Portal.")
+                }
+
+                Section {
+                    Toggle("Eltern-Konto (Bildungsserver)", isOn: $isParentAccount)
+                    Button("Über die Portalseite anmelden (SSO / 2FA)") {
+                        onPortalLogin()
+                    }
+                } header: {
+                    Text("Andere Anmeldemöglichkeiten")
+                } footer: {
+                    Text("Eltern-Konten sind selbst registriert, „ohne Schulbezug“. Die Portalseite braucht es für SSO, 2FA und schuleigene Anmeldedienste — die App speichert dann kein Passwort.")
+                }
+
+                Section {
+                    TextField("z. B. 5182", text: $manualSchoolID)
+                        .keyboardType(.numberPad)
+                } header: {
+                    Text("Schulnummer direkt eingeben")
+                } footer: {
+                    Text("Wer die Nummer schon kennt, muss die Schule nicht suchen.")
+                }
+
+                Section("Datenschutz") {
+                    Text("Benutzername und Passwort landen im Schlüsselbund deines Geräts, damit die App sich selbst wieder anmelden kann, wenn die Sitzung abläuft. Sie werden weder synchronisiert noch irgendwohin sonst geschickt. Über die Portalseite geht es auch ganz ohne gespeichertes Passwort.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Info")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Fertig") { dismiss() }
+                }
+            }
         }
     }
 }

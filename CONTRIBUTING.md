@@ -3,9 +3,8 @@
 Thanks for helping. Two kinds of contributions are especially welcome:
 
 - **Your school** — one entry in `SchulportalMobile/Resources/schools.json`
-  (name, mensa tenant, links). No code needed, and no release either: the
-  app fetches that file from `main` at launch, so a merged entry reaches
-  every install on its next start. See `Docs/PLAN.md`, Wave 1.
+  (name, mensa tenant, links). No code needed; the entry ships with the
+  next release. See `Docs/PLAN.md`, Wave 1.
 - **Parser fixes** after the portal changes — see `Docs/PORTAL-SCRAPING.md`
   for how to capture a *masked* page structure. Never commit a real page
   dump, a name, a grade, a password or a session id.

@@ -25,10 +25,6 @@ struct SchulportalMobileApp: App {
                 .animation(.easeInOut(duration: 0.2), value: model.phase)
                 .task {
                     store.start()
-                    // Alongside the session check, not after it: the mensa
-                    // tab of a newly added school should be there on the
-                    // first launch that follows, signed in or not.
-                    Task { await model.settings.refreshRegistry() }
                     await model.bootstrap()
                     if model.phase == .ready {
                         LessonActivityController.sync(model: model, canStart: true)
@@ -38,9 +34,6 @@ struct SchulportalMobileApp: App {
                     if phase == .background {
                         BackgroundRefresh.schedule()
                         return
-                    }
-                    if phase == .active {
-                        Task { await model.settings.refreshRegistry() }
                     }
                     if phase == .active, model.phase == .ready {
                         // Widget ticks first, so the list is right before

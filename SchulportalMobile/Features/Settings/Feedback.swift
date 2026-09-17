@@ -11,14 +11,16 @@ enum Feedback {
     enum Kind {
         /// Free-form: a bug, a wish, a thank-you.
         case general
-        /// A school the registry does not know — the one mail the app
-        /// actively asks for, because it is how the registry grows.
-        case missingSchool
+        /// A school without a profile in the registry — the one mail the app
+        /// actively asks for, because it is how the registry grows. The
+        /// school itself is never missing: every Hessen school logs in and
+        /// gets its timetable; what a profile adds is mensa, links and icon.
+        case schoolProfile
 
         var subject: String {
             switch self {
             case .general: return "Feedback zu Ranzen (Schulportal-App)"
-            case .missingSchool: return "Meine Schule fehlt in Ranzen (Schulportal-App)"
+            case .schoolProfile: return "Inhalte für meine Schule in Ranzen (Schulportal-App)"
             }
         }
     }
@@ -28,9 +30,10 @@ enum Feedback {
     struct Context: Equatable {
         var schoolID: String
         var schoolName: String
-        /// Whether the bundled registry knows this school — the difference
-        /// between "the mensa tab is broken" and "the mensa tab is missing".
-        var schoolIsInRegistry: Bool
+        /// Whether the registry has a profile for this school — the
+        /// difference between "the mensa tab is broken" and "the mensa tab
+        /// is not configured yet".
+        var hasSchoolProfile: Bool
         var appVersion: String
         var buildNumber: String
         var systemVersion: String
@@ -42,7 +45,7 @@ enum Feedback {
             return Context(
                 schoolID: settings.schoolID,
                 schoolName: settings.schoolName,
-                schoolIsInRegistry: settings.registryConfig != nil,
+                hasSchoolProfile: settings.registryConfig != nil,
                 appVersion: info["CFBundleShortVersionString"] as? String ?? "?",
                 buildNumber: info["CFBundleVersion"] as? String ?? "?",
                 systemVersion: UIDevice.current.systemVersion,
@@ -69,20 +72,21 @@ enum Feedback {
             lines.append("")
             lines.append("")
             lines.append("")
-        case .missingSchool:
+        case .schoolProfile:
             lines.append("Hallo,")
             lines.append("")
-            lines.append("meine Schule fehlt noch in der App. Was hilfreich wäre (bitte ergänzen):")
-            lines.append("- Website der Schule: ")
-            lines.append("- Mensa-Anbieter (z. B. Kennung auf menuebestellung.de): ")
-            lines.append("- Wichtige Seiten (Termine, Elternbeirat, AG-Angebot …): ")
+            lines.append("meine Schule ist in der App, aber Mensa, Links und Symbol fehlen noch.")
+            lines.append("Alles hier ist freiwillig – die Schulnummer unten reicht schon. Was ich weiß:")
+            lines.append("- Website der Schule (optional): ")
+            lines.append("- Mensa-Anbieter, z. B. Kennung auf menuebestellung.de (optional): ")
+            lines.append("- Wichtige Seiten wie Termine, Elternbeirat, AG-Angebot (optional): ")
             lines.append("")
         }
         lines.append("—")
         let school = context.schoolName.isEmpty ? "unbekannt" : context.schoolName
         let schoolID = context.schoolID.isEmpty ? "unbekannt" : context.schoolID
         lines.append("Schule: \(school) (Schulnummer \(schoolID))")
-        lines.append("In der App eingetragen: \(context.schoolIsInRegistry ? "ja" : "nein")")
+        lines.append("Schulprofil hinterlegt: \(context.hasSchoolProfile ? "ja" : "nein")")
         lines.append("App: \(context.appVersion) (\(context.buildNumber))")
         lines.append("iOS: \(context.systemVersion), \(context.deviceModel)")
         return lines.joined(separator: "\n")

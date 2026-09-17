@@ -59,7 +59,7 @@ struct SchoolPickerView: View {
             } else if results.isEmpty {
                 EmptyStateView(icon: "questionmark.circle",
                                title: "Nichts gefunden",
-                               message: "Prüfe die Schreibweise, oder suche nach dem Ort statt nach dem Namen.")
+                               message: "Prüfe die Schreibweise, oder suche nach dem Ort statt nach dem Namen. Abkürzungen wie „MPS“ kennt die Liste nicht — tippe den ausgeschriebenen Namen.")
                 .listRowSeparator(.hidden)
             } else {
                 ForEach(results) { school in

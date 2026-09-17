@@ -12,3 +12,9 @@ Connect als *Privacy policy URL* eingetragen ist. Änderungen an der
 Erklärung gehören in das Repository
 [obvioussummer46/bittel](https://github.com/obvioussummer46/bittel)
 (`de/ranzen-datenschutz.html` und `ranzen-privacy.html`).
+
+Seit dem Schulregister-Abgleich (`SchoolRegistry.refresh()`) lädt die App
+beim Start zusätzlich die Datei `schools.json` von
+`raw.githubusercontent.com` — ohne Cookies, ohne Kennung, nur die IP-Adresse
+sieht GitHub. Die Erklärung sollte diesen Abruf neben dem Schulportal und
+menuebestellung.de nennen.

@@ -65,21 +65,23 @@ struct SettingsView: View {
                     } label: {
                         Label("Link hinzufügen", systemImage: "plus")
                     }
-                    // A school the registry does not know gets the one nudge
-                    // the app makes: tell the developer, so the next version
-                    // ships its links, mensa and icon for everyone there.
+                    // A school without a profile gets the one nudge the app
+                    // makes: tell the developer, so the registry ships its
+                    // links, mensa and icon for everyone there. Never worded
+                    // as "your school is missing" — it is not; login and
+                    // timetable work for every school in Hessen.
                     if model.settings.registryConfig == nil {
                         Button {
-                            sendFeedback(.missingSchool)
+                            sendFeedback(.schoolProfile)
                         } label: {
-                            Label("Meine Schule eintragen lassen", systemImage: "envelope")
+                            Label("Inhalte für meine Schule ergänzen", systemImage: "envelope")
                         }
                     }
                 } header: {
                     Text("Meine Schule")
                 } footer: {
                     if model.settings.registryConfig == nil {
-                        Text("Deine Schule ist noch nicht hinterlegt. Eine Mail an den Entwickler genügt, dann kommen Links, Mensa und Symbol für alle dort in die nächste Version. Eigene Links lassen sich jederzeit hinzufügen.")
+                        Text("Für deine Schule sind noch keine Links, keine Mensa und kein Symbol hinterlegt — Anmeldung, Stundenplan und Hausaufgaben funktionieren trotzdem. Eigene Links kannst du hier hinzufügen, die Mensa-Kennung unten unter „Essen“. Mit einer Mail an den Entwickler kommt beides für alle an deiner Schule in die App, ohne Update.")
                     } else if model.settings.customLinks.isEmpty {
                         Text("Eigene Links (Hort, Schulwohnung …) lassen sich hinzufügen und nach links wischen zum Löschen.")
                     }
@@ -172,22 +174,27 @@ struct SettingsView: View {
                             }
                         }
                     ))
-                    if model.settings.showsMensaTab {
-                        LabeledContent("Kennung") {
-                            TextField(model.settings.registryConfig?.mensaTenant ?? "z. B. asb-heserv",
-                                      text: Binding(
-                                        get: { model.settings.mensaTenantOverride },
-                                        set: { model.settings.mensaTenantOverride = $0 }
-                                      ))
-                            .multilineTextAlignment(.trailing)
-                            .autocorrectionDisabled()
-                            .textInputAutocapitalization(.never)
-                        }
+                    // Always visible: a school without a known caterer has
+                    // the tab off, and the field that would switch it on
+                    // must not hide behind that very toggle.
+                    LabeledContent("Kennung") {
+                        TextField(model.settings.registryConfig?.mensaTenant ?? "z. B. asb-heserv",
+                                  text: Binding(
+                                    get: { model.settings.mensaTenantOverride },
+                                    set: { model.settings.mensaTenantOverride = $0 }
+                                  ))
+                        .multilineTextAlignment(.trailing)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
                     }
                 } header: {
                     Text("Essen")
                 } footer: {
-                    Text("Die Kennung ist der Namensteil in der Adresse deiner Schule auf menuebestellung.de (…/kennung/). Leer lassen, wenn die Schule schon eingetragen ist.")
+                    if model.settings.effectiveMensaTenant == nil {
+                        Text("Bestellt deine Schule über menuebestellung.de? Dann trage die Kennung ein — den Namensteil in der Adresse (menuebestellung.de/kennung/) — und der Essen-Tab erscheint.")
+                    } else {
+                        Text("Die Kennung ist der Namensteil in der Adresse deiner Schule auf menuebestellung.de (…/kennung/). Leer lassen, wenn die Schule schon hinterlegt ist.")
+                    }
                 }
 
                 Section {

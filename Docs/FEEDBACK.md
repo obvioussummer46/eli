@@ -6,13 +6,17 @@ form, a server or an SDK.
 ## The channel
 
 - **Mehr › Über › „Feedback senden“** opens Mail with a draft to
-  `catchr@icloud.com`. Subject and body are prefilled; the user reads the
-  draft and decides whether to send it.
-- **Mehr › Meine Schule › „Meine Schule eintragen lassen“** appears only
-  for schools the bundled registry (`Resources/schools.json`) does not
-  know. Same address, a subject that sorts on its own, and a body that
-  asks for exactly what a registry entry needs: the school's website, the
-  mensa tenant, the pages worth linking.
+  `hello@bittel.app` (`Feedback.address`). Subject and body are prefilled;
+  the user reads the draft and decides whether to send it.
+- **Mehr › Meine Schule › „Inhalte für meine Schule ergänzen“** appears
+  only for schools without a profile in the registry
+  (`Resources/schools.json`, refreshed from the repository at launch).
+  Same address, a subject that sorts on its own, and a body that asks for
+  what a profile needs — website, mensa tenant, pages worth linking — and
+  says every field is optional. It never says the school is *missing*:
+  every Hessen school logs in and gets its timetable; a profile only adds
+  mensa, links and icon. (A beta tester once read the old „Meine Schule
+  fehlt“ mail as „the app cannot find my school“ — it could.)
 - **TestFlight** carries its own screenshot feedback into App Store
   Connect. Nothing in the app needs to change for that.
 
@@ -22,10 +26,15 @@ Every draft ends with four lines the user can delete before sending:
 
 ```
 Schule: Elisabethenschule Frankfurt (Schulnummer 5102)
-In der App eingetragen: ja
+Schulprofil hinterlegt: ja
 App: 1.0 (7)
 iOS: 26.0, iPhone15,2
 ```
+
+„Schulprofil hinterlegt“ is `SchoolRegistry.entry(for:) != nil` — whether
+the registry has an entry for the Schulnummer, nothing more. Today that is
+one school; every other school in the directory says „nein“, and that is
+the normal state, not a bug.
 
 No account name, no timetable, no credentials. The builder is
 `Feedback.body(for:context:)`, covered by `FeedbackTests`.
@@ -41,6 +50,10 @@ No account name, no timetable, no credentials. The builder is
 
 ## Turning mail into registry entries
 
-A „Meine Schule fehlt“ mail is the input for a one-entry PR to
+An „Inhalte für meine Schule“ mail is the input for a one-entry PR to
 `schools.json` (see `Docs/SCHULPAKET.md` for what a school may get and
-`Docs/SCHULLOGO-EINWILLIGUNG.md` before shipping a school's icon).
+`Docs/SCHULLOGO-EINWILLIGUNG.md` before shipping a school's icon). Once
+merged to `main` the entry is live: the app fetches
+`SchoolRegistry.remoteURL` at launch, caches the file in Application
+Support and falls back to the bundled copy. No release needed — the icon
+is the one exception, because an appiconset must ship in the binary.

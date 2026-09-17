@@ -10,7 +10,7 @@ form, a server or an SDK.
   the user reads the draft and decides whether to send it.
 - **Mehr › Meine Schule › „Inhalte für meine Schule ergänzen“** appears
   only for schools without a profile in the registry
-  (`Resources/schools.json`, refreshed from the repository at launch).
+  (`Resources/schools.json`, bundled with the app).
   Same address, a subject that sorts on its own, and a body that asks for
   what a profile needs — website, mensa tenant, pages worth linking — and
   says every field is optional. It never says the school is *missing*:

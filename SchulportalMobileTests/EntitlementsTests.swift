@@ -26,8 +26,11 @@ final class EntitlementsTests: XCTestCase {
 
     func testIconPackIDsMatchTheCatalogue() {
         XCTAssertEqual(ProductID.iconsClassic.iconPackID, AppIconCatalog.classic.id)
+        XCTAssertEqual(ProductID.iconsStyles1.iconPackID, AppIconCatalog.styles1.id)
+        XCTAssertEqual(ProductID.iconsStyles2.iconPackID, AppIconCatalog.styles2.id)
         XCTAssertEqual(ProductID.iconsSeasonal.iconPackID, AppIconCatalog.seasonal.id)
-        for id in ProductID.allCases where id != .iconsClassic && id != .iconsSeasonal {
+        let iconProducts: Set<ProductID> = [.iconsClassic, .iconsStyles1, .iconsStyles2, .iconsSeasonal]
+        for id in ProductID.allCases where !iconProducts.contains(id) {
             XCTAssertNil(id.iconPackID, "\(id) must not unlock an icon pack")
         }
     }

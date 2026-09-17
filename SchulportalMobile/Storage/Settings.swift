@@ -151,9 +151,24 @@ final class Settings {
 
     // MARK: - Per-school configuration (registry + overrides)
 
-    /// The bundled registry's entry for the configured school, if any.
+    /// Bumped whenever a registry refresh changed an entry, so every view
+    /// reading `registryConfig` re-evaluates: the registry itself is a plain
+    /// static outside observation.
+    private(set) var registryRevision = 0
+
+    /// The registry's entry for the configured school, if any — bundled,
+    /// cached or freshly fetched, whichever is newest.
     var registryConfig: SchoolConfig? {
-        SchoolRegistry.entry(for: values.schoolID)
+        _ = registryRevision
+        return SchoolRegistry.entry(for: values.schoolID)
+    }
+
+    /// Pulls the published registry. Cheap to call often — the registry
+    /// throttles itself — and silent on failure.
+    func refreshRegistry() async {
+        if await SchoolRegistry.refresh() {
+            registryRevision += 1
+        }
     }
 
     /// Empty means "use the registry"; anything else wins over it — for

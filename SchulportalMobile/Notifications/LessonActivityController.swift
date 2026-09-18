@@ -61,7 +61,9 @@ enum LessonActivityController {
             substitutionDetail: change.flatMap { $0.summary.isEmpty ? nil : $0.summary },
             homeworkID: task?.id,
             homeworkText: task?.text.components(separatedBy: .newlines).first,
-            homeworkDone: task == nil ? nil : false)
+            homeworkDone: task == nil ? nil : false,
+            periodLabel: lesson.isActivity ? nil : lesson.periodLabel,
+            dayEnd: lessons.map(\.end).max().flatMap { date(on: now, at: $0) })
         let content = ActivityContent(state: state, staleDate: end)
 
         if let activity = Activity<LessonActivityAttributes>.activities.first {

@@ -33,6 +33,10 @@ struct LessonActivityAttributes: ActivityAttributes {
         var homeworkID: String?
         var homeworkText: String?
         var homeworkDone: Bool?
+        /// "3.–4." — the shown lesson's periods; nil for own activities.
+        var periodLabel: String?
+        /// When the day's last lesson ends — "Schluss 15:30".
+        var dayEnd: Date?
     }
 
     /// ISO day the activity belongs to, so yesterday's leftover can be
@@ -51,5 +55,40 @@ extension LessonActivityAttributes.ContentState {
     /// struck through and the badge turns red instead of orange.
     var isCancelled: Bool {
         substitutionKind?.lowercased().contains("entf") ?? false
+    }
+
+    /// The status line with the periods: "Gerade · 3.–4. Stunde".
+    var statusLine: String {
+        guard let periodLabel else { return statusLabel }
+        return "\(statusLabel) · \(periodLabel) Stunde"
+    }
+
+    /// What the compact island calls the lesson: the subject, with an arrow
+    /// while it is still ahead.
+    var compactTitle: String {
+        isOngoing ? subject : "→ \(subject)"
+    }
+
+    /// What the day still holds after the shown lesson: "Danach: Englisch ·
+    /// Schluss 15:30", or "Letzte Stunde" when nothing follows. The Schluss
+    /// stays out when it just repeats the shown lesson's own end.
+    var followUpLine: String? {
+        var parts: [String] = []
+        if let nextSubject {
+            parts.append("Danach: \(nextSubject)")
+        } else if isOngoing {
+            parts.append("Letzte Stunde")
+        }
+        if let dayEnd, dayEnd != end {
+            parts.append("Schluss \(Self.timeLabel(dayEnd))")
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    static func timeLabel(_ date: Date) -> String {
+        let cal = SharedSnapshot.calendar
+        return String(format: "%02d:%02d",
+                      cal.component(.hour, from: date),
+                      cal.component(.minute, from: date))
     }
 }

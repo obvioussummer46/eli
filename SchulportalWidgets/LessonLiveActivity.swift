@@ -44,10 +44,14 @@ private func lessonActivityConfiguration() -> some WidgetConfiguration {
                             .font(.headline)
                             .strikethrough(context.state.isCancelled)
                             .lineLimit(1)
-                        if let room = context.state.room, !room.isEmpty {
-                            Text(room)
+                        let detail = [context.state.room,
+                                      context.state.periodLabel.map { "\($0) Std." }]
+                            .compactMap { $0 }.filter { !$0.isEmpty }
+                        if !detail.isEmpty {
+                            Text(detail.joined(separator: " · "))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(1)
                         }
                     }
                 }
@@ -66,23 +70,32 @@ private func lessonActivityConfiguration() -> some WidgetConfiguration {
                     if context.state.homeworkID != nil {
                         HomeworkTickRow(state: context.state)
                     } else if context.state.substitutionKind == nil,
-                              let next = context.state.nextSubject {
-                        Text("Danach: \(next)")
+                              let followUp = context.state.followUpLine {
+                        Text(followUp)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
             }
         } compactLeading: {
-            if context.state.substitutionKind != nil {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.caption2)
-                    .foregroundStyle(context.state.isCancelled ? .red : .orange)
-            } else {
-                Circle()
-                    .fill(Color(hex: context.state.colorHex))
-                    .frame(width: 10, height: 10)
+            // A bare dot said nothing about *what* is running. The subject,
+            // tail-truncated — the compact view cannot grow in width in
+            // iOS 27's landscape island.
+            HStack(spacing: 4) {
+                if context.state.substitutionKind != nil {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(context.state.isCancelled ? .red : .orange)
+                } else {
+                    Circle()
+                        .fill(Color(hex: context.state.colorHex))
+                        .frame(width: 8, height: 8)
+                }
+                Text(context.state.compactTitle)
+                    .font(.caption2.weight(.semibold))
+                    .lineLimit(1)
             }
+            .frame(maxWidth: 84)
         } compactTrailing: {
             LessonCountdown(state: context.state)
                 .font(.caption2.monospacedDigit())
@@ -153,7 +166,7 @@ private struct LessonActivityLockView: View {
                 .frame(width: 5, height: 44)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(state.statusLabel)
+                    Text(state.statusLine)
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
                     if let kind = state.substitutionKind {
@@ -179,8 +192,8 @@ private struct LessonActivityLockView: View {
                         if let room = state.room, !room.isEmpty {
                             Label(room, systemImage: "mappin.and.ellipse")
                         }
-                        if let next = state.nextSubject {
-                            Text("Danach: \(next)")
+                        if let followUp = state.followUpLine {
+                            Text(followUp)
                         }
                     }
                     .font(.caption)

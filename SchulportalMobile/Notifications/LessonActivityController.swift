@@ -63,8 +63,13 @@ enum LessonActivityController {
             homeworkText: task?.text.components(separatedBy: .newlines).first,
             homeworkDone: task == nil ? nil : false,
             periodLabel: lesson.isActivity ? nil : lesson.periodLabel,
-            dayEnd: lessons.map(\.end).max().flatMap { date(on: now, at: $0) })
-        let content = ActivityContent(state: state, staleDate: end)
+            dayEnd: lessons.map(\.end).max().flatMap { date(on: now, at: $0) },
+            nextStart: next.flatMap { date(on: now, at: $0.start) })
+        // Stale the moment the shown information stops being true — the end
+        // of a running lesson, the start of an upcoming one. That is the one
+        // re-render the views get without the app running; they use it to
+        // flip to the pause, the started lesson, or the end of the day.
+        let content = ActivityContent(state: state, staleDate: isOngoing ? end : start)
 
         if let activity = Activity<LessonActivityAttributes>.activities.first {
             if activity.attributes.isoDay == today {

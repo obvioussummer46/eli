@@ -37,6 +37,9 @@ struct LessonActivityAttributes: ActivityAttributes {
         var periodLabel: String?
         /// When the day's last lesson ends — "Schluss 15:30".
         var dayEnd: Date?
+        /// When the lesson after the shown one starts — the pause countdown
+        /// after the shown lesson expired.
+        var nextStart: Date?
     }
 
     /// ISO day the activity belongs to, so yesterday's leftover can be
@@ -57,16 +60,82 @@ extension LessonActivityAttributes.ContentState {
         substitutionKind?.lowercased().contains("entf") ?? false
     }
 
-    /// The status line with the periods: "Gerade · 3.–4. Stunde".
-    var statusLine: String {
-        guard let periodLabel else { return statusLabel }
-        return "\(statusLabel) · \(periodLabel) Stunde"
+    /// What the activity is showing right now, staleness resolved. Without
+    /// a push channel the views re-render exactly once after the last
+    /// update — at `staleDate` — and these moments are what that render can
+    /// distinguish: an `upcoming` lesson that went stale has started; a
+    /// `running` one that went stale is over, followed by a pause or by the
+    /// end of the school day. Nothing here may read the clock — the moment
+    /// must be a pure function of the payload and the stale flag.
+    enum Moment {
+        /// Counting down to `end`.
+        case running
+        /// Counting down to `start`.
+        case upcoming
+        /// Over, another lesson ahead: counting down to `nextStart`.
+        case pause
+        /// Over and nothing follows — the day is done.
+        case over
     }
 
-    /// What the compact island calls the lesson: the subject, with an arrow
-    /// while it is still ahead.
-    var compactTitle: String {
-        isOngoing ? subject : "→ \(subject)"
+    func moment(isStale: Bool) -> Moment {
+        guard isStale else { return isOngoing ? .running : .upcoming }
+        if !isOngoing { return .running }
+        return nextSubject == nil ? .over : .pause
+    }
+
+    /// The headline — during the after-lesson pause the *next* subject is
+    /// the news, and after the last one the day itself.
+    func title(for moment: Moment) -> String {
+        switch moment {
+        case .running, .upcoming: subject
+        case .pause: nextSubject ?? subject
+        case .over: "Schule aus"
+        }
+    }
+
+    /// What the compact island calls it: the subject, with an arrow for
+    /// whatever has not started yet.
+    func compactTitle(for moment: Moment) -> String {
+        switch moment {
+        case .running: subject
+        case .upcoming: "→ \(subject)"
+        case .pause: "→ \(nextSubject ?? subject)"
+        case .over: "Schluss"
+        }
+    }
+
+    /// The little word above the headline, with the periods while they are
+    /// the shown lesson's: "Gerade · 3.–4. Stunde".
+    func statusLine(for moment: Moment) -> String {
+        switch moment {
+        case .running, .upcoming:
+            guard let periodLabel else { return statusLabel }
+            return "\(statusLabel) · \(periodLabel) Stunde"
+        case .pause: return "Pause"
+        case .over: return "Geschafft"
+        }
+    }
+
+    /// Where the countdown runs to — nil once there is nothing left to
+    /// count.
+    func countdownTarget(for moment: Moment) -> Date? {
+        switch moment {
+        case .running: end
+        case .upcoming: start
+        case .pause: nextStart
+        case .over: nil
+        }
+    }
+
+    /// Whether the payload's extras — substitution badge, homework row,
+    /// room — still describe what the headline shows. After the stale flip
+    /// to the pause they would describe the *previous* lesson.
+    func showsLessonDetails(for moment: Moment) -> Bool {
+        switch moment {
+        case .running, .upcoming: true
+        case .pause, .over: false
+        }
     }
 
     /// What the day still holds after the shown lesson: "Danach: Englisch ·

@@ -49,15 +49,34 @@ enum BackgroundRefresh {
         }
     }
 
-    /// Ask for a run in ~4 hours. iOS treats it as a floor, not a promise.
+    /// Ask for a run at the next lesson boundary during a school day, in ~4
+    /// hours otherwise. iOS treats it as a floor, not a promise — but the
+    /// Live Activity has no push channel, so this is its only chance to move
+    /// on (or end) close to the moment a lesson actually starts or ends.
     static func schedule() {
         let request = BGAppRefreshTaskRequest(identifier: identifier)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 4 * 3600)
+        request.earliestBeginDate = nextRefreshDate()
         do {
             try BGTaskScheduler.shared.submit(request)
         } catch {
             // Simulator builds refuse submission; nothing to do about it.
             logger.notice("Hintergrund-Aktualisierung nicht eingeplant: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    private static func nextRefreshDate() -> Date {
+        let now = Date()
+        let fallback = now.addingTimeInterval(4 * 3600)
+        guard let snapshot = SharedSnapshotStore.load() else { return fallback }
+        let cal = SharedSnapshot.calendar
+        let startOfDay = cal.startOfDay(for: now)
+        let boundary = snapshot.lessons(on: now)
+            .flatMap { [$0.startMinutes, $0.endMinutes] }
+            .compactMap { cal.date(byAdding: .minute, value: $0, to: startOfDay) }
+            .filter { $0 > now }
+            .min()
+        guard let boundary else { return fallback }
+        // A minute past, so the lesson has ended rather than is ending.
+        return min(boundary.addingTimeInterval(60), fallback)
     }
 }

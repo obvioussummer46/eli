@@ -26,9 +26,17 @@ struct RootView: View {
         }
     }
 
+    /// While the intro plays, the world underneath stays the launch
+    /// placeholder even when the session check finishes early — building the
+    /// login or the whole tab UI mid-animation visibly stuttered the springs.
+    /// The real screen is built in the hand-off transaction instead.
+    private var visiblePhase: AppModel.Phase {
+        showsIntro ? .launching : model.phase
+    }
+
     @ViewBuilder
     private var content: some View {
-        switch model.phase {
+        switch visiblePhase {
         case .launching:
             LaunchPlaceholder()
         case .signedOut:

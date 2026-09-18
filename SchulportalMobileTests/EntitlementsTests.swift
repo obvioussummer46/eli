@@ -6,18 +6,21 @@ import XCTest
 final class EntitlementsTests: XCTestCase {
 
     func testProductIDsAreTheAppStoreConnectIDs() {
-        XCTAssertEqual(ProductID.tipSmall.rawValue, "de.schulportalmobile.app.tip.small")
-        XCTAssertEqual(ProductID.tipMedium.rawValue, "de.schulportalmobile.app.tip.medium")
-        XCTAssertEqual(ProductID.tipLarge.rawValue, "de.schulportalmobile.app.tip.large")
-        XCTAssertEqual(ProductID.widgetPack.rawValue, "de.schulportalmobile.app.widgets.pack")
         XCTAssertEqual(ProductID.iconsClassic.rawValue, "de.schulportalmobile.app.icons.classic")
         XCTAssertEqual(ProductID.iconsSeasonal.rawValue, "de.schulportalmobile.app.icons.seasonal")
+        XCTAssertEqual(ProductID.iconsStyles1.rawValue, "de.schulportalmobile.app.icons.styles1")
+        XCTAssertEqual(ProductID.iconsStyles2.rawValue, "de.schulportalmobile.app.icons.styles2")
         XCTAssertEqual(ProductID.proLifetime.rawValue, "de.schulportalmobile.app.pro.lifetime")
         XCTAssertEqual(ProductID.proYearly.rawValue, "de.schulportalmobile.app.pro.yearly")
     }
 
-    func testTipsArePreciselyTheThreeConsumables() {
-        XCTAssertEqual(ProductID.allCases.filter(\.isTip), [.tipSmall, .tipMedium, .tipLarge])
+    /// Retired before the first paid build: the tip jar and the widget pack.
+    /// Their ids must never come back under a different meaning.
+    func testRetiredProductsStayRetired() {
+        for id in ProductID.allCases {
+            XCTAssertFalse(id.rawValue.contains(".tip."), "\(id) looks like a tip")
+            XCTAssertFalse(id.rawValue.contains(".widgets."), "\(id) looks like the widget pack")
+        }
     }
 
     func testProIsLifetimeOrYearly() {
@@ -66,26 +69,26 @@ final class EntitlementsTests: XCTestCase {
         XCTAssertFalse(classic.unlocksPremiumWidgets)
     }
 
-    func testWidgetPackUnlocksWidgetsButNoIcons() {
-        var widgets = Entitlements()
-        widgets.hasWidgetPack = true
-        XCTAssertTrue(widgets.unlocksPremiumWidgets)
-        XCTAssertFalse(widgets.owns(iconPack: "classic"))
+    func testOnlyProUnlocksTheWidgets() {
+        var everyPack = Entitlements()
+        everyPack.ownedIconPacks = Set(AppIconCatalog.paidPacks.map(\.id))
+        XCTAssertFalse(everyPack.unlocksPremiumWidgets)
     }
 
-    func testTipIsNotAnEntitlement() {
-        var tipped = Entitlements()
-        tipped.hasTipped = true
-        XCTAssertFalse(tipped.isPro)
-        XCTAssertFalse(tipped.unlocksPremiumWidgets)
-        XCTAssertFalse(tipped.owns(iconPack: "classic"))
+    /// An `entitlements.json` written by a build that still sold the widget
+    /// pack and the tips must load; the retired flags are simply dropped.
+    func testOlderFilesWithRetiredFlagsStillDecode() throws {
+        let json = #"{"isPro":false,"hasWidgetPack":true,"ownedIconPacks":["classic"],"hasTipped":true}"#
+        let decoded = try JSONDecoder().decode(Entitlements.self, from: Data(json.utf8))
+        XCTAssertFalse(decoded.isPro)
+        XCTAssertFalse(decoded.unlocksPremiumWidgets)
+        XCTAssertEqual(decoded.ownedIconPacks, ["classic"])
     }
 
     func testEntitlementsRoundTripThroughJSON() throws {
         var original = Entitlements()
         original.isPro = true
         original.ownedIconPacks = ["seasonal"]
-        original.hasTipped = true
         original.updatedAt = Date(timeIntervalSince1970: 1_800_000_000)
 
         let encoder = JSONEncoder()

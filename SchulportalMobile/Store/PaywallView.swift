@@ -2,9 +2,10 @@ import StoreKit
 import SwiftUI
 import UIKit
 
-/// The one paywall. Lifetime first, yearly for people who refuse lifetime,
-/// restore and the two legal links — nothing else. Every feature it lists
-/// is a nice-to-have on top of an app that stays complete for free.
+/// The one paywall. Yearly first — its free week is how anyone tests Pro —
+/// lifetime below for the parent who refuses subscriptions, restore and
+/// the two legal links — nothing else. Every feature it lists is a
+/// nice-to-have on top of an app that stays complete for free.
 struct PaywallView: View {
     @Environment(Store.self) private var store
     @Environment(\.dismiss) private var dismiss
@@ -93,18 +94,18 @@ struct PaywallView: View {
 
     private var offers: some View {
         VStack(spacing: 12) {
-            if let lifetime = store.product(.proLifetime) {
-                offerButton(id: .proLifetime,
-                            title: "Einmal kaufen",
-                            price: lifetime.displayPrice,
-                            detail: "Für immer, mit Familienfreigabe.",
-                            prominent: true)
-            }
             if let yearly = store.product(.proYearly) {
                 offerButton(id: .proYearly,
                             title: "Jährlich",
                             price: "\(yearly.displayPrice) / Jahr",
-                            detail: trialLabel ?? "Jederzeit kündbar.",
+                            detail: trialLabel ?? "Jederzeit kündbar, mit Familienfreigabe.",
+                            prominent: true)
+            }
+            if let lifetime = store.product(.proLifetime) {
+                offerButton(id: .proLifetime,
+                            title: "Einmal kaufen",
+                            price: lifetime.displayPrice,
+                            detail: "Für immer, ohne Abo, mit Familienfreigabe.",
                             prominent: false)
             }
             if store.products.isEmpty {

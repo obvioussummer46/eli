@@ -31,7 +31,7 @@ check("promotional text", section("Promotional text (170)"), 170)
 check("description", section("Description (4000)"), 4000)
 check("keywords", section("Keywords (100)"), 100)
 check("what's new", section("What's new (1.0)"), 4000)
-for row in re.findall(r"^\| (tip\.\w+|widgets\.pack|icons\.\w+|pro\.\w+) \| (.+?) \| (.+?) \|$", text, re.M):
+for row in re.findall(r"^\| (icons\.\w+|pro\.\w+) \| (.+?) \| (.+?) \|$", text, re.M):
     check(f"{row[0]} display name", row[1], 30)
     check(f"{row[0]} description", row[2], 45)
 sys.exit(1 if failures else 0)

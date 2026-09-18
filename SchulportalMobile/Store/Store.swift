@@ -8,9 +8,9 @@ import StoreKit
 /// see the same truth as the app.
 ///
 /// No receipt server, no accounts: `Transaction.currentEntitlements` is
-/// the source of truth for everything non-consumable (Family Sharing and
-/// refunds included), and the tip jar's thank-you state is the one flag
-/// remembered locally because consumables leave no entitlement behind.
+/// the source of truth for everything (Family Sharing, refunds and a lapsed
+/// subscription included) — every product is a non-consumable or a
+/// subscription, so nothing needs remembering locally.
 @MainActor
 @Observable
 final class Store {
@@ -22,8 +22,6 @@ final class Store {
     /// own sheets already cover cancellation and payment problems, so this
     /// is only for "products could not be loaded" and verification failures.
     private(set) var lastErrorMessage: String?
-    /// Set briefly after a successful tip, for the thank-you animation.
-    private(set) var justTipped = false
 
     @ObservationIgnored private var updatesListener: Task<Void, Never>?
     private let logger = Logger(subsystem: "de.schulportalmobile.app", category: "store")
@@ -108,9 +106,6 @@ final class Store {
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                if id.isTip {
-                    markTipped()
-                }
                 await transaction.finish()
                 await refreshEntitlements()
                 lastErrorMessage = nil
@@ -146,7 +141,6 @@ final class Store {
 
     func refreshEntitlements() async {
         var fresh = Entitlements()
-        fresh.hasTipped = entitlements.hasTipped
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result, transaction.revocationDate == nil else { continue }
             apply(transaction.productID, to: &fresh)
@@ -157,9 +151,6 @@ final class Store {
 
     private func handle(_ result: VerificationResult<Transaction>) async {
         guard case .verified(let transaction) = result else { return }
-        if let id = ProductID(rawValue: transaction.productID), id.isTip, transaction.revocationDate == nil {
-            markTipped()
-        }
         await transaction.finish()
         await refreshEntitlements()
     }
@@ -167,19 +158,7 @@ final class Store {
     private func apply(_ productID: String, to entitlements: inout Entitlements) {
         guard let id = ProductID(rawValue: productID) else { return }
         if id.isPro { entitlements.isPro = true }
-        if id == .widgetPack { entitlements.hasWidgetPack = true }
         if let pack = id.iconPackID { entitlements.ownedIconPacks.insert(pack) }
-    }
-
-    private func markTipped() {
-        var updated = entitlements
-        updated.hasTipped = true
-        commit(updated)
-        justTipped = true
-        Task {
-            try? await Task.sleep(for: .seconds(4))
-            justTipped = false
-        }
     }
 
     private func commit(_ fresh: Entitlements) {

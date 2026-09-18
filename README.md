@@ -58,11 +58,11 @@ already ordered, the card balance and the last month of bookings.
 
 ## Paying for it (optional)
 
-The app is free and complete. Under **Mehr** there is a tip jar (three
-in-app tips, no unlock beyond a thank-you icon) and **Ranzen Pro** —
+The app is free and complete. Under **Mehr** there is **Ranzen Pro** —
 three more widgets, icon packs, custom reminder times, homework export
-and a Siri shortcut, as a one-time purchase or a yearly subscription
-with Family Sharing. Schools can get everything for all their pupils
+and a Siri shortcut, as a yearly subscription with a free week or a
+one-time purchase, both with Family Sharing. Icon packs can also be
+bought singly. Schools can get everything for all their pupils
 via the [Schulpaket](Docs/SCHULPAKET.md). Strategy and reasoning:
 [Docs/MONETIZATION.md](Docs/MONETIZATION.md). Privacy:
 [bittel.app](https://bittel.app/de/ranzen-datenschutz.html). Feedback:

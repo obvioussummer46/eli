@@ -2,18 +2,26 @@ import SwiftUI
 
 @main
 struct SchulportalMobileApp: App {
-    @State private var model = AppModel()
+    // No inline initial values: `init` reads these, and reading a @State
+    // before the view is installed re-evaluates the initial value — the
+    // background tasks would capture ghost instances the UI never shows.
+    @State private var model: AppModel
     /// The mensa is its own service with its own account, so it gets its own
     /// model rather than a corner of `AppModel`.
-    @State private var mensa = MensaModel()
+    @State private var mensa: MensaModel
     /// Purchases and entitlements — one instance, alive for the whole
     /// session so `Transaction.updates` is never missed.
     @State private var store = Store()
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        // Background-task handlers must exist before launch finishes.
-        BackgroundRefresh.register(appModel: model, mensaModel: mensa)
+        let appModel = AppModel()
+        let mensaModel = MensaModel()
+        model = appModel
+        mensa = mensaModel
+        // Background-task handlers must exist before launch finishes — and
+        // they must hold the very instances the scene will install.
+        BackgroundRefresh.register(appModel: appModel, mensaModel: mensaModel)
     }
 
     var body: some Scene {

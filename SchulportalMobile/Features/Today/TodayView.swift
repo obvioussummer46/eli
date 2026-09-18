@@ -1,4 +1,7 @@
 import SwiftUI
+// For the minute-tick Timer publisher below — the type is Combine's even
+// though SwiftUI re-exports enough to compile without the import.
+import Combine
 
 /// The screen you open in the morning: what's next, and what you still owe.
 struct TodayView: View {

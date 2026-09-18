@@ -15,7 +15,13 @@ final class AppModel {
         case ready
     }
 
-    private(set) var phase: Phase = .launching
+    private(set) var phase: Phase = .launching {
+        // Any real session reaching `.ready` — restored, form or browser
+        // login — proves the account works; the launch intro stops greeting.
+        didSet {
+            if phase == .ready, !DemoMode.isActive { settings.hasSignedIn = true }
+        }
+    }
     private(set) var snapshot = Snapshot()
     private(set) var isRefreshing = false
     private(set) var lastErrorMessage: String?
@@ -136,6 +142,8 @@ final class AppModel {
         snapshot = Snapshot()
         phase = .signedOut
         needsReauthentication = true
+        // Signed out means the launch intro greets again.
+        settings.hasSignedIn = false
     }
 
     private func enterDemo() {

@@ -5,8 +5,10 @@ import SwiftUI
 /// out of it. Then the wordmark, then a hand-off into whatever `RootView`
 /// has underneath (the login on a fresh install).
 ///
-/// Plays once. Every later launch keeps the quote placeholder — the intro
-/// says what the app *is*, which only needs saying once.
+/// Plays on every launch that has no working login yet — a fresh install,
+/// and again after a sign-out. Once a session works, later launches keep
+/// the quote placeholder: the intro says what the app *is*, which stops
+/// needing saying the moment someone is inside.
 ///
 /// Timeline at 1× (see the design canvas for the storyboard):
 ///
@@ -41,10 +43,16 @@ struct FirstLaunchIntroView: View {
     @State private var startedAt = Date()
     @State private var isFinished = false
 
-    /// Whether the intro should play at all: only on a fresh install, and
-    /// never in screenshot mode where the invented week must come up first.
+    /// Whether the intro should play: on every launch without a working
+    /// login — never in screenshot mode, where the invented week must come
+    /// up first.
     static var shouldPlay: Bool {
-        !Settings.hasSeenIntro && !DemoMode.isActive
+        guard !DemoMode.isActive else { return false }
+        if let signedIn = Settings.hasSignedInIfKnown { return !signedIn }
+        // Installs from before the flag existed: stored credentials or a
+        // picked school are the only traces of their account — no greeting
+        // for people who are already inside.
+        return PortalKeychain.load() == nil && !Settings.hasPickedSchool
     }
 
     private static let stageTop = Color(red: 0x3F / 255, green: 0x90 / 255, blue: 1)
@@ -245,7 +253,6 @@ struct FirstLaunchIntroView: View {
     private func finish() {
         guard !isFinished else { return }
         isFinished = true
-        model.settings.hasSeenIntro = true
         onFinished()
     }
 }

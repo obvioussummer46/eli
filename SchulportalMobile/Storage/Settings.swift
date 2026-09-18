@@ -34,7 +34,7 @@ final class Settings {
         /// ignores these and uses the defaults below.
         var homeworkReminderMinutes: Int
         var digestMinutes: Int
-        var hasSeenIntro: Bool
+        var hasSignedIn: Bool
     }
 
     static let defaultHomeworkReminderMinutes = 17 * 60
@@ -66,7 +66,7 @@ final class Settings {
             activities: Self.decodeActivities(defaults.data(forKey: Keys.activities)),
             homeworkReminderMinutes: defaults.object(forKey: Keys.homeworkReminderMinutes) as? Int ?? Self.defaultHomeworkReminderMinutes,
             digestMinutes: defaults.object(forKey: Keys.digestMinutes) as? Int ?? Self.defaultDigestMinutes,
-            hasSeenIntro: defaults.bool(forKey: Keys.hasSeenIntro)
+            hasSignedIn: defaults.bool(forKey: Keys.hasSignedIn)
         )
     }
 
@@ -231,18 +231,27 @@ final class Settings {
         set { values.digestMinutes = newValue; defaults.set(newValue, forKey: Keys.digestMinutes) }
     }
 
-    /// Whether the first-launch intro (the satchel opening) has played.
-    /// Set the moment the hand-off starts, not when it ends, so a kill
-    /// mid-animation does not replay it.
-    var hasSeenIntro: Bool {
-        get { values.hasSeenIntro }
-        set { values.hasSeenIntro = newValue; defaults.set(newValue, forKey: Keys.hasSeenIntro) }
+    /// Whether a login has ever worked on this install — the launch intro's
+    /// gate: it greets every launch until this turns true, and again once a
+    /// sign-out turns it back off.
+    var hasSignedIn: Bool {
+        get { values.hasSignedIn }
+        set { values.hasSignedIn = newValue; defaults.set(newValue, forKey: Keys.hasSignedIn) }
     }
 
     /// The same flag without a model — `RootView` decides its very first
-    /// frame from it, before anything is in the environment.
-    static var hasSeenIntro: Bool {
-        UserDefaults.standard.bool(forKey: Keys.hasSeenIntro)
+    /// frame from it, before anything is in the environment. Three-valued:
+    /// `nil` for installs from before the flag existed, whose account has to
+    /// be recognised by its traces instead.
+    static var hasSignedInIfKnown: Bool? {
+        UserDefaults.standard.object(forKey: Keys.hasSignedIn) as? Bool
+    }
+
+    /// Whether a school is configured, readable before the model exists.
+    /// Installs from before `hasSignedIn` have this (or credentials) as the
+    /// only trace of their account.
+    static var hasPickedSchool: Bool {
+        !(UserDefaults.standard.string(forKey: Keys.schoolID) ?? "").isEmpty
     }
 
     private static func decodeLinks(_ data: Data?) -> [SchoolLink] {
@@ -271,7 +280,7 @@ final class Settings {
         static let activities = "timetable.activities"
         static let homeworkReminderMinutes = "notify.homework.minutes"
         static let digestMinutes = "notify.digest.minutes"
-        static let hasSeenIntro = "intro.seen"
+        static let hasSignedIn = "account.signedIn"
     }
 
     /// The times the scheduler actually uses: the user's own with Pro, the

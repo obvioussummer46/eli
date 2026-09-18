@@ -18,25 +18,21 @@ Family Sharing on for every non-consumable and the subscription.
 
 | Reference name | Product id | Type | Price (DE) | Family |
 |---|---|---|---|---|
-| Tip Kaffee | `de.schulportalmobile.app.tip.small` | Consumable | 1,99 € | — |
-| Tip Mittagessen | `de.schulportalmobile.app.tip.medium` | Consumable | 4,99 € | — |
-| Tip Mensa-Woche | `de.schulportalmobile.app.tip.large` | Consumable | 9,99 € | — |
-| Widget-Paket | `de.schulportalmobile.app.widgets.pack` | Non-consumable | 3,99 € | on |
 | Icons Klassisch | `de.schulportalmobile.app.icons.classic` | Non-consumable | 1,99 € | on |
 | Icons Saison | `de.schulportalmobile.app.icons.seasonal` | Non-consumable | 1,99 € | on |
 | Icons Stile I | `de.schulportalmobile.app.icons.styles1` | Non-consumable | 1,99 € | on |
 | Icons Stile II | `de.schulportalmobile.app.icons.styles2` | Non-consumable | 1,99 € | on |
-| Pro Lifetime | `de.schulportalmobile.app.pro.lifetime` | Non-consumable | 7,99 € | on |
-| Pro Jahr | `de.schulportalmobile.app.pro.yearly` | Auto-renewable, group „Ranzen Pro“, 1 year, 7-day free trial | 2,99 € | on |
+| Pro Lifetime | `de.schulportalmobile.app.pro.lifetime` | Non-consumable | 14,99 € | on |
+| Pro Jahr | `de.schulportalmobile.app.pro.yearly` | Auto-renewable, group „Ranzen Pro“, 1 year, 7-day free trial | 4,99 € | on |
+
+Retired before the first paid build, never create them: the three tips
+(`tip.small/medium/large`) and the widget pack (`widgets.pack`). The
+premium widgets are Pro only; there is no tip jar.
 
 Localised display names (max 30) and descriptions (max 45), German:
 
 | Product | Display name | Description |
 |---|---|---|
-| tip.small | Kaffee | Ein Kaffee für die Weiterentwicklung. |
-| tip.medium | Mittagessen | Ein Mittagessen für die Weiterentwicklung. |
-| tip.large | Mensa-Woche | Eine Mensa-Woche für die Weiterentwicklung. |
-| widgets.pack | Widget-Paket | Aufgaben-, Tagesplan- und Countdown-Widget. |
 | icons.classic | Symbole: Klassisch | Sechs Farbvarianten des App-Symbols. |
 | icons.seasonal | Symbole: Saison | Saisonale App-Symbole, jedes Jahr mehr. |
 | icons.styles1 | Symbole: Stile I | Acht Stile für das App-Symbol. |
@@ -47,8 +43,8 @@ Localised display names (max 30) and descriptions (max 45), German:
 Subscription group display name: **Ranzen Pro**. Subscription
 localisation „Ranzen Pro (Jahr)“.
 
-Review screenshot for each product: the paywall (Pro), the tip screen
-(tips), the icon picker (icon packs), the widget gallery (widget pack).
+Review screenshot for each product: the paywall (Pro) and the icon
+picker (icon packs).
 Every product must be attached to the version before it is submitted —
 a product submitted on its own is reviewed on its own, without the app.
 
@@ -215,10 +211,10 @@ Mensa tab
 Purchases
   All purchases are optional. The complete app (login, homework,
   timetable, calendar sync, mensa, three widgets, notifications) works
-  without buying anything. Tips are voluntary consumables with no
-  functional unlock beyond an alternate app icon. Pro unlocks three
-  additional widgets, icon packs, custom reminder times, homework
-  export and a Siri shortcut. Restore Purchases is on the paywall
+  without buying anything. Pro (yearly with a 7-day free trial, or a
+  one-time purchase) unlocks three additional widgets, icon packs,
+  custom reminder times, homework export and a Siri shortcut; icon
+  packs can also be bought singly. Restore Purchases is on the paywall
   (Mehr › Ranzen Pro freischalten). Terms and privacy are linked on
   the paywall.
 
@@ -287,8 +283,7 @@ Signing — the project still names the free Personal Team:
 
 Account and agreements:
 
-- [x] Paid Applications agreement signed, tax and banking filled (the
-      tip jar alone needs it).
+- [x] Paid Applications agreement signed, tax and banking filled.
 - [x] App Store Small Business Program enrolled (15 % instead of 30 %).
 - [x] App record created in App Store Connect with bundle id
       `de.schulportalmobile.app` (the bundle id appears in the list once

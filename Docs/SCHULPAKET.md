@@ -9,7 +9,7 @@ The registry makes schools "data, not code": mensa tenant, links, icon.
 That configuration is the product. A school (Förderverein, SV or
 Schulleitung) pays a small yearly amount to be fully set up and to give
 its pupils Pro — instead of hundreds of parents buying it one by one.
-Ten schools cover more than the tip jar ever will, and every school in
+Ten schools cover more than single Pro sales ever will, and every school in
 the registry makes the app better for the next one.
 
 ## What the school gets

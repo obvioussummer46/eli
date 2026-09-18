@@ -372,7 +372,7 @@ struct SettingsView: View {
     }
 
     /// Everything you can buy, in one clearly-labelled place at the top of the
-    /// screen: Ranzen Pro, the tip jar, and the alternate app icons. It used to
+    /// screen: Ranzen Pro and the alternate app icons. It used to
     /// sit near the bottom without a header, which is why App Review could not
     /// locate the in-app purchases.
     @ViewBuilder
@@ -400,11 +400,6 @@ struct SettingsView: View {
                 }
                 .tint(.primary)
             }
-            NavigationLink {
-                SupportView()
-            } label: {
-                Label("Trinkgeld geben", systemImage: store.entitlements.hasTipped ? "heart.fill" : "heart")
-            }
             if UIApplication.shared.supportsAlternateIcons {
                 NavigationLink {
                     AppIconPickerView()
@@ -413,7 +408,7 @@ struct SettingsView: View {
                 }
             }
         } header: {
-            Text("Ranzen Pro & Unterstützen")
+            Text(Brand.pro)
         } footer: {
             Text(store.entitlements.isPro
                  ? "Danke! Widgets, Symbole und Extras sind freigeschaltet."

@@ -1,69 +1,7 @@
 {
   "identifier" : "3A1F7C2E-5B64-4D0F-9E1A-7C2B3D4E5F60",
-  "nonRenewingSubscriptions" : [
-
-  ],
+  "nonRenewingSubscriptions" : [],
   "products" : [
-    {
-      "displayPrice" : "1.99",
-      "familyShareable" : false,
-      "internalID" : "1001",
-      "localizations" : [
-        {
-          "description" : "Ein Kaffee für die Weiterentwicklung.",
-          "displayName" : "Kaffee",
-          "locale" : "de_DE"
-        }
-      ],
-      "productID" : "de.schulportalmobile.app.tip.small",
-      "referenceName" : "Tip Kaffee",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "4.99",
-      "familyShareable" : false,
-      "internalID" : "1002",
-      "localizations" : [
-        {
-          "description" : "Ein Mittagessen für die Weiterentwicklung.",
-          "displayName" : "Mittagessen",
-          "locale" : "de_DE"
-        }
-      ],
-      "productID" : "de.schulportalmobile.app.tip.medium",
-      "referenceName" : "Tip Mittagessen",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "9.99",
-      "familyShareable" : false,
-      "internalID" : "1003",
-      "localizations" : [
-        {
-          "description" : "Eine Mensa-Woche für die Weiterentwicklung.",
-          "displayName" : "Mensa-Woche",
-          "locale" : "de_DE"
-        }
-      ],
-      "productID" : "de.schulportalmobile.app.tip.large",
-      "referenceName" : "Tip Mensa-Woche",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "3.99",
-      "familyShareable" : true,
-      "internalID" : "2001",
-      "localizations" : [
-        {
-          "description" : "Aufgaben-, Tagesplan- und Countdown-Widget.",
-          "displayName" : "Widget-Paket",
-          "locale" : "de_DE"
-        }
-      ],
-      "productID" : "de.schulportalmobile.app.widgets.pack",
-      "referenceName" : "Widget-Paket",
-      "type" : "NonConsumable"
-    },
     {
       "displayPrice" : "1.99",
       "familyShareable" : true,
@@ -125,7 +63,7 @@
       "type" : "NonConsumable"
     },
     {
-      "displayPrice" : "7.99",
+      "displayPrice" : "14.99",
       "familyShareable" : true,
       "internalID" : "3001",
       "localizations" : [
@@ -146,26 +84,18 @@
     "_failTransactionsEnabled" : false,
     "_locale" : "de_DE",
     "_storefront" : "DEU",
-    "_storeKitErrors" : [
-
-    ]
+    "_storeKitErrors" : []
   },
   "subscriptionGroups" : [
     {
       "id" : "4001",
-      "localizations" : [
-
-      ],
+      "localizations" : [],
       "name" : "Ranzen Pro",
       "subscriptions" : [
         {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "2.99",
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "4.99",
           "familyShareable" : true,
           "groupNumber" : 1,
           "internalID" : "4002",

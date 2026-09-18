@@ -86,7 +86,8 @@ enum AppIconCatalog {
             AppIconOption(assetName: "AppIconSommer", title: "Sommerferien", topHex: "#fde047", bottomHex: "#f59e0b", glyph: "sun.max.fill")
         ])
 
-    /// The thank-you for a tip. Not for sale.
+    /// The thank-you that comes with Pro. Not in any pack, not for sale on
+    /// its own.
     static let supporter = AppIconOption(assetName: "AppIconUnterstuetzer", title: "Unterstützer", topHex: "#f43f5e", bottomHex: "#9f1239", glyph: "heart.fill")
 
     static let paidPacks: [AppIconPack] = [classic, styles1, styles2, seasonal]

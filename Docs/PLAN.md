@@ -160,13 +160,15 @@ a task in Reminders doesn't show up in the 17:00 reminder.
       same tick-off/widget/digest path. **Never** pushed to the portal.
 - Effort: medium.
 
-### 2.4 Unterstützer — SHIPPED 04.09.2026 as tip jar + Ranzen Pro
+### 2.4 Unterstützer — SHIPPED 04.09.2026 as Ranzen Pro
 
-All utility — widgets, notifications, digest — stays free forever;
-paying is gratitude, not access.
+All utility — login, homework, timetable, notifications, digest, the
+three original widgets — stays free forever; Pro is the extra on top.
 
-- [x] "App unterstützen" screen: three consumable tips (1,99 / 4,99 /
-      9,99 €), StoreKit 2 — `SchulportalMobile/Store/`.
+- [x] ~~"App unterstützen" screen: three consumable tips~~ — retired
+      18.09.2026 before the first paid build: the payer is a parent,
+      and a parent has Pro (yearly with a free week, or lifetime).
+      StoreKit 2 — `SchulportalMobile/Store/`, `Docs/MONETIZATION.md`.
 - [ ] Gratitude bundle: alternate app icons, accent-colour themes,
       supporter quote pack, confetti when the last homework is ticked.
 - [x] Alternate app icons — SHIPPED 01.09.2026 as a free choice under

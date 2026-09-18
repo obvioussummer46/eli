@@ -1,8 +1,8 @@
 import SwiftUI
 import UIKit
 
-/// App-Symbol: the free ones, the school's own, the tip thank-you, and the
-/// paid packs — every pack visible, locked ones one tap from the paywall.
+/// App-Symbol: the free ones, the school's own, the paid packs and the Pro
+/// thank-you — every pack visible, locked ones one tap from the paywall.
 struct AppIconPickerView: View {
     @Environment(AppModel.self) private var model
     @Environment(Store.self) private var store
@@ -48,18 +48,14 @@ struct AppIconPickerView: View {
             }
 
             Section {
-                grid([AppIconCatalog.supporter], locked: !store.entitlements.hasTipped)
-                if !store.entitlements.hasTipped {
-                    NavigationLink {
-                        SupportView()
-                    } label: {
-                        Label("Mit einem Trinkgeld freischalten", systemImage: "heart")
-                    }
-                }
+                grid([AppIconCatalog.supporter], locked: !store.entitlements.isPro)
             } header: {
-                Text("Unterstützer")
+                HStack {
+                    Text("Unterstützer")
+                    if !store.entitlements.isPro { ProBadge() }
+                }
             } footer: {
-                Text("Das Dankeschön für jedes Trinkgeld, egal wie klein.")
+                Text("Das Dankeschön für alle mit \(Brand.pro). Nicht einzeln zu kaufen.")
             }
         }
         .navigationTitle("App-Symbol")
@@ -134,7 +130,6 @@ struct AppIconPickerView: View {
 
     private func select(_ option: AppIconOption, locked: Bool) {
         if locked {
-            if option.id == AppIconCatalog.supporter.id { return }
             isShowingPaywall = true
             return
         }

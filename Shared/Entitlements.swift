@@ -5,23 +5,12 @@ import WidgetKit
 /// the one thing that can never change once a product is live, so they are
 /// spelled out here once and nowhere else.
 enum ProductID: String, CaseIterable {
-    case tipSmall = "de.schulportalmobile.app.tip.small"
-    case tipMedium = "de.schulportalmobile.app.tip.medium"
-    case tipLarge = "de.schulportalmobile.app.tip.large"
-    case widgetPack = "de.schulportalmobile.app.widgets.pack"
     case iconsClassic = "de.schulportalmobile.app.icons.classic"
     case iconsSeasonal = "de.schulportalmobile.app.icons.seasonal"
     case iconsStyles1 = "de.schulportalmobile.app.icons.styles1"
     case iconsStyles2 = "de.schulportalmobile.app.icons.styles2"
     case proLifetime = "de.schulportalmobile.app.pro.lifetime"
     case proYearly = "de.schulportalmobile.app.pro.yearly"
-
-    var isTip: Bool {
-        switch self {
-        case .tipSmall, .tipMedium, .tipLarge: true
-        default: false
-        }
-    }
 
     var isPro: Bool { self == .proLifetime || self == .proYearly }
 
@@ -42,17 +31,18 @@ enum ProductID: String, CaseIterable {
 /// actually branch on. Written by the app after every StoreKit check, read
 /// by the widget extension — which has no StoreKit of its own and must never
 /// need one.
+///
+/// Two lanes only: Pro (yearly or lifetime) unlocks every feature and every
+/// icon pack, current and future; a single icon pack unlocks itself. There
+/// is no third thing to explain — the widget pack and the tip jar were
+/// retired before the first paid build, see `Docs/MONETIZATION.md`.
 struct Entitlements: Codable, Equatable {
     var isPro = false
-    var hasWidgetPack = false
     var ownedIconPacks: Set<String> = []
-    /// Consumables never show up in `Transaction.currentEntitlements`, so
-    /// the thank-you state is remembered here once and kept across refreshes.
-    var hasTipped = false
     var updatedAt: Date?
 
-    /// The premium widgets come with the widget pack *or* Pro.
-    var unlocksPremiumWidgets: Bool { isPro || hasWidgetPack }
+    /// The premium widgets are a Pro feature, nothing else sells them.
+    var unlocksPremiumWidgets: Bool { isPro }
 
     func owns(iconPack id: String) -> Bool {
         isPro || ownedIconPacks.contains(id)
@@ -61,7 +51,8 @@ struct Entitlements: Codable, Equatable {
 
 /// Atomic JSON in the App Group container, next to the widget snapshot —
 /// the same degrade-silently contract: no container, no entitlements, the
-/// free app keeps working.
+/// free app keeps working. Older files may carry keys from retired products
+/// (`hasWidgetPack`, `hasTipped`); `Codable` ignores them.
 enum EntitlementStore {
     static var fileURL: URL? {
         FileManager.default

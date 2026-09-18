@@ -57,7 +57,6 @@ struct MainTabView: View {
     @Environment(AppModel.self) private var model
     @State private var selectedTab: AppTab = .heute
     @State private var isShowingPaywall = false
-    @State private var isShowingTips = false
     @State private var isShowingIconPicker = false
 
     var body: some View {
@@ -99,9 +98,6 @@ struct MainTabView: View {
         // The purchase screens, reachable by URL like the paywall — the App
         // Store review screenshots are captured this way (`simctl` can open
         // a URL but cannot tap through „Mehr“).
-        .sheet(isPresented: $isShowingTips) {
-            NavigationStack { SupportView() }
-        }
         .sheet(isPresented: $isShowingIconPicker) {
             NavigationStack { AppIconPickerView() }
         }
@@ -110,7 +106,6 @@ struct MainTabView: View {
         .onAppear {
             let arguments = ProcessInfo.processInfo.arguments
             if arguments.contains("-shot-paywall") { isShowingPaywall = true }
-            if arguments.contains("-shot-tips") { isShowingTips = true }
             if arguments.contains("-shot-icons") { isShowingIconPicker = true }
         }
         .onOpenURL { url in
@@ -118,10 +113,6 @@ struct MainTabView: View {
             // A locked premium widget: straight to the paywall.
             if url.host == "paywall" {
                 isShowingPaywall = true
-                return
-            }
-            if url.host == "tips" {
-                isShowingTips = true
                 return
             }
             if url.host == "icons" {
